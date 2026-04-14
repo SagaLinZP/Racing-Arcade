@@ -343,15 +343,25 @@ flowchart TD
 
 ## 4.1 赛事数据模型
 
-### 4.1.1 赛事（Event）核心字段
+### 4.1.1 双语内容填写策略
+
+管理后台的双语内容字段（赛事名称、描述、赛制规则等）遵循以下规则：
+
+- 管理员在编辑表单顶部可切换当前填写语言（中文 / 英文）
+- 切换后，表单中所有双语字段切换为对应语言的输入区域
+- **发布条件**：至少完成一种语言的所有必填字段即可发布，不要求中英文全部填写完毕
+- 管理员可在发布后随时补全另一种语言的内容
+- 前台展示逻辑：优先展示用户偏好语言的版本，若该语言未录入则降级展示另一语言版本（见 3.2.2）
+
+### 4.1.2 赛事（Event）核心字段
+
+> **双语字段标记说明**：标记为 `中/英` 的字段，至少填写一种语言即可发布。
 
 | 字段名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
 | id | UUID | 自动 | 赛事唯一标识 |
-| name_zh | String | 是 | 赛事名称（中文） |
-| name_en | String | 是 | 赛事名称（英文） |
-| description_zh | RichText | 否 | 赛事描述（中文） |
-| description_en | RichText | 否 | 赛事描述（英文） |
+| name_zh / name_en | String | 是（至少一种） | 赛事名称（中/英） |
+| description_zh / description_en | RichText | 否 | 赛事描述（中/英） |
 | cover_image | URL | 否 | 赛事封面图片 |
 | game | Enum | 是 | 游戏平台（ACC PC / ACC Crossplay / AC Evo PC / iRacing PC / LMU PC / AMS2 PC 等） |
 | track | String | 是 | 赛道名称 |
@@ -375,46 +385,40 @@ flowchart TD
 | registration_close_at | DateTime | 是 | 报名截止时间 |
 | cancel_registration_deadline | DateTime | 否 | 允许车手取消报名的截止时间 |
 | event_start_time | DateTime | 是 | 比赛开始时间（UTC） |
-| status | Enum | 自动 | 赛事状态（见 4.3） |
+| status | Enum | 自动 | 赛事状态（见 4.4） |
 | access_requirements | String | 否 | 准入条件描述（自由文本，如"需阅读规则并确认"） |
-| rules_zh | RichText | 否 | 赛制规则（中文） |
-| rules_en | RichText | 否 | 赛制规则（英文） |
+| rules_zh / rules_en | RichText | 否 | 赛制规则（中/英） |
 | server_info | String | 否 | 服务器名称 / 密码（赛事开始前可见） |
 | server_join_link | URL | 否 | 游戏直连链接（赛事开始前可见） |
 | stream_url | URL | 否 | 直播嵌入链接 |
 | vod_url | URL | 否 | 赛后回放链接 |
-| scoring_rules | RichText | 否 | 积分规则描述（自由文本） |
+| scoring_rules_zh / scoring_rules_en | RichText | 否 | 积分规则描述（中/英） |
 | created_by | UUID | 自动 | 创建者管理员 ID |
 | created_at | DateTime | 自动 | 创建时间 |
 | updated_at | DateTime | 自动 | 最后更新时间 |
 
-### 4.1.2 锦标赛（Championship）扩展字段
+### 4.1.3 锦标赛（Championship）扩展字段
 
 锦标赛由多轮赛事组成，每轮可含一场或多场比赛。
 
 | 字段名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
 | id | UUID | 自动 | 锦标赛唯一标识 |
-| name_zh | String | 是 | 锦标赛名称（中文） |
-| name_en | String | 是 | 锦标赛名称（英文） |
-| description_zh | RichText | 否 | 锦标赛描述（中文） |
-| description_en | RichText | 否 | 锦标赛描述（英文） |
+| name_zh / name_en | String | 是（至少一种） | 锦标赛名称（中/英） |
+| description_zh / description_en | RichText | 否 | 锦标赛描述（中/英） |
 | cover_image | URL | 否 | 锦标赛封面图片 |
 | regions | Enum[] | 是 | 发布区域 |
 | rounds | Round[] | 是 | 轮次列表 |
-| scoring_rules_zh | RichText | 是 | 积分规则（中文） |
-| scoring_rules_en | RichText | 是 | 积分规则（英文） |
-| progression_rules_zh | RichText | 否 | 晋级/淘汰规则（中文） |
-| progression_rules_en | RichText | 否 | 晋级/淘汰规则（英文） |
+| scoring_rules_zh / scoring_rules_en | RichText | 是（至少一种） | 积分规则（中/英） |
+| progression_rules_zh / progression_rules_en | RichText | 否 | 晋级/淘汰规则（中/英） |
 
-### 4.1.3 轮次（Round）
+### 4.1.4 轮次（Round）
 
 | 字段名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
 | id | UUID | 自动 | 轮次唯一标识 |
 | round_number | Integer | 是 | 轮次序号 |
-| name_zh | String | 是 | 轮次名称（中文），如"第 1 站 - 蒙扎" |
-| name_en | String | 是 | 轮次名称（英文） |
+| name_zh / name_en | String | 是（至少一种） | 轮次名称（中/英），如"第 1 站 - 蒙扎" |
 | event_ids | UUID[] | 是 | 包含的赛事 ID 列表（一轮可多场比赛） |
 | status | Enum | 自动 | 轮次状态 |
 
@@ -436,7 +440,7 @@ flowchart TD
     E --> F[配置多 Split<br/>是否启用/分组规则/人数上限]
     F --> G[设定发布区域<br/>单区域/多区域/全球]
     G --> H[设定报名/比赛时间]
-    H --> I[填写准入条件<br/>和赛制规则<br/>中英双语]
+    H --> I[填写准入条件<br/>和赛制规则<br/>当前语言版本]
     I --> J[配置直播链接<br/>可选]
     J --> K[预览赛事]
     
@@ -445,7 +449,9 @@ flowchart TD
     L -->|确认| M[保存为草稿]
     
     M --> N{立即发布?}
-    N -->|是| O[状态变为'待发布']
+    N -->|是| N1{至少一种语言<br/>必填字段已完整?}
+    N1 -->|是| O[状态变为'待发布']
+    N1 -->|否| N2[提示补充必填字段]
     N -->|否| P[保存为草稿<br/>后续手动发布]
 ```
 
@@ -453,19 +459,22 @@ flowchart TD
 
 1. 管理员在后台点击"创建赛事"
 2. 选择创建方式：空白创建 / 从模板创建 / 复制已有赛事
-3. 填写基础信息（赛事名称中英文、描述、封面图）
-4. 设定游戏平台、赛道、车型组
-5. 设定赛制参数（练习/排位/正赛时长、天气、是否进站）
-6. 配置多 Split 选项
+3. 在表单顶部选择当前填写语言（中文 / 英文），切换后所有双语字段显示对应语言的输入区域
+4. 填写基础信息（赛事名称、描述、封面图）—— 仅填写当前语言版本即可
+5. 设定游戏平台、赛道、车型组
+6. 设定赛制参数（练习/排位/正赛时长、天气、是否进站）
+7. 配置多 Split 选项
    - 是否启用自动 Split
    - 单服务器最大人数
    - 分组规则（按实力/随机/手动/先到先得）
-7. 选择发布区域（CN / AP / AM / EU，可多选或全选）
-8. 设定报名开始/截止时间、取消报名截止时间、比赛开始时间
-9. 填写准入条件和赛制规则（中英双语）
-10. 配置直播链接（可选）
-11. 预览赛事信息
-12. 确认后保存为草稿或立即发布
+8. 选择发布区域（CN / AP / AM / EU，可多选或全选）
+9. 设定报名开始/截止时间、取消报名截止时间、比赛开始时间
+10. 填写准入条件和赛制规则（当前语言版本）
+11. 配置直播链接（可选）
+12. 预览赛事信息
+13. 确认后保存为草稿或立即发布
+    - 发布时校验：至少一种语言的所有必填字段已填写
+    - 另一种语言的内容可后续随时补全（编辑已发布赛事时切换语言填写）
 
 ## 4.3 赛事状态流转
 
@@ -1310,19 +1319,19 @@ flowchart TD
 
 ### 11.3.2 文章数据字段
 
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| article_id | UUID | 文章唯一标识 |
-| title_zh | String | 标题（中文） |
-| title_en | String | 标题（英文） |
-| content_zh | RichText | 正文（中文） |
-| content_en | RichText | 正文（英文） |
-| cover_image | URL | 封面图 |
-| category | Enum | 分类 |
-| regions | Enum[] | 展示区域 |
-| is_pinned | Boolean | 是否置顶 |
-| published_at | DateTime | 发布时间 |
-| author | String | 作者 |
+> 同赛事双语策略（见 4.1.1），至少填写一种语言即可发布。
+
+| 字段名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| article_id | UUID | 自动 | 文章唯一标识 |
+| title_zh / title_en | String | 是（至少一种） | 标题（中/英） |
+| content_zh / content_en | RichText | 是（至少一种） | 正文（中/英） |
+| cover_image | URL | 否 | 封面图 |
+| category | Enum | 是 | 分类 |
+| regions | Enum[] | 是 | 展示区域 |
+| is_pinned | Boolean | 否 | 是否置顶 |
+| published_at | DateTime | 自动 | 发布时间 |
+| author | String | 否 | 作者 |
 
 ### 11.3.3 展示位置
 
