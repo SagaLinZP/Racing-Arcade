@@ -378,6 +378,7 @@ flowchart TD
 | race_duration | Integer | 否 | 正赛时长（分钟）或圈数 |
 | race_duration_type | Enum | 否 | 时长制 / 圈数制 |
 | max_entries_per_split | Integer | 是 | 单 Split 最大参赛人数 |
+| max_splits | Integer | 否 | 最大 Split 数（服务器资源上限）。为空表示不限制。总容量 = max_splits × max_entries_per_split，超出后拒绝新报名 |
 | enable_multi_split | Boolean | 是 | 是否启用多 Split |
 | split_assignment_rule | Enum | 否 | 分组规则（按实力 / 随机 / 手动 / 先到先得） |
 | min_entries | Integer | 否 | 最低开赛人数阈值 |
@@ -535,11 +536,23 @@ stateDiagram-v2
 |--------|------|------|
 | 启用多 Split | Boolean | 开关，是否启用自动多 Split |
 | 单 Split 最大人数 | Integer | 每个服务器容纳的最大车手数，取决于游戏和赛道 |
+| 最大 Split 数 | Integer | 服务器资源上限。总报名容量 = 最大 Split 数 × 单 Split 最大人数。报名人数达到总容量后拒绝新报名。为空表示不限制 |
 | 分组规则 | Enum | 按实力 / 随机 / 手动 / 先到先得 |
 | 允许车手自选 Split | Boolean | 仅在"先到先得"模式下可选 |
 | 各 Split 时间安排 | Option | 同时并行 / 错开时间 |
 
-### 4.5.3 Split 分组流程
+### 4.5.3 报名容量控制
+
+启用多 Split 时，报名人数上限为：
+
+> **总容量 = max_splits × max_entries_per_split**
+
+- 若未设置 max_splits（为空），则不限制报名人数，Split 数量随报名人数自动扩展
+- 若设置了 max_splits，报名人数达到总容量后，新用户无法报名，报名按钮变为"名额已满"
+- 报名页面实时显示："当前已报名 X / Y 人（Z 个服务器）"
+- 车手取消报名后释放名额，后续候补或新用户可继续报名
+
+### 4.5.4 Split 分组流程
 
 ```mermaid
 flowchart TD
@@ -562,13 +575,13 @@ flowchart TD
     I --> J[通知车手分组信息]
 ```
 
-### 4.5.4 Split 信息展示
+### 4.5.5 Split 信息展示
 
-- 报名页面实时显示："当前已报名 X 人，预计分配到 X 个服务器"
+- 报名页面实时显示："当前已报名 X / Y 人（Z 个服务器）"，其中 Y = max_splits × max_entries_per_split
 - 分组公布后，车手在赛事详情页看到自己所在的 Split 编号
 - 每个 Split 独立展示：参赛名单、服务器信息、比赛时间、成绩
 
-### 4.5.5 边缘情况处理
+### 4.5.6 边缘情况处理
 
 | 边缘情况 | 处理方案 |
 |---------|---------|
@@ -577,8 +590,10 @@ flowchart TD
 | 按实力分组时部分车手无历史成绩（新用户） | 新用户默认分配到最后一个 Split（最弱组），管理员可手动调整 |
 | 锦标赛不同赛事分组可能变化 | 每场赛事独立重新分组 |
 | 并行 Split 成绩如何统一排名 | 由管理员在赛制规则中说明（各 Split 独立积分 / 按 Split 系数折算等），平台不做强制约束 |
-| 管理员在报名进行中修改 Split 配置 | 系统弹出确认提示"修改将影响已报名车手的分组，是否继续？"，修改后需要重新计算预计 Split 数 |
+| 管理员在报名进行中修改 Split 配置 | 系统弹出确认提示"修改将影响已报名车手的分组，是否继续？"，修改后需要重新计算预计 Split 数。若缩小 max_splits 导致总容量低于当前已报名人数，不允许修改 |
 | 自选 Split 模式下某 Split 已满 | 该 Split 不再可选，车手只能选择未满的 Split |
+| 未设置 max_splits（为空） | 不限制报名人数，Split 数量无上限，随报名人数自动扩展 |
+| max_splits = 1 且报名已满 | 等同于未启用多 Split 的人数上限，报名按钮显示"名额已满" |
 
 ## 4.6 赛事准入门槛
 
