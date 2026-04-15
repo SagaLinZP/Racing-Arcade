@@ -1,0 +1,113 @@
+import { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useApp } from '@/hooks/useAppStore'
+import { drivers } from '@/data/drivers'
+import { cn } from '@/lib/utils'
+import { Trophy, Medal, Flag, BarChart3 } from 'lucide-react'
+
+type TabType = 'points' | 'wins' | 'entries' | 'podiums'
+
+export function LeaderboardPage() {
+  const { t } = useTranslation()
+  const { state } = useApp()
+  const lang = state.language
+  const [activeTab, setActiveTab] = useState<TabType>('points')
+  const [timeFilter, setTimeFilter] = useState<string>('allTime')
+  const [gameFilter, setGameFilter] = useState<string>('all')
+  const [regionFilter, setRegionFilter] = useState<string>('all')
+
+  const tabs: { key: TabType; label: string; icon: typeof Trophy }[] = [
+    { key: 'points', label: t('leaderboard.totalPoints'), icon: Trophy },
+    { key: 'wins', label: t('leaderboard.wins'), icon: Medal },
+    { key: 'entries', label: t('leaderboard.entries'), icon: Flag },
+    { key: 'podiums', label: t('leaderboard.podiums'), icon: BarChart3 },
+  ]
+
+  const sorted = useMemo(() => {
+    let result = [...drivers]
+    if (regionFilter !== 'all') result = result.filter(d => d.region === regionFilter)
+    const key = activeTab === 'points' ? 'totalPoints' : activeTab
+    result.sort((a, b) => (b[key as keyof typeof b] as number) - (a[key as keyof typeof a] as number))
+    return result
+  }, [drivers, activeTab, regionFilter])
+
+  const getValue = (d: typeof drivers[0]) => {
+    switch (activeTab) {
+      case 'points': return d.totalPoints
+      case 'wins': return d.wins
+      case 'entries': return d.totalEntries
+      case 'podiums': return d.podiums
+    }
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">{t('leaderboard.title')}</h1>
+
+      <div className="flex flex-wrap gap-2 mb-6">
+        {tabs.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={cn('flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+              activeTab === tab.key ? 'bg-primary text-primary-foreground' : 'bg-accent text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <tab.icon className="w-4 h-4" /> {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex gap-3 mb-6">
+        <select value={timeFilter} onChange={e => setTimeFilter(e.target.value)} className="px-3 py-2 bg-accent border border-border rounded-lg text-sm">
+          <option value="allTime">{t('leaderboard.allTime')}</option>
+          <option value="season">{t('leaderboard.season')}</option>
+        </select>
+        <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)} className="px-3 py-2 bg-accent border border-border rounded-lg text-sm">
+          <option value="all">{t('events.filters.allRegions')}</option>
+          <option value="CN">{t('region.CN')}</option>
+          <option value="AP">{t('region.AP')}</option>
+          <option value="AM">{t('region.AM')}</option>
+          <option value="EU">{t('region.EU')}</option>
+        </select>
+      </div>
+
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-muted-foreground text-xs border-b border-border">
+              <th className="text-left py-3 px-4 w-16">{t('leaderboard.rank')}</th>
+              <th className="text-left py-3 px-4">{t('leaderboard.driver')}</th>
+              <th className="text-left py-3 px-4 hidden md:table-cell">{t('leaderboard.region')}</th>
+              <th className="text-right py-3 px-4">{t('leaderboard.value')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((d, i) => (
+              <tr key={d.id} className="border-b border-border/50 hover:bg-accent/50">
+                <td className="py-3 px-4">
+                  <span className={cn('font-bold',
+                    i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-amber-600' : 'text-muted-foreground'
+                  )}>
+                    {i + 1}
+                  </span>
+                </td>
+                <td className="py-3 px-4">
+                  <Link to={`/driver/${d.id}`} className="flex items-center gap-3 hover:text-primary transition-colors">
+                    <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-primary text-sm font-bold">{d.nickname[0]}</div>
+                    <span className="font-medium">{d.nickname}</span>
+                  </Link>
+                </td>
+                <td className="py-3 px-4 text-muted-foreground hidden md:table-cell">
+                  <span className="px-2 py-0.5 bg-accent rounded text-xs">{d.country}</span>
+                </td>
+                <td className="py-3 px-4 text-right font-bold">{getValue(d)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}

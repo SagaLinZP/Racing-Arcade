@@ -1,0 +1,180 @@
+import { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useApp } from '@/hooks/useAppStore'
+import { events } from '@/data/events'
+import { cn } from '@/lib/utils'
+import { ChevronLeft, ChevronRight, List, Grid3X3, CalendarDays } from 'lucide-react'
+
+const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const DAYS_ZH = ['日', '一', '二', '三', '四', '五', '六']
+
+const gameColors: Record<string, string> = {
+  'ACC PC': 'bg-orange-500',
+  'ACC Crossplay': 'bg-orange-400',
+  'AC Evo PC': 'bg-blue-500',
+  'iRacing PC': 'bg-green-500',
+  'LMU PC': 'bg-purple-500',
+  'AMS2 PC': 'bg-cyan-500',
+}
+
+export function CalendarPage() {
+  const { t } = useTranslation()
+  const { state } = useApp()
+  const lang = state.language
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month')
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1))
+  const [gameFilter, setGameFilter] = useState<string[]>([])
+  const [myEventsOnly, setMyEventsOnly] = useState(false)
+
+  const days = lang === 'zh' ? DAYS_ZH : DAYS_EN
+
+  const filteredEvents = useMemo(() => {
+    return events.filter(e => {
+      if (gameFilter.length > 0 && !gameFilter.includes(e.game)) return false
+      if (myEventsOnly && !e.registeredDriverIds.includes(state.currentUser?.id || '')) return false
+      return true
+    })
+  }, [events, gameFilter, myEventsOnly, state.currentUser])
+
+  const getEventsForDate = (date: Date) => {
+    return filteredEvents.filter(e => {
+      const eventDate = new Date(e.eventStartTime)
+      return eventDate.getFullYear() === date.getFullYear() &&
+        eventDate.getMonth() === date.getMonth() &&
+        eventDate.getDate() === date.getDate()
+    })
+  }
+
+  const getCalendarDays = () => {
+    const year = currentDate.getFullYear()
+    const month = currentDate.getMonth()
+    const firstDay = new Date(year, month, 1).getDay()
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+    const daysArray: (number | null)[] = []
+    for (let i = 0; i < firstDay; i++) daysArray.push(null)
+    for (let i = 1; i <= daysInMonth; i++) daysArray.push(i)
+    return daysArray
+  }
+
+  const navigateMonth = (dir: number) => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + dir, 1))
+  }
+
+  const monthName = currentDate.toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'long' })
+
+  const toggleGame = (game: string) => {
+    setGameFilter(prev => prev.includes(game) ? prev.filter(g => g !== game) : [...prev, game])
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">{t('calendar.title')}</h1>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setViewMode('month')} className={cn('px-3 py-1.5 rounded-lg text-sm', viewMode === 'month' ? 'bg-primary text-primary-foreground' : 'bg-accent text-muted-foreground')}><Grid3X3 className="w-4 h-4" /></button>
+          <button onClick={() => setViewMode('list')} className={cn('px-3 py-1.5 rounded-lg text-sm', viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-accent text-muted-foreground')}><List className="w-4 h-4" /></button>
+        </div>
+      </div>
+
+      {/* Game Filter */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {Object.keys(gameColors).map(g => (
+          <button
+            key={g}
+            onClick={() => toggleGame(g)}
+            className={cn('px-3 py-1 rounded-full text-xs font-medium border transition-colors',
+              gameFilter.includes(g) ? 'border-primary text-primary bg-primary/10' : 'border-border text-muted-foreground hover:border-primary/50'
+            )}
+          >
+            {g}
+          </button>
+        ))}
+        {state.isLoggedIn && (
+          <button
+            onClick={() => setMyEventsOnly(!myEventsOnly)}
+            className={cn('px-3 py-1 rounded-full text-xs font-medium border transition-colors',
+              myEventsOnly ? 'border-primary text-primary bg-primary/10' : 'border-border text-muted-foreground hover:border-primary/50'
+            )}
+          >
+            {t('calendar.myEventsOnly')}
+          </button>
+        )}
+      </div>
+
+      {viewMode === 'month' ? (
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={() => navigateMonth(-1)} className="p-2 hover:bg-accent rounded-lg"><ChevronLeft className="w-5 h-5" /></button>
+            <h2 className="text-lg font-bold">{monthName}</h2>
+            <button onClick={() => navigateMonth(1)} className="p-2 hover:bg-accent rounded-lg"><ChevronRight className="w-5 h-5" /></button>
+          </div>
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="grid grid-cols-7">
+              {days.map(d => (
+                <div key={d} className="px-2 py-3 text-center text-xs font-semibold text-muted-foreground border-b border-border">{d}</div>
+              ))}
+              {getCalendarDays().map((day, idx) => {
+                if (day === null) return <div key={`empty-${idx}`} className="min-h-24 border-b border-r border-border p-1" />
+                const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
+                const dayEvents = getEventsForDate(date)
+                const isToday = new Date().toDateString() === date.toDateString()
+                return (
+                  <div key={day} className={cn('min-h-24 border-b border-r border-border p-1', isToday && 'bg-primary/5')}>
+                    <div className={cn('text-xs font-medium mb-1 px-1', isToday && 'text-primary font-bold')}>{day}</div>
+                    <div className="space-y-0.5">
+                      {dayEvents.slice(0, 3).map(e => (
+                        <Link
+                          key={e.id}
+                          to={`/events/${e.id}`}
+                          className={cn('block px-1.5 py-0.5 rounded text-[10px] text-white truncate hover:opacity-80', gameColors[e.game] || 'bg-gray-500')}
+                        >
+                          {lang === 'zh' ? e.name_zh : e.name_en}
+                        </Link>
+                      ))}
+                      {dayEvents.length > 3 && (
+                        <span className="text-[10px] text-muted-foreground px-1">+{dayEvents.length - 3} more</span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="space-y-2">
+          {filteredEvents
+            .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
+            .map(e => (
+              <Link
+                key={e.id}
+                to={`/events/${e.id}`}
+                className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/30 transition-colors"
+              >
+                <div className="w-16 text-center">
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(e.eventStartTime).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { weekday: 'short' })}
+                  </div>
+                  <div className="text-xl font-bold">{new Date(e.eventStartTime).getDate()}</div>
+                </div>
+                <div className={cn('w-1 h-10 rounded-full', gameColors[e.game] || 'bg-gray-500')} />
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-sm truncate">{lang === 'zh' ? e.name_zh : e.name_en}</h3>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                    <span>{e.track}</span>
+                    <span>·</span>
+                    <span>{e.carClass}</span>
+                  </div>
+                </div>
+                <div className="text-right text-xs text-muted-foreground">
+                  <div>{new Date(e.eventStartTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
+                  <div className={cn('px-1.5 py-0.5 rounded text-[10px] text-white mt-1', gameColors[e.game])}>{e.game}</div>
+                </div>
+              </Link>
+            ))}
+        </div>
+      )}
+    </div>
+  )
+}
