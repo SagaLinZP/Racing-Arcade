@@ -353,7 +353,26 @@ flowchart TD
 - 管理员可在发布后随时补全另一种语言的内容
 - 前台展示逻辑：优先展示用户偏好语言的版本，若该语言未录入则降级展示另一语言版本（见 3.2.2）
 
-### 4.1.2 赛事（Event）核心字段
+### 4.1.2 区域默认时区
+
+管理员创建赛事时，系统根据赛事所属区域自动填充默认时区，方便管理员快速填写比赛时间。管理员可手动覆盖为其他时区。
+
+| 区域 | 默认时区 | IANA 标识 | 说明 |
+|------|---------|-----------|------|
+| CN（中国区） | UTC+8 | Asia/Shanghai | 中国统一使用北京时间 |
+| AP（亚太区） | UTC+9 | Asia/Tokyo | 日韩为主要市场，+9 是亚太最集中的时区 |
+| AM（美洲区） | UTC-5 | America/New_York | 美东时间，覆盖北美东部主要城市 |
+| EU（欧非区） | UTC+1 | Europe/Berlin | 中欧时间，覆盖西欧和大部分欧洲国家 |
+
+**时区相关规则**：
+
+- 所有时间在数据库中以 **UTC** 存储和传输
+- 管理员在后台创建/编辑赛事时，时间选择器默认显示该区域的默认时区，管理员可切换为其他时区
+- 前台对车手展示时自动转换为车手本地时区（根据设备/浏览器时区），同时标注赛事所在时区的时间
+- 赛事发布到多个区域时，管理员填写时间时以第一个选中区域的默认时区为准，可手动调整
+- 夏令时（DST）处理：使用 IANA 时区数据库自动计算，管理员无需手动处理
+
+### 4.1.3 赛事（Event）核心字段
 
 > **双语字段标记说明**：标记为 `中/英` 的字段，至少填写一种语言即可发布。
 
@@ -386,7 +405,7 @@ flowchart TD
 | registration_close_at | DateTime | 是 | 报名截止时间 |
 | cancel_registration_deadline | DateTime | 否 | 允许车手取消报名的截止时间 |
 | event_start_time | DateTime | 是 | 比赛开始时间（UTC） |
-| status | Enum | 自动 | 赛事状态（见 4.4） |
+| status | Enum | 自动 | 赛事状态（见 4.3） |
 | access_requirements | String | 否 | 准入条件描述（自由文本，如"需阅读规则并确认"） |
 | rules_zh / rules_en | RichText | 否 | 赛制规则（中/英） |
 | server_info | String | 否 | 服务器名称 / 密码（赛事开始前可见） |
@@ -398,7 +417,7 @@ flowchart TD
 | created_at | DateTime | 自动 | 创建时间 |
 | updated_at | DateTime | 自动 | 最后更新时间 |
 
-### 4.1.3 锦标赛（Championship）扩展字段
+### 4.1.4 锦标赛（Championship）扩展字段
 
 锦标赛由多轮赛事组成，每轮可含一场或多场比赛。
 
@@ -415,7 +434,7 @@ flowchart TD
 | scoring_rules_zh / scoring_rules_en | RichText | 是（至少一种） | 积分规则（中/英） |
 | progression_rules_zh / progression_rules_en | RichText | 否 | 晋级/淘汰规则（中/英） |
 
-### 4.1.4 赛事（Event）关联锦标赛
+### 4.1.5 赛事（Event）关联锦标赛
 
 赛事可选择归属于某个锦标赛。归属后：
 
