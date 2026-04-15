@@ -942,7 +942,7 @@ flowchart TD
 | best_lap | String | 最快单圈时间 |
 | laps_completed | Integer | 完成圈数 |
 | gap_to_leader | String | 与领先者的差距 |
-| status | Enum | 完赛 / DNF / DNS / DSQ |
+| status | Enum | 完赛 / DNF（未完赛） / DNS（未开始） / DSQ（取消资格） |
 | penalty | String | 罚时说明（如有） |
 | points | Integer | 获得积分 |
 
@@ -1004,12 +1004,10 @@ flowchart TD
     C --> D[选择抗议类型]
     
     D --> D1[危险驾驶]
-    D --> D2[故意碰撞]
-    D --> D3[切弯获益]
-    D --> D4[阻挡]
-    D --> D5[其他]
+    D --> D2[多次变线]
+    D --> D3[其他]
     
-    D1 & D2 & D3 & D4 & D5 --> E[填写详细描述]
+    D1 & D2 & D3 --> E[填写详细描述]
     E --> F[上传证据<br/>截图/视频链接]
     F --> G[选择发生圈数<br/>和具体位置]
     G --> H[确认提交]
@@ -1157,7 +1155,6 @@ flowchart TD
 |--------|------|------|
 | team_id | UUID | 车队唯一标识 |
 | name | String | 车队名称（唯一） |
-| short_name | String | 车队缩写（如 3-4 字母，用于排名展示） |
 | logo | URL | 车队 Logo |
 | description | String | 车队简介 |
 | captain_id | UUID | 队长用户 ID |
@@ -1238,7 +1235,7 @@ flowchart TD
 
 ## 9.5 车队公开页面
 
-- URL 格式：`/team/{short_name}`
+- URL 格式：`/team/{team_id}`
 - 展示：车队名称、Logo、简介、成员列表、参赛历史、成绩统计
 - 所有用户可查看
 
