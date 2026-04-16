@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 import {
   Trophy, MapPin, Clock, ChevronDown, ChevronUp, Users, Shield,
   Play, Download, Flag, Cloud, Wrench, Server, Wifi, CheckCircle,
-  Radio, AlertTriangle, Calendar,
+  Radio, AlertTriangle, Calendar, BarChart3,
 } from 'lucide-react'
 
 function CollapsibleSection({
@@ -44,6 +44,171 @@ function CollapsibleSection({
         {open ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
       </button>
       {open && <div className="px-5 pb-5">{children}</div>}
+    </div>
+  )
+}
+
+function ResultsTab({
+  chEvents,
+  lang,
+  t,
+  resultsEventFilter,
+  setResultsEventFilter,
+  resultsSession,
+  setResultsSession,
+}: {
+  chEvents: typeof events
+  lang: 'en' | 'zh'
+  t: (key: string) => string
+  resultsEventFilter: string
+  setResultsEventFilter: (v: string) => void
+  resultsSession: 'race' | 'qualifying'
+  setResultsSession: (v: 'race' | 'qualifying') => void
+}) {
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!dropdownOpen) return
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [dropdownOpen])
+
+  const eventsWithResults = chEvents.filter(e => e.results && e.results.length > 0)
+
+  const filteredResults = (() => {
+    const targetEvent = eventsWithResults.find(e => e.id === resultsEventFilter)
+    if (!targetEvent) return []
+    const allResults = (targetEvent.results || []).map(r => ({ ...r, eventId: targetEvent.id }))
+    if (resultsSession === 'qualifying') {
+      return [...allResults]
+        .filter(r => r.bestLap)
+        .sort((a, b) => a.bestLap.localeCompare(b.bestLap))
+    }
+    return allResults.sort((a, b) => a.position - b.position)
+  })()
+
+  const getDriverName = (driverId: string) => drivers.find(d => d.id === driverId)?.nickname || driverId
+  const getTeamName = (teamId?: string) => teamId ? teams.find(t2 => t2.id === teamId)?.name || '' : ''
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="w-64 flex items-center justify-between rounded-lg border border-border bg-card pl-3 pr-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer hover:bg-accent transition-colors"
+          >
+            <span className="truncate">
+              {(() => { const ev = eventsWithResults.find(e => e.id === resultsEventFilter); return ev ? (lang === 'zh' ? ev.name_zh : ev.name_en) : '' })()}
+            </span>
+            <ChevronDown className={cn('w-4 h-4 text-muted-foreground shrink-0 transition-transform', dropdownOpen && 'rotate-180')} />
+          </button>
+          {dropdownOpen && (
+            <div className="absolute z-20 mt-1 w-full rounded-lg border border-border bg-card shadow-xl shadow-black/40 py-1 max-h-64 overflow-y-auto">
+              {eventsWithResults.map(e => (
+                <button
+                  key={e.id}
+                  onClick={() => { setResultsEventFilter(e.id); setDropdownOpen(false) }}
+                  className={cn(
+                    'w-full text-left px-3 py-2 text-sm transition-colors',
+                    resultsEventFilter === e.id ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-accent'
+                  )}
+                >
+                  {lang === 'zh' ? e.name_zh : e.name_en}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="flex rounded-lg border border-border overflow-hidden">
+          <button
+            onClick={() => setResultsSession('race')}
+            className={cn(
+              'px-3 py-2 text-sm font-medium transition-colors',
+              resultsSession === 'race' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'
+            )}
+          >
+            {t('championships.resultsSessionRace')}
+          </button>
+          <button
+            onClick={() => setResultsSession('qualifying')}
+            className={cn(
+              'px-3 py-2 text-sm font-medium transition-colors',
+              resultsSession === 'qualifying' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'
+            )}
+          >
+            {t('championships.resultsSessionQualifying')}
+          </button>
+        </div>
+      </div>
+
+      {filteredResults.length === 0 ? (
+        <div className="bg-card border border-border rounded-xl p-8 text-center text-muted-foreground text-sm">
+          {t('championships.resultsNoData')}
+        </div>
+      ) : (
+        <div className="-mx-4 md:-mx-8 lg:-mx-16 xl:-mx-24 overflow-x-auto">
+          <div className="min-w-[800px] bg-card border border-border rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-muted-foreground text-xs border-b border-border bg-accent/50">
+                  <th className="text-left py-3 px-3 w-10">#</th>
+                  <th className="text-left py-3 px-3">{t('eventDetail.driver')}</th>
+                  <th className="text-left py-3 px-3 hidden md:table-cell">{lang === 'zh' ? '车队' : 'Team'}</th>
+                  {resultsSession === 'race' && <th className="text-left py-3 px-3 hidden md:table-cell">{t('championships.resultsTotalTime')}</th>}
+                  <th className="text-left py-3 px-3 hidden md:table-cell">{t('championships.resultsLaps')}</th>
+                  <th className="text-left py-3 px-3 hidden lg:table-cell">{t('championships.resultsBestLap')}</th>
+                  {resultsSession === 'race' && <th className="text-left py-3 px-3 hidden lg:table-cell">{t('championships.resultsGap')}</th>}
+                  <th className="text-left py-3 px-3">{t('championships.resultsStatus')}</th>
+                  <th className="text-right py-3 px-4">{t('championships.resultsPoints')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredResults.map((r, idx) => (
+                  <tr key={`${r.eventId}-${r.driverId}-${idx}`} className="border-b border-border/50 hover:bg-accent/50">
+                    <td className="py-2.5 px-3">
+                      <span className={cn(
+                        'font-bold text-sm',
+                        resultsSession === 'race'
+                          ? (r.position === 1 ? 'text-yellow-400' : r.position === 2 ? 'text-gray-300' : r.position === 3 ? 'text-amber-600' : 'text-muted-foreground')
+                          : (idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-gray-300' : idx === 2 ? 'text-amber-600' : 'text-muted-foreground')
+                      )}>
+                        {resultsSession === 'race' ? r.position : idx + 1}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <Link to={`/driver/${r.driverId}`} className="hover:text-primary transition-colors font-medium">{getDriverName(r.driverId)}</Link>
+                    </td>
+                    <td className="py-2.5 px-3 text-muted-foreground hidden md:table-cell">{getTeamName(r.teamId)}</td>
+                    {resultsSession === 'race' && <td className="py-2.5 px-3 font-mono text-xs hidden md:table-cell">{r.totalTime || '-'}</td>}
+                    <td className="py-2.5 px-3 text-xs hidden md:table-cell">{r.lapsCompleted}</td>
+                    <td className="py-2.5 px-3 font-mono text-xs hidden lg:table-cell">{r.bestLap || '-'}</td>
+                    {resultsSession === 'race' && <td className="py-2.5 px-3 font-mono text-xs hidden lg:table-cell">{r.gapToLeader || '-'}</td>}
+                    <td className="py-2.5 px-3">
+                      <span className={cn(
+                        'text-xs px-1.5 py-0.5 rounded',
+                        r.status === 'Finished' ? 'bg-green-500/10 text-green-400' :
+                        r.status === 'DNF' ? 'bg-red-500/10 text-red-400' :
+                        r.status === 'DSQ' ? 'bg-red-500/10 text-red-400' :
+                        'bg-yellow-500/10 text-yellow-400'
+                      )}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-4 text-right font-bold">{r.points}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -116,12 +281,17 @@ export function ChampionshipDetailPage() {
   const [showRulesDialog, setShowRulesDialog] = useState<{ eventId: string; rules: string } | null>(null)
   const [rulesChecked, setRulesChecked] = useState(false)
   const [registeredOverrides, setRegisteredOverrides] = useState<Record<string, boolean>>({})
+  const [activeTab, setActiveTab] = useState<'info' | 'schedule' | 'results'>('info')
+  const [resultsEventFilter, setResultsEventFilter] = useState('')
+  const [resultsSession, setResultsSession] = useState<'race' | 'qualifying'>('race')
 
   const championship = championships.find(c => c.id === id)
   if (!championship) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">{t('common.noData')}</div>
 
   const ch = championship
   const chEvents = events.filter(e => ch.eventIds.includes(e.id))
+  const eventsWithResults = chEvents.filter(e => e.results && e.results.length > 0)
+  const effectiveResultsEventFilter = resultsEventFilter || (eventsWithResults.length > 0 ? eventsWithResults[0].id : '')
   const allResults = chEvents.flatMap(e => e.results || [])
   const standings = Object.entries(
     allResults.reduce<Record<string, number>>((acc, r) => {
@@ -354,15 +524,15 @@ export function ChampionshipDetailPage() {
 
   const nextCapacity = nextRegistrable ? nextRegistrable.maxEntriesPerSplit * (nextRegistrable.maxSplits || 1) : 0
   const nextRegistered = nextRegistrable ? isEventRegistered(nextRegistrable) : false
-  const [activeTab, setActiveTab] = useState<'info' | 'schedule'>('info')
 
   const tabs: { key: typeof activeTab; label: string; icon: typeof Trophy }[] = [
     { key: 'info', label: lang === 'zh' ? '锦标赛信息' : 'Championship Info', icon: Trophy },
     { key: 'schedule', label: lang === 'zh' ? '赛程' : 'Schedule', icon: Calendar },
+    { key: 'results', label: lang === 'zh' ? '成绩' : 'Results', icon: BarChart3 },
   ]
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 py-8 overflow-x-visible">
       <div className="relative rounded-2xl overflow-hidden h-48 md:h-56 mb-8" style={{ background: getCoverGradient(ch.id) }}>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
@@ -395,9 +565,19 @@ export function ChampionshipDetailPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          {activeTab === 'info' ? (
+      <div className={cn('grid gap-8', activeTab === 'results' ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3')}>
+        <div className={cn('space-y-6', activeTab !== 'results' && 'lg:col-span-2')}>
+          {activeTab === 'results' ? (
+            <ResultsTab
+              chEvents={chEvents}
+              lang={lang}
+              t={t}
+              resultsEventFilter={effectiveResultsEventFilter}
+              setResultsEventFilter={setResultsEventFilter}
+              resultsSession={resultsSession}
+              setResultsSession={setResultsSession}
+            />
+          ) : activeTab === 'info' ? (
             <>
               <div className="bg-card border border-border rounded-xl p-5">
                 <p className="text-sm text-muted-foreground">{lang === 'zh' ? ch.description_zh : ch.description_en}</p>
@@ -546,6 +726,7 @@ export function ChampionshipDetailPage() {
           )}
         </div>
 
+        {activeTab !== 'results' && (
         <div className="space-y-4">
           {nextRegistrable && (
             <div className="bg-card border border-border rounded-xl p-5 sticky top-20">
@@ -641,9 +822,8 @@ export function ChampionshipDetailPage() {
             </div>
           )}
         </div>
+        )}
       </div>
-
-      {/* Rules Confirmation Dialog */}
       {showRulesDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-card border border-border rounded-xl p-6 max-w-lg mx-4 w-full">

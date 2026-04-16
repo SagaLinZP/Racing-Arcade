@@ -40,4 +40,8 @@ body {
   :root {
     color-scheme: dark;
   }
+  select option {
+    background-color: var(--color-card);
+    color: var(--color-foreground);
+  }
 }
