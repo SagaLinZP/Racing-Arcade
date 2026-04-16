@@ -38,6 +38,6 @@ export type Region = 'CN' | 'AP' | 'AM' | 'EU'
 
 export type GamePlatform = 'ACC PC' | 'ACC Crossplay' | 'AC Evo PC' | 'iRacing PC' | 'LMU PC' | 'AMS2 PC'
 
-export type EventStatus = 'Draft' | 'Pending' | 'RegistrationOpen' | 'RegistrationClosed' | 'InProgress' | 'Completed' | 'ResultsPublished' | 'Cancelled'
+export type EventStatus = 'Draft' | 'RegistrationOpen' | 'RegistrationClosed' | 'InProgress' | 'Completed' | 'ResultsPublished' | 'Cancelled'
 
 export type CarClass = 'GT3' | 'GT4' | 'Porsche Cup' | 'LMP2' | 'Formula' | 'GTE' | 'TCR'

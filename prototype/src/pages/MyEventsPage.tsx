@@ -13,7 +13,7 @@ export function MyEventsPage() {
   const [tab, setTab] = useState<'upcoming' | 'inProgress' | 'completed'>('upcoming')
 
   const myEvents = events.filter(e => e.registeredDriverIds.includes(state.currentUser?.id || ''))
-  const upcoming = myEvents.filter(e => ['RegistrationOpen', 'Pending', 'RegistrationClosed'].includes(e.status))
+  const upcoming = myEvents.filter(e => ['RegistrationOpen', 'RegistrationClosed'].includes(e.status))
   const inProgress = myEvents.filter(e => e.status === 'InProgress')
   const completed = myEvents.filter(e => ['Completed', 'ResultsPublished'].includes(e.status))
 

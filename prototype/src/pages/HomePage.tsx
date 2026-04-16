@@ -15,7 +15,7 @@ export function HomePage() {
   const lang = state.language
 
   const upcomingEvents = events
-    .filter(e => e.status === 'RegistrationOpen' || e.status === 'Pending')
+    .filter(e => e.status === 'RegistrationOpen')
     .slice(0, 6)
   const liveEvents = events.filter(e => e.status === 'InProgress')
   const topDrivers = [...drivers].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 5)

@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { SlidersHorizontal, ArrowUpDown } from 'lucide-react'
 
 const gameOptions = ['ACC PC', 'ACC Crossplay', 'AC Evo PC', 'iRacing PC', 'LMU PC', 'AMS2 PC']
-const statusOptions = ['RegistrationOpen', 'Pending', 'RegistrationClosed', 'InProgress', 'Completed', 'Cancelled']
+const statusOptions = ['RegistrationOpen', 'RegistrationClosed', 'InProgress', 'Completed', 'Cancelled']
 const carClassOptions = ['GT3', 'GT4', 'Porsche Cup', 'LMP2', 'Formula', 'GTE', 'TCR']
 
 export function EventsPage() {
@@ -33,7 +33,7 @@ export function EventsPage() {
       return true
     })
     if (sortBy === 'popularity') result.sort((a, b) => b.currentRegistrations - a.currentRegistrations)
-    else if (sortBy === 'recent') result.sort((a, b) => new Date(b.registrationOpenAt).getTime() - new Date(a.registrationOpenAt).getTime())
+    else if (sortBy === 'recent') result.sort((a, b) => new Date(b.registrationCloseAt).getTime() - new Date(a.registrationCloseAt).getTime())
     else result.sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
     return result
   }, [events, gameFilter, statusFilter, carClassFilter, regionFilter, typeFilter, sortBy, state.currentRegion])

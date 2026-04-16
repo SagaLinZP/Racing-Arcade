@@ -6,7 +6,7 @@ import { championships } from '@/data/championships'
 import { events } from '@/data/events'
 import { getCoverGradient } from '@/data/events'
 import { cn } from '@/lib/utils'
-import { Trophy } from 'lucide-react'
+import { Trophy, Clock } from 'lucide-react'
 
 export function ChampionshipsPage() {
   const { t } = useTranslation()
@@ -59,6 +59,10 @@ export function ChampionshipsPage() {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                   <span className="px-2 py-0.5 bg-accent rounded text-xs">{ch.game}</span>
                   <span>{ch.carClass}</span>
+                  <span className="px-2 py-0.5 bg-accent rounded text-xs flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {ch.raceDuration}{ch.raceDurationType === 'time' ? (lang === 'zh' ? '分钟' : 'min') : (lang === 'zh' ? '圈' : 'laps')}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{chEvents.length} {lang === 'zh' ? '场赛事' : 'events'}</span>

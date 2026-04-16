@@ -7,7 +7,6 @@ const colors: Record<string, string> = {
   Completed: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
   ResultsPublished: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
   Cancelled: 'bg-red-500/20 text-red-400 border-red-500/30',
-  Pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
   Draft: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
 }
 

@@ -1,4 +1,4 @@
-export type EventStatus = 'Draft' | 'Pending' | 'RegistrationOpen' | 'RegistrationClosed' | 'InProgress' | 'Completed' | 'ResultsPublished' | 'Cancelled'
+export type EventStatus = 'Draft' | 'RegistrationOpen' | 'RegistrationClosed' | 'InProgress' | 'Completed' | 'ResultsPublished' | 'Cancelled'
 
 export interface SimEvent {
   id: string
@@ -24,7 +24,6 @@ export interface SimEvent {
   enableMultiSplit: boolean
   splitAssignmentRule?: string
   minEntries?: number
-  registrationOpenAt: string
   registrationCloseAt: string
   cancelRegistrationDeadline?: string
   eventStartTime: string
@@ -39,6 +38,8 @@ export interface SimEvent {
   vodUrl?: string
   scoringRules_zh?: string
   scoringRules_en?: string
+  resources_zh?: string
+  resources_en?: string
   currentRegistrations: number
   registeredDriverIds: string[]
   results?: EventResult[]
@@ -94,7 +95,6 @@ export const events: SimEvent[] = [
     enableMultiSplit: true,
     splitAssignmentRule: 'By Skill',
     minEntries: 10,
-    registrationOpenAt: '2026-04-10T00:00:00Z',
     registrationCloseAt: '2026-04-18T12:00:00Z',
     cancelRegistrationDeadline: '2026-04-17T12:00:00Z',
     eventStartTime: '2026-04-20T12:00:00Z',
@@ -106,6 +106,8 @@ export const events: SimEvent[] = [
     scoringRules_en: '1st 25pts, 2nd 18pts, 3rd 15pts, 4th 12pts, 5th 10pts...',
     currentRegistrations: 87,
     registeredDriverIds: ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10'],
+    resources_zh: 'ACC GT3 车辆包：https://example.com/gt3-pack\n安装说明：解压至 ACC 用户目录下的 Content/Cars 文件夹',
+    resources_en: 'ACC GT3 Car Pack: https://example.com/gt3-pack\nInstall: Extract to Content/Cars folder in your ACC user directory',
   },
   {
     id: 'e2',
@@ -131,7 +133,6 @@ export const events: SimEvent[] = [
     enableMultiSplit: true,
     splitAssignmentRule: 'By Skill',
     minEntries: 15,
-    registrationOpenAt: '2026-04-12T00:00:00Z',
     registrationCloseAt: '2026-04-22T12:00:00Z',
     eventStartTime: '2026-04-25T06:00:00Z',
     status: 'RegistrationOpen',
@@ -157,7 +158,6 @@ export const events: SimEvent[] = [
     raceDurationType: 'laps',
     maxEntriesPerSplit: 25,
     enableMultiSplit: false,
-    registrationOpenAt: '2026-04-14T00:00:00Z',
     registrationCloseAt: '2026-04-19T18:00:00Z',
     eventStartTime: '2026-04-20T22:00:00Z',
     status: 'RegistrationOpen',
@@ -185,7 +185,6 @@ export const events: SimEvent[] = [
     maxEntriesPerSplit: 30,
     maxSplits: 2,
     enableMultiSplit: true,
-    registrationOpenAt: '2026-04-08T00:00:00Z',
     registrationCloseAt: '2026-04-14T18:00:00Z',
     eventStartTime: '2026-04-16T18:00:00Z',
     status: 'Completed',
@@ -220,7 +219,6 @@ export const events: SimEvent[] = [
     raceDurationType: 'time',
     maxEntriesPerSplit: 25,
     enableMultiSplit: false,
-    registrationOpenAt: '2026-04-15T00:00:00Z',
     registrationCloseAt: '2026-04-23T12:00:00Z',
     eventStartTime: '2026-04-25T12:00:00Z',
     status: 'RegistrationOpen',
@@ -249,10 +247,9 @@ export const events: SimEvent[] = [
     maxSplits: 3,
     enableMultiSplit: true,
     splitAssignmentRule: 'First Come First Served',
-    registrationOpenAt: '2026-04-18T00:00:00Z',
     registrationCloseAt: '2026-04-28T12:00:00Z',
     eventStartTime: '2026-04-30T14:00:00Z',
-    status: 'Pending',
+    status: 'RegistrationOpen',
     currentRegistrations: 0,
     registeredDriverIds: [],
   },
@@ -276,7 +273,6 @@ export const events: SimEvent[] = [
     raceDurationType: 'time',
     maxEntriesPerSplit: 30,
     enableMultiSplit: false,
-    registrationOpenAt: '2026-04-01T00:00:00Z',
     registrationCloseAt: '2026-04-08T12:00:00Z',
     eventStartTime: '2026-04-10T18:00:00Z',
     status: 'Cancelled',
@@ -304,7 +300,6 @@ export const events: SimEvent[] = [
     raceDurationType: 'laps',
     maxEntriesPerSplit: 20,
     enableMultiSplit: false,
-    registrationOpenAt: '2026-04-16T00:00:00Z',
     registrationCloseAt: '2026-04-26T12:00:00Z',
     eventStartTime: '2026-04-28T08:00:00Z',
     status: 'RegistrationOpen',

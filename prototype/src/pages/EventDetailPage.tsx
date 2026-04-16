@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 import {
   MapPin, Clock, Cloud, Wrench, Users, Calendar, ChevronRight,
   Flag, Download, AlertTriangle, Play, Radio, Shield, Server,
-  Wifi, CheckCircle, XCircle, Info
+  Wifi, CheckCircle, Info, Trophy
 } from 'lucide-react'
 
 export function EventDetailPage() {
@@ -30,9 +30,23 @@ export function EventDetailPage() {
 
   const name = lang === 'zh' ? event.name_zh : event.name_en
   const desc = lang === 'zh' ? event.description_zh : event.description_en
-  const rules = lang === 'zh' ? event.rules_zh : event.rules_en
+  const eventRules = lang === 'zh' ? event.rules_zh : event.rules_en
   const scoringRules = lang === 'zh' ? event.scoringRules_zh : event.scoringRules_en
+  const eventResources = lang === 'zh' ? event.resources_zh : event.resources_en
   const championship = event.championshipId ? championships.find(c => c.id === event.championshipId) : null
+
+  const chRules = championship ? (lang === 'zh' ? championship.rules_zh : championship.rules_en) : undefined
+  const chScoring = championship ? (lang === 'zh' ? championship.scoringRules_zh : championship.scoringRules_en) : undefined
+  const chResources = championship ? (lang === 'zh' ? championship.resources_zh : championship.resources_en) : undefined
+  const chProgression = championship ? (lang === 'zh' ? championship.progressionRules_zh : championship.progressionRules_en) : undefined
+
+  const effectiveWeather = event.weather || championship?.weather
+  const effectiveHasPitstop = championship ? championship.hasPitstop : event.hasPitstop
+  const effectivePracticeDuration = event.practiceDuration ?? championship?.practiceDuration
+  const effectiveQualifyingDuration = event.qualifyingDuration ?? championship?.qualifyingDuration
+  const effectiveRaceDuration = championship ? championship.raceDuration : event.raceDuration
+  const effectiveRaceDurationType = championship ? championship.raceDurationType : event.raceDurationType
+
   const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
   const estimatedSplits = event.enableMultiSplit ? Math.ceil(event.currentRegistrations / event.maxEntriesPerSplit) : 1
   const isRegistered = registered
@@ -40,7 +54,7 @@ export function EventDetailPage() {
   const hasResults = event.results && event.results.length > 0
 
   const handleRegister = () => {
-    if (event.accessRequirements) {
+    if (event.accessRequirements || championship?.accessRequirements) {
       setShowRulesDialog(true)
     } else {
       setRegistered(true)
@@ -85,7 +99,7 @@ export function EventDetailPage() {
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
           <div className="flex items-center gap-2 mb-2">
             <StatusBadge status={event.status} label={t(`eventDetail.statusNames.${event.status}`)} />
-            {event.streamUrl && <StatusBadge status="InProgress" label="LIVE" />}
+            {(event.streamUrl || championship?.streamUrl) && <StatusBadge status="InProgress" label="LIVE" />}
           </div>
           <h1 className="text-2xl md:text-4xl font-black text-white">{name}</h1>
         </div>
@@ -111,7 +125,7 @@ export function EventDetailPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><span className="text-primary text-lg">🎮</span></div>
-                <div><div className="text-xs text-muted-foreground">{t('eventDetail.game')}</div><div className="text-sm font-medium">{event.game}</div></div>
+                <div><div className="text-xs text-muted-foreground">{t('eventDetail.game')}</div><div className="text-sm font-medium">{championship?.game || event.game}</div></div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><MapPin className="w-4 h-4 text-primary" /></div>
@@ -119,15 +133,15 @@ export function EventDetailPage() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><span className="text-primary text-lg">🏎️</span></div>
-                <div><div className="text-xs text-muted-foreground">{t('eventDetail.carClass')}</div><div className="text-sm font-medium">{event.carClass}</div></div>
+                <div><div className="text-xs text-muted-foreground">{t('eventDetail.carClass')}</div><div className="text-sm font-medium">{championship?.carClass || event.carClass}</div></div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Cloud className="w-4 h-4 text-primary" /></div>
-                <div><div className="text-xs text-muted-foreground">{t('eventDetail.weather')}</div><div className="text-sm font-medium">{event.weather || '-'}</div></div>
+                <div><div className="text-xs text-muted-foreground">{t('eventDetail.weather')}</div><div className="text-sm font-medium">{effectiveWeather || '-'}</div></div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Wrench className="w-4 h-4 text-primary" /></div>
-                <div><div className="text-xs text-muted-foreground">{t('eventDetail.pitstop')}</div><div className="text-sm font-medium">{event.hasPitstop ? 'Yes' : 'No'}</div></div>
+                <div><div className="text-xs text-muted-foreground">{t('eventDetail.pitstop')}</div><div className="text-sm font-medium">{effectiveHasPitstop ? (lang === 'zh' ? '需要' : 'Yes') : (lang === 'zh' ? '不需要' : 'No')}</div></div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Clock className="w-4 h-4 text-primary" /></div>
@@ -147,38 +161,116 @@ export function EventDetailPage() {
           <div className="bg-card border border-border rounded-xl p-5">
             <h2 className="font-bold mb-4">{t('eventDetail.schedule')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {event.practiceDuration && (
+              {effectivePracticeDuration && (
                 <div className="bg-accent rounded-lg p-3">
                   <div className="text-xs text-muted-foreground">{t('eventDetail.practice')}</div>
-                  <div className="font-bold">{event.practiceDuration} min</div>
+                  <div className="font-bold">{effectivePracticeDuration} min</div>
                 </div>
               )}
-              {event.qualifyingDuration && (
+              {effectiveQualifyingDuration && (
                 <div className="bg-accent rounded-lg p-3">
                   <div className="text-xs text-muted-foreground">{t('eventDetail.qualifying')}</div>
-                  <div className="font-bold">{event.qualifyingDuration} min</div>
+                  <div className="font-bold">{effectiveQualifyingDuration} min</div>
                 </div>
               )}
               <div className="bg-accent rounded-lg p-3">
                 <div className="text-xs text-muted-foreground">{t('eventDetail.race')}</div>
-                <div className="font-bold">{event.raceDuration} {event.raceDurationType === 'time' ? 'min' : 'laps'}</div>
+                <div className="font-bold">{effectiveRaceDuration} {effectiveRaceDurationType === 'time' ? (lang === 'zh' ? '分钟' : 'min') : (lang === 'zh' ? '圈' : 'laps')}</div>
               </div>
             </div>
           </div>
 
-          {/* Rules */}
-          {rules && (
-            <div className="bg-card border border-border rounded-xl p-5">
-              <h2 className="font-bold mb-3">{t('eventDetail.rules')}</h2>
-              <div className="text-sm text-muted-foreground whitespace-pre-line">{rules}</div>
+          {/* Championship-level Info (for sub-events) */}
+          {championship && (
+            <div className="bg-card border border-primary/20 rounded-xl p-5">
+              <h2 className="font-bold mb-4 flex items-center gap-2">
+                <Trophy className="w-4 h-4 text-yellow-400" />
+                {t('eventDetail.championshipInfo')}
+                <Link to={`/championships/${championship.id}`} className="text-xs text-primary hover:underline ml-auto flex items-center gap-1">
+                  {lang === 'zh' ? '查看锦标赛' : 'View Championship'} <ChevronRight className="w-3 h-3" />
+                </Link>
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                {championship.maxSplits && (
+                  <div className="bg-accent rounded-lg p-2.5">
+                    <div className="text-xs text-muted-foreground">{t('championships.splitConfig')}</div>
+                    <div className="font-medium">{championship.maxSplits} splits / {championship.maxEntriesPerSplit} {lang === 'zh' ? '人/组' : 'per split'}</div>
+                  </div>
+                )}
+                {championship.splitAssignmentRule && (
+                  <div className="bg-accent rounded-lg p-2.5">
+                    <div className="text-xs text-muted-foreground">{lang === 'zh' ? '分组规则' : 'Split Rule'}</div>
+                    <div className="font-medium">{championship.splitAssignmentRule}</div>
+                  </div>
+                )}
+                {championship.accessRequirements && (
+                  <div className="bg-accent rounded-lg p-2.5">
+                    <div className="text-xs text-muted-foreground">{t('eventDetail.conditions')}</div>
+                    <div className="font-medium">{championship.accessRequirements}</div>
+                  </div>
+                )}
+                {championship.cancelRegistrationDeadlineOffset && (
+                  <div className="bg-accent rounded-lg p-2.5">
+                    <div className="text-xs text-muted-foreground">{t('eventDetail.cancelRegistrationRule')}</div>
+                    <div className="font-medium">{championship.cancelRegistrationDeadlineOffset}</div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {/* Scoring Rules */}
+          {/* Rules - event own rules first, then championship rules */}
+          {eventRules && (
+            <div className="bg-card border border-border rounded-xl p-5">
+              <h2 className="font-bold mb-3">{t('eventDetail.rules')}</h2>
+              <div className="text-sm text-muted-foreground whitespace-pre-line">{eventRules}</div>
+            </div>
+          )}
+          {!eventRules && chRules && (
+            <div className="bg-card border border-border rounded-xl p-5">
+              <h2 className="font-bold mb-3 flex items-center gap-2">{t('eventDetail.rules')} <span className="text-xs text-muted-foreground font-normal">({t('eventDetail.inheritedFromChampionship')})</span></h2>
+              <div className="text-sm text-muted-foreground whitespace-pre-line">{chRules}</div>
+            </div>
+          )}
+
+          {/* Scoring Rules - event own first, then championship */}
           {scoringRules && (
             <div className="bg-card border border-border rounded-xl p-5">
               <h2 className="font-bold mb-3">{t('eventDetail.scoring')}</h2>
               <div className="text-sm text-muted-foreground whitespace-pre-line">{scoringRules}</div>
+            </div>
+          )}
+          {!scoringRules && chScoring && (
+            <div className="bg-card border border-border rounded-xl p-5">
+              <h2 className="font-bold mb-3 flex items-center gap-2">{t('eventDetail.scoring')} <span className="text-xs text-muted-foreground font-normal">({t('eventDetail.inheritedFromChampionship')})</span></h2>
+              <div className="text-sm text-muted-foreground whitespace-pre-line">{chScoring}</div>
+            </div>
+          )}
+
+          {/* Progression Rules (championship only) */}
+          {chProgression && (
+            <div className="bg-card border border-border rounded-xl p-5">
+              <h2 className="font-bold mb-3">{t('championships.progression')}</h2>
+              <div className="text-sm text-muted-foreground whitespace-pre-line">{chProgression}</div>
+            </div>
+          )}
+
+          {/* Resources - event extra resources + championship resources */}
+          {(eventResources || chResources) && (
+            <div className="bg-card border border-border rounded-xl p-5">
+              <h2 className="font-bold mb-3 flex items-center gap-2"><Download className="w-4 h-4 text-primary" />{t('eventDetail.resources')}</h2>
+              {eventResources && (
+                <div className="text-sm text-muted-foreground whitespace-pre-line mb-3">{eventResources}</div>
+              )}
+              {chResources && (
+                <>
+                  {eventResources && <div className="border-t border-border my-3" />}
+                  <div className="text-sm">
+                    <span className="text-xs text-muted-foreground">({t('eventDetail.inheritedFromChampionship')})</span>
+                    <div className="text-muted-foreground whitespace-pre-line mt-1">{chResources}</div>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -199,7 +291,7 @@ export function EventDetailPage() {
           )}
 
           {/* Live Stream */}
-          {event.streamUrl && event.status === 'InProgress' && (
+          {(event.streamUrl || championship?.streamUrl) && event.status === 'InProgress' && (
             <div className="bg-card border border-border rounded-xl p-5">
               <h2 className="font-bold mb-3 flex items-center gap-2"><Radio className="w-4 h-4 text-red-500" />{t('eventDetail.liveStream')}</h2>
               <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
@@ -376,11 +468,6 @@ export function EventDetailPage() {
                     </Link>
                   )
                 )}
-                {event.status === 'Pending' && (
-                  <button disabled className="w-full px-4 py-2.5 bg-accent text-muted-foreground rounded-lg text-sm cursor-not-allowed">
-                    {t('events.registration.notStarted')}
-                  </button>
-                )}
                 {event.status === 'RegistrationClosed' && (
                   <button disabled className="w-full px-4 py-2.5 bg-accent text-muted-foreground rounded-lg text-sm cursor-not-allowed">
                     {t('events.registration.closed')}
@@ -392,8 +479,8 @@ export function EventDetailPage() {
             {/* Important Dates */}
             <div className="mt-4 pt-4 border-t border-border space-y-2 text-xs text-muted-foreground">
               <div className="flex justify-between">
-                <span>Registration</span>
-                <span>{formatDateTime(event.registrationOpenAt)}</span>
+                <span>{t('eventDetail.registration')}</span>
+                <span>{lang === 'zh' ? '发布即开放' : 'Open on publish'}</span>
               </div>
               <div className="flex justify-between">
                 <span>Deadline</span>
@@ -403,6 +490,12 @@ export function EventDetailPage() {
                 <span>Race</span>
                 <span>{formatDateTime(event.eventStartTime)}</span>
               </div>
+              {event.cancelRegistrationDeadline && (
+                <div className="flex justify-between">
+                  <span>{t('eventDetail.cancelRegistrationRule')}</span>
+                  <span>{formatDateTime(event.cancelRegistrationDeadline)}</span>
+                </div>
+              )}
             </div>
 
             {/* Regions */}
@@ -422,7 +515,7 @@ export function EventDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-card border border-border rounded-xl p-6 max-w-lg mx-4 w-full">
             <h3 className="font-bold mb-3">{t('eventDetail.rules')}</h3>
-            <div className="text-sm text-muted-foreground whitespace-pre-line mb-4 max-h-60 overflow-y-auto">{rules}</div>
+            <div className="text-sm text-muted-foreground whitespace-pre-line mb-4 max-h-60 overflow-y-auto">{eventRules || chRules}</div>
             <label className="flex items-center gap-2 mb-4 cursor-pointer">
               <input type="checkbox" id="rules-check" className="accent-[var(--color-primary)]" />
               <span className="text-sm">{t('dialogs.registerConfirm')}</span>

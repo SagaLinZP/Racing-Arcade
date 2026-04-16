@@ -22,7 +22,6 @@ const statusColors: Record<string, string> = {
   Completed: 'bg-gray-500/20 text-gray-400',
   ResultsPublished: 'bg-blue-500/20 text-blue-400',
   Cancelled: 'bg-red-500/20 text-red-400',
-  Pending: 'bg-yellow-500/20 text-yellow-400',
   Draft: 'bg-gray-500/20 text-gray-400',
 }
 
