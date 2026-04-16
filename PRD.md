@@ -440,8 +440,7 @@ flowchart TD
 | enable_multi_split | Boolean | 是 | 是否启用多 Split |
 | split_assignment_rule | Enum | 否 | 分组规则（按实力 / 随机 / 手动 / 先到先得） |
 | min_entries | Integer | 否 | 最低开赛人数阈值 |
-| registration_open_at | DateTime | 是 | 报名开始时间 |
-| registration_close_at | DateTime | 是 | 报名截止时间 |
+| registration_close_at | DateTime | 是 | 报名截止时间（发布后即刻开放报名，至此时间截止） |
 | cancel_registration_deadline | DateTime | 否 | 允许车手取消报名的截止时间 |
 | event_start_time | DateTime | 是 | 比赛开始时间（UTC） |
 | status | Enum | 自动 | 赛事状态（见 4.3） |
@@ -452,6 +451,7 @@ flowchart TD
 | stream_url | URL | 否 | 直播嵌入链接 |
 | vod_url | URL | 否 | 赛后回放链接 |
 | scoring_rules_zh / scoring_rules_en | RichText | 否 | 积分规则描述（中/英） |
+| resources_zh / resources_en | RichText | 否 | 资源下载（中/英），自由文本区域，管理员可填写 MOD 下载链接、安装说明等任意内容 |
 | created_by | UUID | 自动 | 创建者管理员 ID |
 | created_at | DateTime | 自动 | 创建时间 |
 | updated_at | DateTime | 自动 | 最后更新时间 |
@@ -469,7 +469,7 @@ flowchart TD
 | regions | Enum[] | 是 | 发布区域 |
 | rounds | Event[] | 是 | 包含的赛事列表 |
 
-> **结构说明**：锦标赛直接包含赛事，不设中间的"轮次"层级。轮次/分站信息由管理员写入各赛事的名称和描述中（如"第 1 站 - 蒙扎"、"Round 2 - Silverstone"）。
+> **结构说明**：锦标赛内包含各个赛事。轮次/分站信息由管理员写入各赛事的名称和描述中（如"第 1 站 - 蒙扎"、"Round 2 - Silverstone"）。
 | scoring_rules_zh / scoring_rules_en | RichText | 是（至少一种） | 积分规则（中/英） |
 | progression_rules_zh / progression_rules_en | RichText | 否 | 晋级/淘汰规则（中/英） |
 
@@ -481,6 +481,15 @@ flowchart TD
 - 锦标赛详情页聚合展示所有关联赛事
 - 赛事的名称和描述由管理员自由填写轮次信息（如"第 1 站 - 蒙扎 / Round 1 - Monza"）
 - 锦标赛内的赛事排序由管理员手动调整（拖拽排序）
+
+### 4.1.6 资源下载（Resource）
+
+部分赛事涉及自定义 MOD 赛道或车辆包，需要参赛车手提前下载安装。
+
+- 管理员在创建/编辑赛事时，可在"资源下载"富文本区域自由填写下载链接、安装说明、注意事项等任意内容
+- 支持插入超链接、列表等富文本格式，方便管理员组织多条资源信息
+- 资源内容在赛事详情页公开可见，无需登录即可查看
+- 遵循双语策略（见 4.1.1）：至少填写一种语言即可发布，另一种语言可后续补全
 
 ## 4.2 赛事创建流程
 
@@ -510,7 +519,7 @@ flowchart TD
     
     M --> N{立即发布?}
     N -->|是| N1{至少一种语言<br/>必填字段已完整?}
-    N1 -->|是| O[状态变为'待发布']
+    N1 -->|是| O[发布成功<br/>报名即时开放]
     N1 -->|否| N2[提示补充必填字段]
     N -->|否| P[保存为草稿<br/>后续手动发布]
 ```
@@ -528,7 +537,7 @@ flowchart TD
    - 单服务器最大人数
    - 分组规则（按实力/随机/手动/先到先得）
 8. 选择发布区域（CN / AP / AM / EU，可多选或全选）
-9. 设定报名开始/截止时间、取消报名截止时间、比赛开始时间
+9. 设定报名截止时间、取消报名截止时间、比赛开始时间
 10. 填写准入条件和赛制规则（当前语言版本）
 11. 配置直播链接（可选）
 12. 预览赛事信息
@@ -541,8 +550,7 @@ flowchart TD
 ```mermaid
 stateDiagram-v2
     [*] --> Draft: 创建赛事
-    Draft --> Pending: 发布
-    Pending --> RegistrationOpen: 到达报名开始时间
+    Draft --> RegistrationOpen: 发布（报名即时开放）
     RegistrationOpen --> RegistrationClosed: 到达报名截止时间<br/>或手动关闭报名
     RegistrationOpen --> Cancelled: 管理员取消<br/>人数不足
     RegistrationClosed --> InProgress: 到达比赛时间
@@ -550,14 +558,12 @@ stateDiagram-v2
     InProgress --> Completed: 比赛结束
     Completed --> ResultsPublished: 成绩录入完成
     Draft --> Draft: 编辑
-    Pending --> Draft: 撤回至草稿
 ```
 
 | 状态 | 说明 | 可执行操作 |
 |------|------|-----------|
 | **Draft（草稿）** | 赛事已创建但未发布 | 编辑、删除、发布 |
-| **Pending（待发布）** | 已发布但报名尚未开始 | 编辑（有限）、撤回草稿、取消 |
-| **RegistrationOpen（报名中）** | 报名通道已开启 | 关闭报名、取消赛事 |
+| **RegistrationOpen（报名中）** | 已发布，报名通道开放中 | 关闭报名、取消赛事 |
 | **RegistrationClosed（报名截止）** | 报名已截止，等待比赛开始 | 取消赛事、修改服务器信息 |
 | **InProgress（进行中）** | 比赛正在进行 | 无 |
 | **Completed（已结束）** | 比赛已结束 | 录入成绩 |
@@ -779,6 +785,11 @@ flowchart TD
 │ ├── Split 1: 参赛名单 / 时间 / 服务器   │
 │ ├── Split 2: ...                        │
 │ └── ...                                 │
+├──────────────────────────────────────────┤
+│ 资源下载（公开可见，无需登录）           │
+│ ├── 资源名称 + 下载链接 + 文件大小      │
+│ ├── 安装说明                             │
+│ └── 仅在管理员添加了资源时显示           │
 ├──────────────────────────────────────────┤
 │ 服务器信息（比赛前可见，报名后展示）     │
 │ ├── 服务器名称 / 密码                    │
