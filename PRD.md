@@ -414,6 +414,8 @@ flowchart TD
 ### 4.1.3 赛事（Event）核心字段
 
 > **双语字段标记说明**：标记为 `中/英` 的字段，至少填写一种语言即可发布。
+>
+> **适用范围**：以下为**独立赛事**（不属于任何锦标赛）的完整字段。锦标赛子赛事的字段见 4.1.5。
 
 | 字段名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
@@ -456,9 +458,18 @@ flowchart TD
 | created_at | DateTime | 自动 | 创建时间 |
 | updated_at | DateTime | 自动 | 最后更新时间 |
 
-### 4.1.4 锦标赛（Championship）扩展字段
+### 4.1.4 锦标赛（Championship）数据模型
 
-锦标赛由多轮赛事组成，每轮可含一场或多场比赛。
+锦标赛是赛事的容器，承载赛事的公共属性。归属于锦标赛的各场赛事继承锦标赛的配置，自身仅保留本场独有的信息。
+
+**设计理念**：
+
+- 锦标赛定义通用规则（游戏平台、车型组、赛制、积分规则、区域、Split 配置等）
+- 各场赛事仅定义本场独有信息（赛道、开赛时间、报名截止时间、服务器信息等）
+- 赛事详情页同时展示锦标赛级公共信息和本场独有信息
+- 车手报名锦标赛赛事时，报名的是具体的某一场赛事
+
+**锦标赛字段**：
 
 | 字段名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
@@ -467,20 +478,93 @@ flowchart TD
 | description_zh / description_en | RichText | 否 | 锦标赛描述（中/英） |
 | cover_image | URL | 否 | 锦标赛封面图片 |
 | regions | Enum[] | 是 | 发布区域 |
-| rounds | Event[] | 是 | 包含的赛事列表 |
-
-> **结构说明**：锦标赛内包含各个赛事。轮次/分站信息由管理员写入各赛事的名称和描述中（如"第 1 站 - 蒙扎"、"Round 2 - Silverstone"）。
+| game | Enum | 是 | 游戏平台（同赛事 game 字段） |
+| car_class | String | 是 | 车型组（同赛事 car_class 字段） |
+| car_list | String[] | 否 | 可选车辆列表 |
+| weather | Enum | 否 | 天气设置 |
+| has_pitstop | Boolean | 否 | 是否需要进站 |
+| practice_duration | Integer | 否 | 练习赛时长（分钟） |
+| qualifying_duration | Integer | 否 | 排位赛时长（分钟） |
+| race_duration | Integer | 否 | 正赛时长（分钟）或圈数 |
+| race_duration_type | Enum | 否 | 时长制 / 圈数制 |
+| max_entries_per_split | Integer | 是 | 单 Split 最大参赛人数 |
+| max_splits | Integer | 否 | 最大 Split 数 |
+| enable_multi_split | Boolean | 是 | 是否启用多 Split |
+| split_assignment_rule | Enum | 否 | 分组规则 |
+| min_entries | Integer | 否 | 最低开赛人数阈值 |
+| cancel_registration_deadline_offset | String | 否 | 取消报名截止规则描述（如"比赛开始前 2 小时"） |
+| access_requirements | String | 否 | 准入条件描述 |
 | scoring_rules_zh / scoring_rules_en | RichText | 是（至少一种） | 积分规则（中/英） |
 | progression_rules_zh / progression_rules_en | RichText | 否 | 晋级/淘汰规则（中/英） |
+| rules_zh / rules_en | RichText | 否 | 赛事规则（中/英） |
+| resources_zh / resources_en | RichText | 否 | 资源下载（中/英） |
+| stream_url | URL | 否 | 直播嵌入链接（锦标赛通用） |
+| events | Event[] | 是 | 包含的赛事列表 |
+| created_by | UUID | 自动 | 创建者管理员 ID |
+| created_at | DateTime | 自动 | 创建时间 |
+| updated_at | DateTime | 自动 | 最后更新时间 |
+
+> **结构说明**：锦标赛内包含各个赛事。轮次/分站信息由管理员写入各赛事的名称和描述中（如"第 1 站 - 蒙扎"、"Round 2 - Silverstone"）。锦标赛内的赛事排序由管理员手动调整（拖拽排序）。
 
 ### 4.1.5 赛事（Event）关联锦标赛
 
-赛事可选择归属于某个锦标赛。归属后：
+赛事有两种类型：**独立赛事**和**锦标赛子赛事**。
 
-- 赛事详情页显示所属锦标赛名称和链接
-- 锦标赛详情页聚合展示所有关联赛事
-- 赛事的名称和描述由管理员自由填写轮次信息（如"第 1 站 - 蒙扎 / Round 1 - Monza"）
-- 锦标赛内的赛事排序由管理员手动调整（拖拽排序）
+#### 独立赛事
+
+不归属于任何锦标赛，自身包含全部属性（游戏、赛道、时间、规则等）。数据模型同 4.1.2 定义的全部字段。
+
+#### 锦标赛子赛事
+
+归属于某个锦标赛时，子赛事仅保留本场独有信息，其余属性继承锦标赛：
+
+| 子赛事独有字段 | 类型 | 必填 | 说明 |
+|---------------|------|------|------|
+| id | UUID | 自动 | 赛事唯一标识 |
+| championship_id | UUID | 是 | 所属锦标赛 ID |
+| name_zh / name_en | String | 是（至少一种） | 本场赛事名称（中/英），如"第 1 站 - 蒙扎" |
+| description_zh / description_en | RichText | 否 | 本场补充说明（中/英） |
+| cover_image | URL | 否 | 本场封面图（为空则使用锦标赛封面） |
+| track | String | 是 | 赛道名称 |
+| track_layout | String | 否 | 赛道布局 |
+| registration_close_at | DateTime | 是 | 报名截止时间 |
+| event_start_time | DateTime | 是 | 比赛开始时间（UTC） |
+| server_info | String | 否 | 服务器名称 / 密码 |
+| server_join_link | URL | 否 | 游戏直连链接 |
+| stream_url | URL | 否 | 本场直播链接（为空则使用锦标赛通用直播链接） |
+| vod_url | URL | 否 | 赛后回放链接 |
+| resources_zh / resources_en | RichText | 否 | 本场额外资源（为空则展示锦标赛级资源） |
+| status | Enum | 自动 | 赛事状态 |
+| results | Result[] | 自动 | 本场比赛结果 |
+| protests | Protest[] | 自动 | 本场抗议记录 |
+
+**继承规则**：
+
+| 属性 | 来源 | 说明 |
+|------|------|------|
+| 游戏平台 | 锦标赛 | 子赛事不可修改 |
+| 车型组 / 车辆列表 | 锦标赛 | 子赛事不可修改 |
+| 赛制参数（练习/排位/正赛时长等） | 锦标赛 | 子赛事不可修改 |
+| Split 配置 | 锦标赛 | 子赛事不可修改 |
+| 积分规则 / 晋级规则 | 锦标赛 | 子赛事不可修改 |
+| 准入条件 | 锦标赛 | 子赛事不可修改 |
+| 赛事规则 | 锦标赛 | 子赛事不可修改 |
+| 发布区域 | 锦标赛 | 子赛事不可修改 |
+| 封面图 | 子赛事 > 锦标赛 | 子赛事有封面则用子赛事的，否则用锦标赛的 |
+| 直播链接 | 子赛事 > 锦标赛 | 子赛事有直播则用子赛事的，否则用锦标赛的 |
+| 资源下载 | 子赛事 > 锦标赛 | 子赛事有额外资源则追加展示，否则仅展示锦标赛级资源 |
+| 赛道 / 布局 | 子赛事 | 每场不同 |
+| 比赛时间 | 子赛事 | 每场不同 |
+| 服务器信息 | 子赛事 | 每场不同 |
+| 成绩 / 抗议 | 子赛事 | 每场独立 |
+
+**赛事详情页展示逻辑**：
+
+子赛事的详情页同时展示锦标赛级信息和本场信息：
+- 页面顶部标注"属于锦标赛：XXX"，链接至锦标赛详情页
+- 赛制信息、积分规则等展示锦标赛级内容
+- 赛道、时间、服务器、成绩、抗议展示本场内容
+- 资源下载：优先展示子赛事的额外资源，再展示锦标赛级资源
 
 ### 4.1.6 资源下载（Resource）
 
