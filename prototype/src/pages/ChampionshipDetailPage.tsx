@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 import {
   Trophy, MapPin, Clock, ChevronDown, ChevronUp, Users, Shield,
   Play, Download, Flag, Cloud, Wrench, Server, Wifi, CheckCircle,
-  Radio, AlertTriangle,
+  Radio, AlertTriangle, Calendar,
 } from 'lucide-react'
 
 function CollapsibleSection({
@@ -54,6 +54,7 @@ function RegistrationButton({
   userId,
   lang,
   t,
+  isRegistered,
   onRegister,
   onUnregister,
 }: {
@@ -62,11 +63,11 @@ function RegistrationButton({
   userId: string
   lang: 'en' | 'zh'
   t: (key: string) => string
+  isRegistered: boolean
   onRegister: () => void
   onUnregister: () => void
 }) {
   const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
-  const isRegistered = event.registeredDriverIds.includes(userId)
   const isCancelled = event.status === 'Cancelled'
 
   if (isCancelled) {
@@ -76,14 +77,9 @@ function RegistrationButton({
   if (event.status === 'RegistrationOpen') {
     if (isRegistered) {
       return (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 px-3 py-2 bg-green-500/10 text-green-400 rounded-lg text-sm font-medium">
-            <CheckCircle className="w-4 h-4" /> {t('eventDetail.registered')}
-          </div>
-          <button onClick={onUnregister} className="w-full px-3 py-1.5 bg-accent text-destructive rounded-lg text-xs hover:bg-destructive/10 transition-colors">
-            {t('eventDetail.cancelRegistration')}
-          </button>
-        </div>
+        <button onClick={onUnregister} className="w-full px-4 py-2 bg-accent text-destructive rounded-lg text-sm hover:bg-destructive/10 transition-colors">
+          {t('eventDetail.cancelRegistration')}
+        </button>
       )
     }
     if (!isLoggedIn) {
@@ -118,7 +114,7 @@ export function ChampionshipDetailPage() {
 
   const [expandedResults, setExpandedResults] = useState<Record<string, boolean>>({})
   const [showRulesDialog, setShowRulesDialog] = useState<{ eventId: string; rules: string } | null>(null)
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [rulesChecked, setRulesChecked] = useState(false)
   const [registeredOverrides, setRegisteredOverrides] = useState<Record<string, boolean>>({})
 
   const championship = championships.find(c => c.id === id)
@@ -167,24 +163,23 @@ export function ChampionshipDetailPage() {
   }
 
   const handleRegister = (event: typeof events[0]) => {
+    if (!state.isLoggedIn) return
     const eventRules = lang === 'zh' ? event.rules_zh : event.rules_en
     const chRules = rules
     const effectiveRules = eventRules || chRules
     const accessReq = event.accessRequirements || ch.accessRequirements
     if (effectiveRules || accessReq) {
+      setRulesChecked(false)
       setShowRulesDialog({ eventId: event.id, rules: effectiveRules || accessReq || '' })
     } else {
       setRegisteredOverrides(prev => ({ ...prev, [event.id]: true }))
-      setShowSuccessDialog(true)
     }
   }
 
   const handleConfirmRules = () => {
-    if (showRulesDialog) {
-      setRegisteredOverrides(prev => ({ ...prev, [showRulesDialog.eventId]: true }))
-    }
+    if (!rulesChecked || !showRulesDialog) return
+    setRegisteredOverrides(prev => ({ ...prev, [showRulesDialog.eventId]: true }))
     setShowRulesDialog(null)
-    setShowSuccessDialog(true)
   }
 
   const handleUnregister = (eventId: string) => {
@@ -264,6 +259,23 @@ export function ChampionshipDetailPage() {
     )
   }
 
+  const renderServerInfo = (event: typeof events[0]) => {
+    const isRegistered = isEventRegistered(event)
+    if (!isRegistered || !event.serverInfo) return null
+    return (
+      <div className="mt-3 bg-accent rounded-lg p-3 space-y-1.5 text-xs">
+        <h5 className="font-semibold flex items-center gap-2"><Server className="w-3 h-3 text-primary" />{t('eventDetail.serverInfo')}</h5>
+        <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverName')}:</span><span className="font-mono">{event.serverInfo}</span></div>
+        {event.serverPassword && (
+          <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono">{event.serverPassword}</span></div>
+        )}
+        {event.serverJoinLink && (
+          <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline"><Wifi className="w-3 h-3" />{t('eventDetail.joinLink')}</a>
+        )}
+      </div>
+    )
+  }
+
   const renderEventRow = (event: typeof events[0], showRegButton = true, isPast = false) => {
     const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
     const isRegistered = isEventRegistered(event)
@@ -299,6 +311,7 @@ export function ChampionshipDetailPage() {
                 userId={state.currentUser?.id || ''}
                 lang={lang}
                 t={t}
+                isRegistered={isEventRegistered(event)}
                 onRegister={() => handleRegister(event)}
                 onUnregister={() => handleUnregister(event.id)}
               />
@@ -333,13 +346,23 @@ export function ChampionshipDetailPage() {
             )}
           </div>
         )}
+
+        {!isPast && renderServerInfo(event)}
       </div>
     )
   }
 
+  const nextCapacity = nextRegistrable ? nextRegistrable.maxEntriesPerSplit * (nextRegistrable.maxSplits || 1) : 0
+  const nextRegistered = nextRegistrable ? isEventRegistered(nextRegistrable) : false
+  const [activeTab, setActiveTab] = useState<'info' | 'schedule'>('info')
+
+  const tabs: { key: typeof activeTab; label: string; icon: typeof Trophy }[] = [
+    { key: 'info', label: lang === 'zh' ? '锦标赛信息' : 'Championship Info', icon: Trophy },
+    { key: 'schedule', label: lang === 'zh' ? '赛程' : 'Schedule', icon: Calendar },
+  ]
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      {/* Header */}
       <div className="relative rounded-2xl overflow-hidden h-48 md:h-56 mb-8" style={{ background: getCoverGradient(ch.id) }}>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
@@ -357,237 +380,268 @@ export function ChampionshipDetailPage() {
         </div>
       </div>
 
-      {/* Championship Public Info */}
-      <div className="space-y-6 mb-8">
-        <div className="bg-card border border-border rounded-xl p-5">
-          <p className="text-sm text-muted-foreground">{lang === 'zh' ? ch.description_zh : ch.description_en}</p>
-        </div>
-
-        <div className="bg-card border border-border rounded-xl p-5">
-          <h2 className="font-bold mb-4">{lang === 'zh' ? '赛事信息' : 'Event Info'}</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><span className="text-primary text-lg">🎮</span></div>
-              <div><div className="text-xs text-muted-foreground">{t('eventDetail.game')}</div><div className="text-sm font-medium">{ch.game}</div></div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><span className="text-primary text-lg">🏎️</span></div>
-              <div><div className="text-xs text-muted-foreground">{t('eventDetail.carClass')}</div><div className="text-sm font-medium">{ch.carClass}</div></div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Cloud className="w-4 h-4 text-primary" /></div>
-              <div><div className="text-xs text-muted-foreground">{t('eventDetail.weather')}</div><div className="text-sm font-medium">{ch.weather || '-'}</div></div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Wrench className="w-4 h-4 text-primary" /></div>
-              <div><div className="text-xs text-muted-foreground">{t('eventDetail.pitstop')}</div><div className="text-sm font-medium">{ch.hasPitstop ? (lang === 'zh' ? '需要' : 'Yes') : (lang === 'zh' ? '不需要' : 'No')}</div></div>
-            </div>
-            {ch.practiceDuration && (
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Clock className="w-4 h-4 text-primary" /></div>
-                <div><div className="text-xs text-muted-foreground">{t('eventDetail.practice')}</div><div className="text-sm font-medium">{ch.practiceDuration} min</div></div>
-              </div>
+      <div className="flex gap-2 mb-6">
+        {tabs.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors',
+              activeTab === tab.key ? 'bg-primary text-primary-foreground' : 'bg-accent text-muted-foreground hover:text-foreground'
             )}
-            {ch.qualifyingDuration && (
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Clock className="w-4 h-4 text-primary" /></div>
-                <div><div className="text-xs text-muted-foreground">{t('eventDetail.qualifying')}</div><div className="text-sm font-medium">{ch.qualifyingDuration} min</div></div>
-              </div>
-            )}
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Flag className="w-4 h-4 text-primary" /></div>
-              <div><div className="text-xs text-muted-foreground">{t('eventDetail.race')}</div><div className="text-sm font-medium">{ch.raceDuration} {ch.raceDurationType === 'time' ? (lang === 'zh' ? '分钟' : 'min') : (lang === 'zh' ? '圈' : 'laps')}</div></div>
-            </div>
-          </div>
-        </div>
-
-        {rules && (
-          <div className="bg-card border border-border rounded-xl p-5">
-            <h2 className="font-bold mb-3 flex items-center gap-2"><Shield className="w-4 h-4 text-primary" />{t('championships.rules')}</h2>
-            <div className="text-sm text-muted-foreground whitespace-pre-line">{rules}</div>
-          </div>
-        )}
-
-        <div className="bg-card border border-border rounded-xl p-5">
-          <h2 className="font-bold mb-3">{t('eventDetail.scoring')}</h2>
-          <p className="text-sm text-muted-foreground">{lang === 'zh' ? ch.scoringRules_zh : ch.scoringRules_en}</p>
-        </div>
-
-        {progression && (
-          <div className="bg-card border border-border rounded-xl p-5">
-            <h2 className="font-bold mb-3">{t('championships.progression')}</h2>
-            <p className="text-sm text-muted-foreground">{progression}</p>
-          </div>
-        )}
-
-        {ch.accessRequirements && (
-          <div className="bg-card border border-border rounded-xl p-5">
-            <h2 className="font-bold mb-3 flex items-center gap-2"><Shield className="w-4 h-4 text-primary" />{t('championships.accessRequirements')}</h2>
-            <p className="text-sm text-muted-foreground">{ch.accessRequirements}</p>
-          </div>
-        )}
-
-        <div className="bg-card border border-border rounded-xl p-5">
-          <h2 className="font-bold mb-3">{lang === 'zh' ? '区域' : 'Regions'}</h2>
-          <div className="flex flex-wrap gap-2">
-            {ch.regions.map(r => (
-              <span key={r} className="px-2.5 py-1 bg-primary/10 text-primary rounded text-xs font-medium">{r}</span>
-            ))}
-          </div>
-        </div>
-
-        {resources && (
-          <div className="bg-card border border-border rounded-xl p-5">
-            <h2 className="font-bold mb-3 flex items-center gap-2"><Download className="w-4 h-4 text-primary" />{t('championships.resources')}</h2>
-            <div className="text-sm text-muted-foreground whitespace-pre-line">{resources}</div>
-          </div>
-        )}
+          >
+            <tab.icon className="w-4 h-4" /> {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Standings */}
-      <div className="bg-card border border-border rounded-xl p-5 mb-8">
-        <h2 className="font-bold mb-4 flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-400" />{t('championships.standings')}</h2>
-        {standings.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-muted-foreground text-xs border-b border-border">
-                  <th className="text-left py-2 pr-3 w-10">#</th>
-                  <th className="text-left py-2 pr-3">{t('eventDetail.driver')}</th>
-                  <th className="text-left py-2 pr-3 hidden sm:table-cell">{lang === 'zh' ? '车队' : 'Team'}</th>
-                  <th className="text-right py-2">{t('eventDetail.points')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {standings.map(([driverId, points], idx) => (
-                  <tr key={driverId} className="border-b border-border/50 hover:bg-accent/50">
-                    <td className="py-2.5 pr-3">
-                      <span className={cn(
-                        'font-bold text-sm',
-                        idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-gray-300' : idx === 2 ? 'text-amber-600' : 'text-muted-foreground'
-                      )}>
-                        {idx + 1}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          {activeTab === 'info' ? (
+            <>
+              <div className="bg-card border border-border rounded-xl p-5">
+                <p className="text-sm text-muted-foreground">{lang === 'zh' ? ch.description_zh : ch.description_en}</p>
+              </div>
+
+              <div className="bg-card border border-border rounded-xl p-5">
+                <h2 className="font-bold mb-4">{lang === 'zh' ? '赛事信息' : 'Event Info'}</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><span className="text-primary text-lg">🎮</span></div>
+                    <div><div className="text-xs text-muted-foreground">{t('eventDetail.game')}</div><div className="text-sm font-medium">{ch.game}</div></div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><span className="text-primary text-lg">🏎️</span></div>
+                    <div><div className="text-xs text-muted-foreground">{t('eventDetail.carClass')}</div><div className="text-sm font-medium">{ch.carClass}</div></div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Cloud className="w-4 h-4 text-primary" /></div>
+                    <div><div className="text-xs text-muted-foreground">{t('eventDetail.weather')}</div><div className="text-sm font-medium">{ch.weather || '-'}</div></div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Wrench className="w-4 h-4 text-primary" /></div>
+                    <div><div className="text-xs text-muted-foreground">{t('eventDetail.pitstop')}</div><div className="text-sm font-medium">{ch.hasPitstop ? (lang === 'zh' ? '需要' : 'Yes') : (lang === 'zh' ? '不需要' : 'No')}</div></div>
+                  </div>
+                  {ch.practiceDuration && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Clock className="w-4 h-4 text-primary" /></div>
+                      <div><div className="text-xs text-muted-foreground">{t('eventDetail.practice')}</div><div className="text-sm font-medium">{ch.practiceDuration} min</div></div>
+                    </div>
+                  )}
+                  {ch.qualifyingDuration && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Clock className="w-4 h-4 text-primary" /></div>
+                      <div><div className="text-xs text-muted-foreground">{t('eventDetail.qualifying')}</div><div className="text-sm font-medium">{ch.qualifyingDuration} min</div></div>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Flag className="w-4 h-4 text-primary" /></div>
+                    <div><div className="text-xs text-muted-foreground">{t('eventDetail.race')}</div><div className="text-sm font-medium">{ch.raceDuration} {ch.raceDurationType === 'time' ? (lang === 'zh' ? '分钟' : 'min') : (lang === 'zh' ? '圈' : 'laps')}</div></div>
+                  </div>
+                </div>
+              </div>
+
+              {rules && (
+                <div className="bg-card border border-border rounded-xl p-5">
+                  <h2 className="font-bold mb-3 flex items-center gap-2"><Shield className="w-4 h-4 text-primary" />{t('championships.rules')}</h2>
+                  <div className="text-sm text-muted-foreground whitespace-pre-line">{rules}</div>
+                </div>
+              )}
+
+              <div className="bg-card border border-border rounded-xl p-5">
+                <h2 className="font-bold mb-3">{t('eventDetail.scoring')}</h2>
+                <p className="text-sm text-muted-foreground">{lang === 'zh' ? ch.scoringRules_zh : ch.scoringRules_en}</p>
+              </div>
+
+              {progression && (
+                <div className="bg-card border border-border rounded-xl p-5">
+                  <h2 className="font-bold mb-3">{t('championships.progression')}</h2>
+                  <p className="text-sm text-muted-foreground">{progression}</p>
+                </div>
+              )}
+
+              {ch.accessRequirements && (
+                <div className="bg-card border border-border rounded-xl p-5">
+                  <h2 className="font-bold mb-3 flex items-center gap-2"><Shield className="w-4 h-4 text-primary" />{t('championships.accessRequirements')}</h2>
+                  <p className="text-sm text-muted-foreground">{ch.accessRequirements}</p>
+                </div>
+              )}
+
+              {resources && (
+                <div className="bg-card border border-border rounded-xl p-5">
+                  <h2 className="font-bold mb-3 flex items-center gap-2"><Download className="w-4 h-4 text-primary" />{t('championships.resources')}</h2>
+                  <div className="text-sm text-muted-foreground whitespace-pre-line">{resources}</div>
+                </div>
+              )}
+
+              <div className="bg-card border border-border rounded-xl p-5">
+                <h2 className="font-bold mb-4 flex items-center gap-2"><Trophy className="w-4 h-4 text-yellow-400" />{t('championships.standings')}</h2>
+                {standings.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-muted-foreground text-xs border-b border-border">
+                          <th className="text-left py-2 pr-3 w-10">#</th>
+                          <th className="text-left py-2 pr-3">{t('eventDetail.driver')}</th>
+                          <th className="text-left py-2 pr-3 hidden sm:table-cell">{lang === 'zh' ? '车队' : 'Team'}</th>
+                          <th className="text-right py-2">{t('eventDetail.points')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {standings.map(([driverId, points], idx) => (
+                          <tr key={driverId} className="border-b border-border/50 hover:bg-accent/50">
+                            <td className="py-2.5 pr-3">
+                              <span className={cn(
+                                'font-bold text-sm',
+                                idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-gray-300' : idx === 2 ? 'text-amber-600' : 'text-muted-foreground'
+                              )}>
+                                {idx + 1}
+                              </span>
+                            </td>
+                            <td className="py-2.5 pr-3">
+                              <Link to={`/driver/${driverId}`} className="hover:text-primary transition-colors font-medium">
+                                {getDriverName(driverId)}
+                              </Link>
+                            </td>
+                            <td className="py-2.5 pr-3 text-muted-foreground hidden sm:table-cell">{getTeamForDriver(driverId)}</td>
+                            <td className="py-2.5 text-right font-bold">{points}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">{t('common.noData')}</p>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="space-y-6">
+              {chEvents.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-12">{t('common.noData')}</p>
+              )}
+              {futureEvents.length > 0 && (
+                <CollapsibleSection
+                  title={`${lang === 'zh' ? '未来赛事' : 'Upcoming'} (${futureEvents.length})`}
+                  defaultOpen
+                  icon={<Clock className="w-4 h-4 text-primary" />}
+                >
+                  <div className="space-y-3">
+                    {futureEvents.map(e => renderEventRow(e, true, false))}
+                  </div>
+                </CollapsibleSection>
+              )}
+              {pastEvents.length > 0 && (
+                <CollapsibleSection
+                  title={`${lang === 'zh' ? '历史赛事' : 'Past Events'} (${pastEvents.length})`}
+                  defaultOpen={false}
+                  icon={<Flag className="w-4 h-4 text-muted-foreground" />}
+                >
+                  <div className="space-y-3">
+                    {pastEvents.map(e => renderEventRow(e, false, true))}
+                  </div>
+                </CollapsibleSection>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          {nextRegistrable && (
+            <div className="bg-card border border-border rounded-xl p-5 sticky top-20">
+              <h3 className="font-bold mb-3">{lang === 'zh' ? '下一场赛事' : 'Next Event'}</h3>
+              <div className="space-y-2 text-sm mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{lang === 'zh' ? nextRegistrable.name_zh : nextRegistrable.name_en}</span>
+                </div>
+                <div className="flex items-center gap-3 text-muted-foreground flex-wrap text-xs">
+                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{nextRegistrable.track}{nextRegistrable.trackLayout ? ` (${nextRegistrable.trackLayout})` : ''}</span>
+                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDateTime(nextRegistrable.eventStartTime)}</span>
+                </div>
+              </div>
+
+              <div className="border-t border-border pt-4 space-y-3 mb-4">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-primary" />
+                    <span>{t('eventDetail.registrationCount')}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {nextRegistered ? (
+                      <span className="flex items-center gap-1 px-2 py-0.5 bg-green-500/10 text-green-400 rounded text-xs font-medium">
+                        <CheckCircle className="w-3 h-3" /> {t('eventDetail.registered')}
                       </span>
-                    </td>
-                    <td className="py-2.5 pr-3">
-                      <Link to={`/driver/${driverId}`} className="hover:text-primary transition-colors font-medium">
-                        {getDriverName(driverId)}
-                      </Link>
-                    </td>
-                    <td className="py-2.5 pr-3 text-muted-foreground hidden sm:table-cell">{getTeamForDriver(driverId)}</td>
-                    <td className="py-2.5 text-right font-bold">{points}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground text-center py-4">{t('common.noData')}</p>
-        )}
-      </div>
-
-      {/* Next Registrable Event */}
-      {nextRegistrable && (
-        <div className="mb-6">
-          <CollapsibleSection
-            title={lang === 'zh' ? '即将开始的赛事' : 'Next Event'}
-            defaultOpen
-            highlight
-            icon={<Flag className="w-4 h-4 text-primary" />}
-          >
-            <div className="space-y-4">
-              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0 space-y-3">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    ) : (
                       <StatusBadge status={nextRegistrable.status} label={t(`eventDetail.statusNames.${nextRegistrable.status}`)} />
-                      <h3 className="font-bold">{lang === 'zh' ? nextRegistrable.name_zh : nextRegistrable.name_en}</h3>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-2"><MapPin className="w-4 h-4 text-primary" />{nextRegistrable.track}{nextRegistrable.trackLayout ? ` (${nextRegistrable.trackLayout})` : ''}</span>
-                      <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" />{formatDateTime(nextRegistrable.eventStartTime)}</span>
-                      <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" />{lang === 'zh' ? '报名截止: ' : 'Reg closes: '}{formatDateTime(nextRegistrable.registrationCloseAt)}</span>
-                      <span className="flex items-center gap-2"><Users className="w-4 h-4 text-primary" />{nextRegistrable.currentRegistrations} / {nextRegistrable.maxEntriesPerSplit * (nextRegistrable.maxSplits || 1)}</span>
-                    </div>
-                    <div className="w-full max-w-xs bg-accent rounded-full h-2">
-                      <div
-                        className="bg-primary rounded-full h-2 transition-all"
-                        style={{ width: `${Math.min(100, (nextRegistrable.currentRegistrations / (nextRegistrable.maxEntriesPerSplit * (nextRegistrable.maxSplits || 1))) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <div className="w-full max-w-xs">
-                    <RegistrationButton
-                      event={nextRegistrable}
-                      isLoggedIn={state.isLoggedIn}
-                      userId={state.currentUser?.id || ''}
-                      lang={lang}
-                      t={t}
-                      onRegister={() => handleRegister(nextRegistrable)}
-                      onUnregister={() => handleUnregister(nextRegistrable.id)}
-                    />
-                  </div>
-                </div>
-
-                {isEventRegistered(nextRegistrable) && nextRegistrable.serverInfo && (
-                  <div className="mt-4 bg-accent rounded-lg p-3 space-y-2 text-sm">
-                    <h4 className="font-semibold flex items-center gap-2"><Server className="w-4 h-4 text-primary" />{t('eventDetail.serverInfo')}</h4>
-                    <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverName')}:</span><span className="font-mono">{nextRegistrable.serverInfo}</span></div>
-                    {nextRegistrable.serverPassword && (
-                      <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono">{nextRegistrable.serverPassword}</span></div>
-                    )}
-                    {nextRegistrable.serverJoinLink && (
-                      <a href={nextRegistrable.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline"><Wifi className="w-4 h-4" />{t('eventDetail.joinLink')}</a>
                     )}
                   </div>
-                )}
+                </div>
+                <div className="text-2xl font-bold">
+                  {nextRegistrable.currentRegistrations} <span className="text-lg text-muted-foreground">/</span> {nextCapacity}
+                </div>
+                <div className="w-full bg-accent rounded-full h-2">
+                  <div
+                    className="bg-primary rounded-full h-2 transition-all"
+                    style={{ width: `${Math.min(100, (nextRegistrable.currentRegistrations / nextCapacity) * 100)}%` }}
+                  />
+                </div>
+              </div>
 
-                {(nextRegistrable.streamUrl || ch.streamUrl) && nextRegistrable.status === 'InProgress' && (
-                  <div className="mt-4">
-                    <h4 className="font-semibold flex items-center gap-2 mb-2"><Radio className="w-4 h-4 text-red-500" />{t('eventDetail.liveStream')}</h4>
-                    <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
-                      <Play className="w-12 h-12 text-white/50" />
-                    </div>
+              <RegistrationButton
+                event={nextRegistrable}
+                isLoggedIn={state.isLoggedIn}
+                userId={state.currentUser?.id || ''}
+                isRegistered={nextRegistered}
+                lang={lang}
+                t={t}
+                onRegister={() => handleRegister(nextRegistrable)}
+                onUnregister={() => handleUnregister(nextRegistrable.id)}
+              />
+
+              {nextRegistered && (
+                <button className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2 bg-accent rounded-lg text-sm hover:bg-accent/80 transition-colors">
+                  <Download className="w-4 h-4" /> {t('eventDetail.addendum')}
+                </button>
+              )}
+
+              <div className="mt-4 pt-4 border-t border-border space-y-2 text-xs text-muted-foreground">
+                <div className="flex justify-between">
+                  <span>{lang === 'zh' ? '报名截止' : 'Deadline'}</span>
+                  <span>{formatDateTime(nextRegistrable.registrationCloseAt)}</span>
+                </div>
+                {nextRegistrable.cancelRegistrationDeadline && (
+                  <div className="flex justify-between">
+                    <span>{t('eventDetail.cancelRegistrationRule')}</span>
+                    <span>{formatDateTime(nextRegistrable.cancelRegistrationDeadline)}</span>
                   </div>
                 )}
               </div>
-            </div>
-          </CollapsibleSection>
-        </div>
-      )}
 
-      {/* Future Events */}
-      {futureEvents.length > 0 && (
-        <div className="mb-6">
-          <CollapsibleSection
-            title={`${lang === 'zh' ? '未来赛事' : 'Future Events'} (${futureEvents.length})`}
-            defaultOpen={false}
-            icon={<Clock className="w-4 h-4 text-primary" />}
-          >
-            <div className="space-y-3">
-              {futureEvents.map(e => renderEventRow(e, true, false))}
-            </div>
-          </CollapsibleSection>
-        </div>
-      )}
+              {nextRegistered && nextRegistrable.serverInfo && (
+                <div className="mt-4 pt-4 border-t border-border space-y-2 text-xs">
+                  <h4 className="font-semibold flex items-center gap-2"><Server className="w-3 h-3 text-primary" />{t('eventDetail.serverInfo')}</h4>
+                  <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverName')}:</span><span className="font-mono">{nextRegistrable.serverInfo}</span></div>
+                  {nextRegistrable.serverPassword && (
+                    <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono">{nextRegistrable.serverPassword}</span></div>
+                  )}
+                  {nextRegistrable.serverJoinLink && (
+                    <a href={nextRegistrable.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline"><Wifi className="w-3 h-3" />{t('eventDetail.joinLink')}</a>
+                  )}
+                </div>
+              )}
 
-      {/* Past Events */}
-      {pastEvents.length > 0 && (
-        <div className="mb-6">
-          <CollapsibleSection
-            title={`${lang === 'zh' ? '历史赛事' : 'Past Events'} (${pastEvents.length})`}
-            defaultOpen={false}
-            icon={<Flag className="w-4 h-4 text-muted-foreground" />}
-          >
-            <div className="space-y-3">
-              {pastEvents.map(e => renderEventRow(e, false, true))}
+              {(nextRegistrable.streamUrl || ch.streamUrl) && nextRegistrable.status === 'InProgress' && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <h4 className="font-semibold flex items-center gap-2 mb-2 text-sm"><Radio className="w-4 h-4 text-red-500" />{t('eventDetail.liveStream')}</h4>
+                  <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
+                    <Play className="w-12 h-12 text-white/50" />
+                  </div>
+                </div>
+              )}
             </div>
-          </CollapsibleSection>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Rules Confirmation Dialog */}
       {showRulesDialog && (
@@ -596,32 +650,12 @@ export function ChampionshipDetailPage() {
             <h3 className="font-bold mb-3">{t('eventDetail.rules')}</h3>
             <div className="text-sm text-muted-foreground whitespace-pre-line mb-4 max-h-60 overflow-y-auto">{showRulesDialog.rules}</div>
             <label className="flex items-center gap-2 mb-4 cursor-pointer">
-              <input type="checkbox" className="accent-[var(--color-primary)]" />
+              <input type="checkbox" checked={rulesChecked} onChange={e => setRulesChecked(e.target.checked)} className="accent-[var(--color-primary)]" />
               <span className="text-sm">{t('dialogs.registerConfirm')}</span>
             </label>
             <div className="flex gap-3 justify-end">
               <button onClick={() => setShowRulesDialog(null)} className="px-4 py-2 bg-accent rounded-lg text-sm">{t('common.cancel')}</button>
-              <button onClick={handleConfirmRules} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold">{t('common.confirm')}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Success Dialog */}
-      {showSuccessDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-card border border-border rounded-xl p-6 max-w-md mx-4 w-full text-center">
-            <div className="w-14 h-14 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-7 h-7 text-green-400" />
-            </div>
-            <h3 className="font-bold text-lg mb-1">{t('dialogs.registerSuccess')}</h3>
-            <p className="text-sm text-muted-foreground mb-4">{t('dialogs.registerSuccessMsg')}</p>
-            <p className="text-xs text-muted-foreground mb-4">{t('dialogs.waitSplitNotice')}</p>
-            <div className="flex gap-3 justify-center">
-              <button onClick={() => setShowSuccessDialog(false)} className="px-4 py-2 bg-accent rounded-lg text-sm">{t('common.cancel')}</button>
-              <button onClick={() => setShowSuccessDialog(false)} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold flex items-center gap-1">
-                <Download className="w-4 h-4" /> {t('dialogs.addToCalendar')}
-              </button>
+              <button onClick={handleConfirmRules} disabled={!rulesChecked} className={cn('px-4 py-2 rounded-lg text-sm font-semibold', rulesChecked ? 'bg-primary text-primary-foreground' : 'bg-accent text-muted-foreground cursor-not-allowed')}>{t('common.confirm')}</button>
             </div>
           </div>
         </div>

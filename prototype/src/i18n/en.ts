@@ -129,6 +129,7 @@ export const en = {
     scoring: 'Scoring Rules',
     registration: 'Registration',
     registered: 'Registered',
+    registrationCount: 'Registered',
     registerNow: 'Register Now',
     cancelRegistration: 'Cancel Registration',
     loginToRegister: 'Log in to Register',

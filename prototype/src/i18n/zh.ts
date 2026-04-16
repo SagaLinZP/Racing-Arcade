@@ -129,6 +129,7 @@ export const zh = {
     scoring: '积分规则',
     registration: '报名',
     registered: '已报名',
+    registrationCount: '报名人数',
     registerNow: '立即报名',
     cancelRegistration: '取消报名',
     loginToRegister: '登录后报名',

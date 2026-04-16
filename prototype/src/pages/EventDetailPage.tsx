@@ -22,7 +22,7 @@ export function EventDetailPage() {
   const event = events.find(e => e.id === id)
   const [registered, setRegistered] = useState(event?.registeredDriverIds.includes(state.currentUser?.id || '') || false)
   const [showRulesDialog, setShowRulesDialog] = useState(false)
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [rulesChecked, setRulesChecked] = useState(false)
   const [activeSplit, setActiveSplit] = useState(1)
 
   if (!event) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">{t('common.noData')}</div>
@@ -51,18 +51,19 @@ export function EventDetailPage() {
   const hasResults = event.results && event.results.length > 0
 
   const handleRegister = () => {
+    if (!state.isLoggedIn) return
     if (event.accessRequirements) {
+      setRulesChecked(false)
       setShowRulesDialog(true)
     } else {
       setRegistered(true)
-      setShowSuccessDialog(true)
     }
   }
 
   const handleConfirmRules = () => {
+    if (!rulesChecked) return
     setShowRulesDialog(false)
     setRegistered(true)
-    setShowSuccessDialog(true)
   }
 
   const getDriverName = (driverId: string) => drivers.find(d => d.id === driverId)?.nickname || driverId
@@ -94,10 +95,6 @@ export function EventDetailPage() {
       <div className="relative rounded-2xl overflow-hidden h-48 md:h-64 mb-8" style={{ background: getCoverGradient(event.id) }}>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-          <div className="flex items-center gap-2 mb-2">
-            <StatusBadge status={event.status} label={t(`eventDetail.statusNames.${event.status}`)} />
-            {event.streamUrl && <StatusBadge status="InProgress" label="LIVE" />}
-          </div>
           <h1 className="text-2xl md:text-4xl font-black text-white">{name}</h1>
         </div>
       </div>
@@ -326,12 +323,24 @@ export function EventDetailPage() {
           <div className="bg-card border border-border rounded-xl p-5 sticky top-20">
             <div className="space-y-3 mb-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">{t('eventDetail.registration')}</span>
-                <StatusBadge status={event.status} label={t(`eventDetail.statusNames.${event.status}`)} />
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Users className="w-4 h-4 text-primary" />
-                <span>{event.currentRegistrations} / {totalCapacity}</span>
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-primary" />
+                    <span>{t('eventDetail.registrationCount')}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isRegistered ? (
+                      <span className="flex items-center gap-1 px-2 py-0.5 bg-green-500/10 text-green-400 rounded text-xs font-medium">
+                        <CheckCircle className="w-3 h-3" /> {t('eventDetail.registered')}
+                      </span>
+                    ) : (
+                      <StatusBadge status={event.status} label={t(`eventDetail.statusNames.${event.status}`)} />
+                    )}
+                  </div>
+                </div>
+                <div className="text-2xl font-bold">
+                  {event.currentRegistrations} <span className="text-lg text-muted-foreground">/</span> {totalCapacity}
+                </div>
               </div>
               {event.enableMultiSplit && (
                 <div className="text-xs text-muted-foreground">
@@ -351,17 +360,14 @@ export function EventDetailPage() {
                 {(event.status === 'RegistrationOpen') && (
                   isRegistered ? (
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2 px-4 py-2.5 bg-green-500/10 text-green-400 rounded-lg text-sm font-medium">
-                        <CheckCircle className="w-4 h-4" /> {t('eventDetail.registered')}
-                      </div>
+                      <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-accent rounded-lg text-sm hover:bg-accent/80 transition-colors">
+                        <Download className="w-4 h-4" /> {t('eventDetail.addendum')}
+                      </button>
                       <button
                         onClick={() => setRegistered(false)}
                         className="w-full px-4 py-2 bg-accent text-destructive rounded-lg text-sm hover:bg-destructive/10 transition-colors"
                       >
                         {t('eventDetail.cancelRegistration')}
-                      </button>
-                      <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-accent rounded-lg text-sm hover:bg-accent/80 transition-colors">
-                        <Download className="w-4 h-4" /> {t('eventDetail.addendum')}
                       </button>
                     </div>
                   ) : state.isLoggedIn ? (
@@ -413,14 +419,6 @@ export function EventDetailPage() {
               )}
             </div>
 
-            {/* Regions */}
-            <div className="mt-3 pt-3 border-t border-border">
-              <div className="flex flex-wrap gap-1">
-                {event.regions.map(r => (
-                  <span key={r} className="px-2 py-0.5 bg-primary/10 text-primary rounded text-xs font-medium">{r}</span>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -432,36 +430,17 @@ export function EventDetailPage() {
             <h3 className="font-bold mb-3">{t('eventDetail.rules')}</h3>
             <div className="text-sm text-muted-foreground whitespace-pre-line mb-4 max-h-60 overflow-y-auto">{eventRules}</div>
             <label className="flex items-center gap-2 mb-4 cursor-pointer">
-              <input type="checkbox" id="rules-check" className="accent-[var(--color-primary)]" />
+              <input type="checkbox" checked={rulesChecked} onChange={e => setRulesChecked(e.target.checked)} className="accent-[var(--color-primary)]" />
               <span className="text-sm">{t('dialogs.registerConfirm')}</span>
             </label>
             <div className="flex gap-3 justify-end">
               <button onClick={() => setShowRulesDialog(false)} className="px-4 py-2 bg-accent rounded-lg text-sm">{t('common.cancel')}</button>
-              <button onClick={handleConfirmRules} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold">{t('common.confirm')}</button>
+              <button onClick={handleConfirmRules} disabled={!rulesChecked} className={cn('px-4 py-2 rounded-lg text-sm font-semibold', rulesChecked ? 'bg-primary text-primary-foreground' : 'bg-accent text-muted-foreground cursor-not-allowed')}>{t('common.confirm')}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Success Dialog */}
-      {showSuccessDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-card border border-border rounded-xl p-6 max-w-md mx-4 w-full text-center">
-            <div className="w-14 h-14 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-7 h-7 text-green-400" />
-            </div>
-            <h3 className="font-bold text-lg mb-1">{t('dialogs.registerSuccess')}</h3>
-            <p className="text-sm text-muted-foreground mb-4">{t('dialogs.registerSuccessMsg')}</p>
-            <p className="text-xs text-muted-foreground mb-4">{t('dialogs.waitSplitNotice')}</p>
-            <div className="flex gap-3 justify-center">
-              <button onClick={() => setShowSuccessDialog(false)} className="px-4 py-2 bg-accent rounded-lg text-sm">{t('common.cancel')}</button>
-              <button onClick={() => setShowSuccessDialog(false)} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold flex items-center gap-1">
-                <Download className="w-4 h-4" /> {t('dialogs.addToCalendar')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

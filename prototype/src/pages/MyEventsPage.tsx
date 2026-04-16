@@ -5,7 +5,7 @@ import { useApp } from '@/hooks/useAppStore'
 import { events } from '@/data/events'
 import { championships } from '@/data/championships'
 import { cn } from '@/lib/utils'
-import { Flag, Clock, CheckCircle, ChevronDown, ChevronRight, Trophy } from 'lucide-react'
+import { Flag, Clock, CheckCircle, ChevronDown, ChevronRight, Trophy, Download } from 'lucide-react'
 
 export function MyEventsPage() {
   const { t } = useTranslation()
@@ -110,6 +110,12 @@ export function MyEventsPage() {
               <span className={cn('px-2.5 py-1 rounded-full text-xs font-medium', statusColor(e.status))}>
                 {t(`eventDetail.statusNames.${e.status}`)}
               </span>
+              <button
+                onClick={e2 => { e2.preventDefault(); e2.stopPropagation() }}
+                className="flex items-center gap-1 px-2 py-1 text-xs text-primary hover:bg-primary/10 rounded transition-colors"
+              >
+                <Download className="w-3 h-3" /> {t('eventDetail.addendum')}
+              </button>
             </Link>
           ))}
 
@@ -154,6 +160,12 @@ export function MyEventsPage() {
                         <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', statusColor(e.status))}>
                           {t(`eventDetail.statusNames.${e.status}`)}
                         </span>
+                        <button
+                          onClick={e2 => { e2.preventDefault(); e2.stopPropagation() }}
+                          className="flex items-center gap-1 px-2 py-1 text-xs text-primary hover:bg-primary/10 rounded transition-colors"
+                        >
+                          <Download className="w-3 h-3" /> {t('eventDetail.addendum')}
+                        </button>
                         <span className="text-xs text-primary hover:underline whitespace-nowrap">{lang === 'zh' ? '查看详情' : 'View Details'}</span>
                       </Link>
                     ))}
