@@ -30,7 +30,6 @@ export function TeamPublicPage() {
               <h1 className="text-2xl font-bold">{team.name}</h1>
               <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                 <Flag className="w-4 h-4" />
-                <span>{team.region}</span>
                 {captain && (
                   <>
                     <span>·</span>

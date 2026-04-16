@@ -51,11 +51,7 @@ export function EventCard({ event }: { event: SimEvent }) {
             </span>
           )}
         </div>
-        <div className="absolute top-3 right-3 flex gap-1">
-          {event.regions.map(r => (
-            <span key={r} className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-black/40 text-white">{r}</span>
-          ))}
-        </div>
+
         <div className="relative z-10">
           <h3 className="text-white font-bold text-lg leading-tight line-clamp-2 group-hover:text-primary transition-colors">{name}</h3>
         </div>
@@ -118,11 +114,7 @@ export function ChampionshipCard({ championship, eventCount, nextEventTime, next
           </span>
           <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-primary/80 text-white">{t('events.typeChampionship', 'Championship')}</span>
         </div>
-        <div className="absolute top-3 right-3 flex gap-1">
-          {championship.regions.map(r => (
-            <span key={r} className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-black/40 text-white">{r}</span>
-          ))}
-        </div>
+
       </div>
       <div className="p-4 space-y-3">
         <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors line-clamp-1">{name}</h3>

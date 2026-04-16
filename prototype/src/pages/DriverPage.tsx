@@ -45,7 +45,7 @@ export function DriverPage() {
                 </Link>
               )}
             </div>
-            <div className="text-sm text-muted-foreground mt-1">{driver.country} · <span className="px-1.5 py-0.5 bg-primary/10 text-primary rounded text-xs">{driver.region}</span></div>
+            <div className="text-sm text-muted-foreground mt-1">{driver.country}</div>
             <p className="text-sm text-muted-foreground mt-2">{lang === 'zh' ? driver.bio_zh : driver.bio_en}</p>
           </div>
         </div>
@@ -70,7 +70,7 @@ export function DriverPage() {
             <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center text-primary font-bold">{team.name[0]}</div>
             <div>
               <div className="font-medium">{team.name}</div>
-              <div className="text-xs text-muted-foreground">{team.region} · {team.members.length} members</div>
+              <div className="text-xs text-muted-foreground">{team.members.length} members</div>
             </div>
           </Link>
         </div>

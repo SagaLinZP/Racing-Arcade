@@ -17,7 +17,6 @@ export function LeaderboardPage() {
   const [activeTab, setActiveTab] = useState<TabType>('points')
   const [timeFilter, setTimeFilter] = useState<string>('allTime')
   const [gameFilter, setGameFilter] = useState<string>('all')
-  const [regionFilter, setRegionFilter] = useState<string>('all')
 
   const tabs: { key: TabType; label: string; icon: typeof Trophy }[] = [
     { key: 'points', label: t('leaderboard.totalPoints'), icon: Trophy },
@@ -28,11 +27,10 @@ export function LeaderboardPage() {
 
   const sorted = useMemo(() => {
     let result = [...drivers]
-    if (regionFilter !== 'all') result = result.filter(d => d.region === regionFilter)
     const key = activeTab === 'points' ? 'totalPoints' : activeTab
     result.sort((a, b) => (b[key as keyof typeof b] as number) - (a[key as keyof typeof a] as number))
     return result
-  }, [drivers, activeTab, regionFilter])
+  }, [drivers, activeTab])
 
   const getValue = (d: typeof drivers[0]) => {
     switch (activeTab) {
@@ -70,13 +68,6 @@ export function LeaderboardPage() {
           <option value="all">{t('events.filters.all')}</option>
           {gameOptions.map(g => <option key={g} value={g}>{g}</option>)}
         </select>
-        <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)} className="px-3 py-2 bg-accent border border-border rounded-lg text-sm">
-          <option value="all">{t('events.filters.allRegions')}</option>
-          <option value="CN">{t('region.CN')}</option>
-          <option value="AP">{t('region.AP')}</option>
-          <option value="AM">{t('region.AM')}</option>
-          <option value="EU">{t('region.EU')}</option>
-        </select>
       </div>
 
       <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -85,7 +76,6 @@ export function LeaderboardPage() {
             <tr className="text-muted-foreground text-xs border-b border-border">
               <th className="text-left py-3 px-4 w-16">{t('leaderboard.rank')}</th>
               <th className="text-left py-3 px-4">{t('leaderboard.driver')}</th>
-              <th className="text-left py-3 px-4 hidden md:table-cell">{t('leaderboard.region')}</th>
               <th className="text-right py-3 px-4">{t('leaderboard.value')}</th>
             </tr>
           </thead>
@@ -104,9 +94,6 @@ export function LeaderboardPage() {
                     <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-primary text-sm font-bold">{d.nickname[0]}</div>
                     <span className="font-medium">{d.nickname}</span>
                   </Link>
-                </td>
-                <td className="py-3 px-4 text-muted-foreground hidden md:table-cell">
-                  <span className="px-2 py-0.5 bg-accent rounded text-xs">{d.country}</span>
                 </td>
                 <td className="py-3 px-4 text-right font-bold">{getValue(d)}</td>
               </tr>

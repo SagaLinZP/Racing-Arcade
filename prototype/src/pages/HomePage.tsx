@@ -21,7 +21,7 @@ export function HomePage() {
   const standaloneEvents = events.filter(e => !e.championshipId)
   const liveEvents = standaloneEvents.filter(e => e.status === 'InProgress')
   const topDrivers = [...drivers].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 5)
-  const recentNews = news.filter(n => n.regions.includes(state.currentRegion) || n.regions.length === 4).slice(0, 3)
+  const recentNews = news.slice(0, 3)
 
   const mixedItems: MixedItem[] = []
 

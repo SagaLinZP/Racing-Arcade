@@ -106,7 +106,7 @@ export function TeamManagePage() {
               </div>
               <div>
                 <h2 className="font-bold text-lg">{myTeam.name}</h2>
-                <p className="text-sm text-muted-foreground">{myTeam.region} · {myTeam.members.length} {t('team.members')}</p>
+                <p className="text-sm text-muted-foreground">{myTeam.members.length} {t('team.members')}</p>
               </div>
             </div>
             <p className="text-sm text-muted-foreground">{myTeam.description}</p>

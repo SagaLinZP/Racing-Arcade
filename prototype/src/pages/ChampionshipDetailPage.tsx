@@ -318,11 +318,11 @@ export function ChampionshipDetailPage() {
     .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())[0]
 
   const futureEvents = chEvents
-    .filter(e => e !== nextRegistrable && new Date(e.eventStartTime) >= now && e.status !== 'Cancelled')
+    .filter(e => e !== nextRegistrable && new Date(e.eventStartTime) >= now && e.status !== 'Cancelled' && e.status !== 'Completed' && e.status !== 'ResultsPublished')
     .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
 
   const pastEvents = chEvents
-    .filter(e => new Date(e.eventStartTime) < now || e.status === 'Completed' || e.status === 'ResultsPublished')
+    .filter(e => e !== nextRegistrable && !futureEvents.includes(e) && (new Date(e.eventStartTime) < now || e.status === 'Completed' || e.status === 'ResultsPublished'))
     .sort((a, b) => new Date(b.eventStartTime).getTime() - new Date(a.eventStartTime).getTime())
 
   const formatDateTime = (dateStr: string) => {
@@ -433,14 +433,14 @@ export function ChampionshipDetailPage() {
     const isRegistered = isEventRegistered(event)
     if (!isRegistered || !event.serverInfo) return null
     return (
-      <div className="mt-3 bg-accent rounded-lg p-3 space-y-1.5 text-xs">
-        <h5 className="font-semibold flex items-center gap-2"><Server className="w-3 h-3 text-primary" />{t('eventDetail.serverInfo')}</h5>
-        <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverName')}:</span><span className="font-mono">{event.serverInfo}</span></div>
+      <div className="mt-3 bg-green-500/5 rounded-lg p-3 border border-green-500/20 space-y-1.5 text-sm">
+        <h5 className="font-semibold flex items-center gap-2 text-green-400"><Server className="w-4 h-4" />{t('eventDetail.serverInfo')}</h5>
+        <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverName')}:</span><span className="font-mono font-medium">{event.serverInfo}</span></div>
         {event.serverPassword && (
-          <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono">{event.serverPassword}</span></div>
+          <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono font-medium">{event.serverPassword}</span></div>
         )}
         {event.serverJoinLink && (
-          <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline"><Wifi className="w-3 h-3" />{t('eventDetail.joinLink')}</a>
+          <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-3 h-3" />{t('eventDetail.joinLink')}</a>
         )}
       </div>
     )
@@ -458,7 +458,6 @@ export function ChampionshipDetailPage() {
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
-              <StatusBadge status={event.status} label={t(`eventDetail.statusNames.${event.status}`)} />
               <h4 className="font-semibold text-sm">{lang === 'zh' ? event.name_zh : event.name_en}</h4>
             </div>
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
@@ -492,13 +491,12 @@ export function ChampionshipDetailPage() {
         {isPast && event.results && event.results.length > 0 && (
           <div className="mt-3">
             <button
-              onClick={() => setExpandedResults(prev => ({ ...prev, [event.id]: !prev[event.id] }))}
+              onClick={() => { setResultsEventFilter(event.id); setActiveTab('results') }}
               className="text-xs text-primary hover:underline flex items-center gap-1"
             >
-              {expandedResults[event.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-              {expandedResults[event.id] ? (lang === 'zh' ? '收起成绩' : 'Hide results') : (lang === 'zh' ? '查看成绩' : 'View results')}
+              <BarChart3 className="w-3 h-3" />
+              {lang === 'zh' ? '查看成绩' : 'View results'}
             </button>
-            {expandedResults[event.id] && renderResultsTable(event)}
           </div>
         )}
 
@@ -798,19 +796,6 @@ export function ChampionshipDetailPage() {
                 )}
               </div>
 
-              {nextRegistered && nextRegistrable.serverInfo && (
-                <div className="mt-4 pt-4 border-t border-border space-y-2 text-xs">
-                  <h4 className="font-semibold flex items-center gap-2"><Server className="w-3 h-3 text-primary" />{t('eventDetail.serverInfo')}</h4>
-                  <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverName')}:</span><span className="font-mono">{nextRegistrable.serverInfo}</span></div>
-                  {nextRegistrable.serverPassword && (
-                    <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono">{nextRegistrable.serverPassword}</span></div>
-                  )}
-                  {nextRegistrable.serverJoinLink && (
-                    <a href={nextRegistrable.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline"><Wifi className="w-3 h-3" />{t('eventDetail.joinLink')}</a>
-                  )}
-                </div>
-              )}
-
               {(nextRegistrable.streamUrl || ch.streamUrl) && nextRegistrable.status === 'InProgress' && (
                 <div className="mt-4 pt-4 border-t border-border">
                   <h4 className="font-semibold flex items-center gap-2 mb-2 text-sm"><Radio className="w-4 h-4 text-red-500" />{t('eventDetail.liveStream')}</h4>
@@ -819,6 +804,21 @@ export function ChampionshipDetailPage() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {nextRegistered && nextRegistrable.serverInfo && (
+            <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-5">
+              <h4 className="font-semibold flex items-center gap-2 text-sm text-green-400 mb-3"><Server className="w-4 h-4" />{t('eventDetail.serverInfo')}</h4>
+              <div className="space-y-3 text-sm">
+                <div><div className="text-muted-foreground text-xs mb-0.5">{t('eventDetail.serverName')}</div><div className="font-mono font-medium">{nextRegistrable.serverInfo}</div></div>
+                {nextRegistrable.serverPassword && (
+                  <div><div className="text-muted-foreground text-xs mb-0.5">{t('eventDetail.serverPassword')}</div><div className="font-mono font-medium">{nextRegistrable.serverPassword}</div></div>
+                )}
+                {nextRegistrable.serverJoinLink && (
+                  <a href={nextRegistrable.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-3 h-3" />{t('eventDetail.joinLink')}</a>
+                )}
+              </div>
             </div>
           )}
         </div>
