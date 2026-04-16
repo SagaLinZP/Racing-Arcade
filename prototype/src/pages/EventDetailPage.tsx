@@ -1,18 +1,17 @@
 import { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { events } from '@/data/events'
 import { drivers } from '@/data/drivers'
 import { teams } from '@/data/teams'
-import { championships } from '@/data/championships'
 import { StatusBadge } from '@/components/StatusBadge'
 import { getCoverGradient } from '@/data/events'
 import { cn } from '@/lib/utils'
 import {
-  MapPin, Clock, Cloud, Wrench, Users, Calendar, ChevronRight,
+  MapPin, Clock, Cloud, Wrench, Users, ChevronRight,
   Flag, Download, AlertTriangle, Play, Radio, Shield, Server,
-  Wifi, CheckCircle, Info, Trophy
+  Wifi, CheckCircle, Trophy
 } from 'lucide-react'
 
 export function EventDetailPage() {
@@ -28,24 +27,22 @@ export function EventDetailPage() {
 
   if (!event) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">{t('common.noData')}</div>
 
+  if (event.championshipId) {
+    return <Navigate to={`/championships/${event.championshipId}`} replace />
+  }
+
   const name = lang === 'zh' ? event.name_zh : event.name_en
   const desc = lang === 'zh' ? event.description_zh : event.description_en
   const eventRules = lang === 'zh' ? event.rules_zh : event.rules_en
   const scoringRules = lang === 'zh' ? event.scoringRules_zh : event.scoringRules_en
   const eventResources = lang === 'zh' ? event.resources_zh : event.resources_en
-  const championship = event.championshipId ? championships.find(c => c.id === event.championshipId) : null
 
-  const chRules = championship ? (lang === 'zh' ? championship.rules_zh : championship.rules_en) : undefined
-  const chScoring = championship ? (lang === 'zh' ? championship.scoringRules_zh : championship.scoringRules_en) : undefined
-  const chResources = championship ? (lang === 'zh' ? championship.resources_zh : championship.resources_en) : undefined
-  const chProgression = championship ? (lang === 'zh' ? championship.progressionRules_zh : championship.progressionRules_en) : undefined
-
-  const effectiveWeather = event.weather || championship?.weather
-  const effectiveHasPitstop = championship ? championship.hasPitstop : event.hasPitstop
-  const effectivePracticeDuration = event.practiceDuration ?? championship?.practiceDuration
-  const effectiveQualifyingDuration = event.qualifyingDuration ?? championship?.qualifyingDuration
-  const effectiveRaceDuration = championship ? championship.raceDuration : event.raceDuration
-  const effectiveRaceDurationType = championship ? championship.raceDurationType : event.raceDurationType
+  const effectiveWeather = event.weather
+  const effectiveHasPitstop = event.hasPitstop
+  const effectivePracticeDuration = event.practiceDuration
+  const effectiveQualifyingDuration = event.qualifyingDuration
+  const effectiveRaceDuration = event.raceDuration
+  const effectiveRaceDurationType = event.raceDurationType
 
   const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
   const estimatedSplits = event.enableMultiSplit ? Math.ceil(event.currentRegistrations / event.maxEntriesPerSplit) : 1
@@ -54,7 +51,7 @@ export function EventDetailPage() {
   const hasResults = event.results && event.results.length > 0
 
   const handleRegister = () => {
-    if (event.accessRequirements || championship?.accessRequirements) {
+    if (event.accessRequirements) {
       setShowRulesDialog(true)
     } else {
       setRegistered(true)
@@ -99,7 +96,7 @@ export function EventDetailPage() {
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
           <div className="flex items-center gap-2 mb-2">
             <StatusBadge status={event.status} label={t(`eventDetail.statusNames.${event.status}`)} />
-            {(event.streamUrl || championship?.streamUrl) && <StatusBadge status="InProgress" label="LIVE" />}
+            {event.streamUrl && <StatusBadge status="InProgress" label="LIVE" />}
           </div>
           <h1 className="text-2xl md:text-4xl font-black text-white">{name}</h1>
         </div>
@@ -108,24 +105,12 @@ export function EventDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Championship Link */}
-          {championship && (
-            <Link
-              to={`/championships/${championship.id}`}
-              className="flex items-center gap-2 px-4 py-3 bg-primary/5 border border-primary/20 rounded-lg hover:bg-primary/10 transition-colors"
-            >
-              <Flag className="w-4 h-4 text-primary" />
-              <span className="text-sm">{t('eventDetail.championship')}: {lang === 'zh' ? championship.name_zh : championship.name_en}</span>
-              <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
-            </Link>
-          )}
-
           {/* Basic Info */}
           <div className="bg-card border border-border rounded-xl p-5">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><span className="text-primary text-lg">🎮</span></div>
-                <div><div className="text-xs text-muted-foreground">{t('eventDetail.game')}</div><div className="text-sm font-medium">{championship?.game || event.game}</div></div>
+                <div><div className="text-xs text-muted-foreground">{t('eventDetail.game')}</div><div className="text-sm font-medium">{event.game}</div></div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><MapPin className="w-4 h-4 text-primary" /></div>
@@ -133,7 +118,7 @@ export function EventDetailPage() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><span className="text-primary text-lg">🏎️</span></div>
-                <div><div className="text-xs text-muted-foreground">{t('eventDetail.carClass')}</div><div className="text-sm font-medium">{championship?.carClass || event.carClass}</div></div>
+                <div><div className="text-xs text-muted-foreground">{t('eventDetail.carClass')}</div><div className="text-sm font-medium">{event.carClass}</div></div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center"><Cloud className="w-4 h-4 text-primary" /></div>
@@ -180,97 +165,27 @@ export function EventDetailPage() {
             </div>
           </div>
 
-          {/* Championship-level Info (for sub-events) */}
-          {championship && (
-            <div className="bg-card border border-primary/20 rounded-xl p-5">
-              <h2 className="font-bold mb-4 flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-yellow-400" />
-                {t('eventDetail.championshipInfo')}
-                <Link to={`/championships/${championship.id}`} className="text-xs text-primary hover:underline ml-auto flex items-center gap-1">
-                  {lang === 'zh' ? '查看锦标赛' : 'View Championship'} <ChevronRight className="w-3 h-3" />
-                </Link>
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                {championship.maxSplits && (
-                  <div className="bg-accent rounded-lg p-2.5">
-                    <div className="text-xs text-muted-foreground">{t('championships.splitConfig')}</div>
-                    <div className="font-medium">{championship.maxSplits} splits / {championship.maxEntriesPerSplit} {lang === 'zh' ? '人/组' : 'per split'}</div>
-                  </div>
-                )}
-                {championship.splitAssignmentRule && (
-                  <div className="bg-accent rounded-lg p-2.5">
-                    <div className="text-xs text-muted-foreground">{lang === 'zh' ? '分组规则' : 'Split Rule'}</div>
-                    <div className="font-medium">{championship.splitAssignmentRule}</div>
-                  </div>
-                )}
-                {championship.accessRequirements && (
-                  <div className="bg-accent rounded-lg p-2.5">
-                    <div className="text-xs text-muted-foreground">{t('eventDetail.conditions')}</div>
-                    <div className="font-medium">{championship.accessRequirements}</div>
-                  </div>
-                )}
-                {championship.cancelRegistrationDeadlineOffset && (
-                  <div className="bg-accent rounded-lg p-2.5">
-                    <div className="text-xs text-muted-foreground">{t('eventDetail.cancelRegistrationRule')}</div>
-                    <div className="font-medium">{championship.cancelRegistrationDeadlineOffset}</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Rules - event own rules first, then championship rules */}
+          {/* Rules */}
           {eventRules && (
             <div className="bg-card border border-border rounded-xl p-5">
               <h2 className="font-bold mb-3">{t('eventDetail.rules')}</h2>
               <div className="text-sm text-muted-foreground whitespace-pre-line">{eventRules}</div>
             </div>
           )}
-          {!eventRules && chRules && (
-            <div className="bg-card border border-border rounded-xl p-5">
-              <h2 className="font-bold mb-3 flex items-center gap-2">{t('eventDetail.rules')} <span className="text-xs text-muted-foreground font-normal">({t('eventDetail.inheritedFromChampionship')})</span></h2>
-              <div className="text-sm text-muted-foreground whitespace-pre-line">{chRules}</div>
-            </div>
-          )}
 
-          {/* Scoring Rules - event own first, then championship */}
+          {/* Scoring Rules */}
           {scoringRules && (
             <div className="bg-card border border-border rounded-xl p-5">
               <h2 className="font-bold mb-3">{t('eventDetail.scoring')}</h2>
               <div className="text-sm text-muted-foreground whitespace-pre-line">{scoringRules}</div>
             </div>
           )}
-          {!scoringRules && chScoring && (
-            <div className="bg-card border border-border rounded-xl p-5">
-              <h2 className="font-bold mb-3 flex items-center gap-2">{t('eventDetail.scoring')} <span className="text-xs text-muted-foreground font-normal">({t('eventDetail.inheritedFromChampionship')})</span></h2>
-              <div className="text-sm text-muted-foreground whitespace-pre-line">{chScoring}</div>
-            </div>
-          )}
 
-          {/* Progression Rules (championship only) */}
-          {chProgression && (
+          {/* Resources */}
+          {eventResources && (
             <div className="bg-card border border-border rounded-xl p-5">
-              <h2 className="font-bold mb-3">{t('championships.progression')}</h2>
-              <div className="text-sm text-muted-foreground whitespace-pre-line">{chProgression}</div>
-            </div>
-          )}
-
-          {/* Resources - event extra resources + championship resources */}
-          {(eventResources || chResources) && (
-            <div className="bg-card border border-border rounded-xl p-5">
-              <h2 className="font-bold mb-3 flex items-center gap-2"><Download className="w-4 h-4 text-primary" />{t('eventDetail.resources')}</h2>
-              {eventResources && (
-                <div className="text-sm text-muted-foreground whitespace-pre-line mb-3">{eventResources}</div>
-              )}
-              {chResources && (
-                <>
-                  {eventResources && <div className="border-t border-border my-3" />}
-                  <div className="text-sm">
-                    <span className="text-xs text-muted-foreground">({t('eventDetail.inheritedFromChampionship')})</span>
-                    <div className="text-muted-foreground whitespace-pre-line mt-1">{chResources}</div>
-                  </div>
-                </>
-              )}
+              <h2 className="font-bold mb-3 flex items-center gap-2"><Download className="w-4 h-4 text-primary" />{lang === 'zh' ? '资源下载 / Resources' : 'Resources'}</h2>
+              <div className="text-sm text-muted-foreground whitespace-pre-line">{eventResources}</div>
             </div>
           )}
 
@@ -291,7 +206,7 @@ export function EventDetailPage() {
           )}
 
           {/* Live Stream */}
-          {(event.streamUrl || championship?.streamUrl) && event.status === 'InProgress' && (
+          {event.streamUrl && event.status === 'InProgress' && (
             <div className="bg-card border border-border rounded-xl p-5">
               <h2 className="font-bold mb-3 flex items-center gap-2"><Radio className="w-4 h-4 text-red-500" />{t('eventDetail.liveStream')}</h2>
               <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
@@ -433,7 +348,7 @@ export function EventDetailPage() {
 
             {!isCancelled && (
               <>
-                {event.status === 'RegistrationOpen' && (
+                {(event.status === 'RegistrationOpen') && (
                   isRegistered ? (
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 px-4 py-2.5 bg-green-500/10 text-green-400 rounded-lg text-sm font-medium">
@@ -515,7 +430,7 @@ export function EventDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-card border border-border rounded-xl p-6 max-w-lg mx-4 w-full">
             <h3 className="font-bold mb-3">{t('eventDetail.rules')}</h3>
-            <div className="text-sm text-muted-foreground whitespace-pre-line mb-4 max-h-60 overflow-y-auto">{eventRules || chRules}</div>
+            <div className="text-sm text-muted-foreground whitespace-pre-line mb-4 max-h-60 overflow-y-auto">{eventRules}</div>
             <label className="flex items-center gap-2 mb-4 cursor-pointer">
               <input type="checkbox" id="rules-check" className="accent-[var(--color-primary)]" />
               <span className="text-sm">{t('dialogs.registerConfirm')}</span>

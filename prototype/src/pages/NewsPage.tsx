@@ -12,8 +12,13 @@ export function NewsPage() {
   const { state } = useApp()
   const lang = state.language
   const [category, setCategory] = useState<'all' | 'event' | 'platform' | 'review' | 'other'>('all')
+  const [regionFilter, setRegionFilter] = useState<string>('all')
 
-  const filtered = category === 'all' ? news : news.filter(n => n.category === category)
+  const filtered = news.filter(n => {
+    if (category !== 'all' && n.category !== category) return false
+    if (regionFilter !== 'all' && !(n.regions || []).includes(regionFilter)) return false
+    return true
+  })
 
   const categoryColors: Record<string, string> = {
     event: 'bg-blue-500/10 text-blue-400',
@@ -52,6 +57,18 @@ export function NewsPage() {
             {label}
           </button>
         ))}
+        <div className="border-l border-border mx-2" />
+        <select
+          value={regionFilter}
+          onChange={e => setRegionFilter(e.target.value)}
+          className="px-3 py-1 bg-accent border border-border rounded-lg text-sm"
+        >
+          <option value="all">{t('events.filters.allRegions')}</option>
+          <option value="CN">{t('region.CN')}</option>
+          <option value="AP">{t('region.AP')}</option>
+          <option value="AM">{t('region.AM')}</option>
+          <option value="EU">{t('region.EU')}</option>
+        </select>
       </div>
 
       <div className="space-y-4">

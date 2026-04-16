@@ -21,10 +21,7 @@ export function NotificationsPage() {
   const { t } = useTranslation()
   const { state } = useApp()
   const lang = state.language
-  const [filter, setFilter] = useState<string>('all')
   const [items, setItems] = useState(notifications)
-
-  const filtered = filter === 'all' ? items : items.filter(n => n.type === filter)
 
   const markAllRead = () => setItems(items.map(n => ({ ...n, isRead: true })))
 
@@ -37,15 +34,8 @@ export function NotificationsPage() {
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        <button onClick={() => setFilter('all')} className={cn('px-3 py-1.5 rounded-lg text-sm', filter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-accent text-muted-foreground')}>{t('events.filters.all')}</button>
-        {Object.entries(t('notifications.types', { returnObjects: true }) as Record<string, string>).map(([key, label]) => (
-          <button key={key} onClick={() => setFilter(key)} className={cn('px-3 py-1.5 rounded-lg text-sm', filter === key ? 'bg-primary text-primary-foreground' : 'bg-accent text-muted-foreground')}>{label}</button>
-        ))}
-      </div>
-
       <div className="space-y-2">
-        {filtered.map(n => {
+        {items.map(n => {
           const Icon = typeIcons[n.type] || Bell
           return (
             <Link

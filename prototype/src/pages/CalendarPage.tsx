@@ -3,20 +3,22 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { events } from '@/data/events'
+import { championships } from '@/data/championships'
 import { cn } from '@/lib/utils'
-import { ChevronLeft, ChevronRight, List, Grid3X3, CalendarDays } from 'lucide-react'
+import { ChevronLeft, ChevronRight, List, Grid3X3 } from 'lucide-react'
 
 const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const DAYS_ZH = ['日', '一', '二', '三', '四', '五', '六']
 
 const gameColors: Record<string, string> = {
-  'ACC PC': 'bg-orange-500',
-  'ACC Crossplay': 'bg-orange-400',
-  'AC Evo PC': 'bg-blue-500',
-  'iRacing PC': 'bg-green-500',
-  'LMU PC': 'bg-purple-500',
-  'AMS2 PC': 'bg-cyan-500',
+  'AC': 'bg-yellow-500',
+  'ACC': 'bg-orange-500',
+  'AC Evo': 'bg-blue-500',
+  'iRacing': 'bg-green-500',
+  'LMU': 'bg-purple-500',
+  'F1 25': 'bg-red-500',
 }
+const gameNames = Object.keys(gameColors)
 
 export function CalendarPage() {
   const { t } = useTranslation()
@@ -36,6 +38,13 @@ export function CalendarPage() {
       return true
     })
   }, [events, gameFilter, myEventsOnly, state.currentUser])
+
+  const getEventLink = (e: typeof events[number]) => {
+    if (e.championshipId) {
+      return `/championships/${e.championshipId}`
+    }
+    return `/events/${e.id}`
+  }
 
   const getEventsForDate = (date: Date) => {
     return filteredEvents.filter(e => {
@@ -77,9 +86,9 @@ export function CalendarPage() {
         </div>
       </div>
 
-      {/* Game Filter */}
+      {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {Object.keys(gameColors).map(g => (
+        {gameNames.map(g => (
           <button
             key={g}
             onClick={() => toggleGame(g)}
@@ -126,7 +135,7 @@ export function CalendarPage() {
                       {dayEvents.slice(0, 3).map(e => (
                         <Link
                           key={e.id}
-                          to={`/events/${e.id}`}
+                          to={getEventLink(e)}
                           className={cn('block px-1.5 py-0.5 rounded text-[10px] text-white truncate hover:opacity-80', gameColors[e.game] || 'bg-gray-500')}
                         >
                           {lang === 'zh' ? e.name_zh : e.name_en}
@@ -149,7 +158,7 @@ export function CalendarPage() {
             .map(e => (
               <Link
                 key={e.id}
-                to={`/events/${e.id}`}
+                to={getEventLink(e)}
                 className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/30 transition-colors"
               >
                 <div className="w-16 text-center">
@@ -165,6 +174,12 @@ export function CalendarPage() {
                     <span>{e.track}</span>
                     <span>·</span>
                     <span>{e.carClass}</span>
+                    {e.championshipId && (
+                      <>
+                        <span>·</span>
+                        <span className="text-primary">{lang === 'zh' ? '锦标赛' : 'Championship'}</span>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="text-right text-xs text-muted-foreground">

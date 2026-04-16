@@ -1,42 +1,94 @@
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
-import { EventCard } from '@/components/EventCard'
-import { events } from '@/data/events'
+import { EventCard, ChampionshipCard } from '@/components/EventCard'
+import { events, type SimEvent } from '@/data/events'
+import { championships, type Championship } from '@/data/championships'
 import { cn } from '@/lib/utils'
 import { SlidersHorizontal, ArrowUpDown } from 'lucide-react'
 
-const gameOptions = ['ACC PC', 'ACC Crossplay', 'AC Evo PC', 'iRacing PC', 'LMU PC', 'AMS2 PC']
-const statusOptions = ['RegistrationOpen', 'RegistrationClosed', 'InProgress', 'Completed', 'Cancelled']
-const carClassOptions = ['GT3', 'GT4', 'Porsche Cup', 'LMP2', 'Formula', 'GTE', 'TCR']
+type ListItem =
+  | { type: 'event'; data: SimEvent }
+  | { type: 'championship'; data: Championship; eventCount: number; nextEventTime?: string; nextRegistrationStatus?: string }
+
+const gameOptions = ['AC', 'ACC', 'AC Evo', 'iRacing', 'LMU', 'F1 25']
+const carClassOptions = ['GT3', 'GT4', 'Formula']
+const timeOptions = [['thisWeek', 'events.filters.thisWeek'], ['thisMonth', 'events.filters.thisMonth'], ['allFuture', 'events.filters.allFuture']] as const
 
 export function EventsPage() {
   const { t } = useTranslation()
   const { state } = useApp()
   const [gameFilter, setGameFilter] = useState<string[]>([])
-  const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [carClassFilter, setCarClassFilter] = useState<string[]>([])
-  const [regionFilter, setRegionFilter] = useState<string>('current')
   const [timeFilter, setTimeFilter] = useState<string>('allFuture')
-  const [typeFilter, setTypeFilter] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('time')
   const [showFilters, setShowFilters] = useState(false)
 
+  const items = useMemo<ListItem[]>(() => {
+    const now = new Date()
+    const standalone = events.filter(e => !e.championshipId)
+    const eventItems: ListItem[] = standalone.map(e => ({ type: 'event' as const, data: e }))
+    const champItems: ListItem[] = championships.map(ch => {
+      const subEvents = events.filter(e => e.championshipId === ch.id)
+      const futureEvents = subEvents
+        .filter(e => new Date(e.eventStartTime) > now)
+        .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
+      const nextEvent = futureEvents[0]
+      return {
+        type: 'championship' as const,
+        data: ch,
+        eventCount: subEvents.length,
+        nextEventTime: nextEvent?.eventStartTime,
+        nextRegistrationStatus: nextEvent?.status,
+      }
+    })
+    return [...eventItems, ...champItems]
+  }, [events, championships])
+
   const filtered = useMemo(() => {
-    let result = events.filter(e => {
-      if (regionFilter === 'current' && !e.regions.includes(state.currentRegion)) return false
-      if (gameFilter.length > 0 && !gameFilter.includes(e.game)) return false
-      if (statusFilter.length > 0 && !statusFilter.includes(e.status)) return false
-      if (carClassFilter.length > 0 && !carClassFilter.includes(e.carClass)) return false
-      if (typeFilter === 'standalone' && e.championshipId) return false
-      if (typeFilter === 'championship' && !e.championshipId) return false
+    const now = new Date()
+    const weekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    const monthLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+    let result = items.filter(item => {
+      if (item.type === 'event') {
+        if (gameFilter.length > 0 && !gameFilter.includes(item.data.game)) return false
+        if (carClassFilter.length > 0 && !carClassFilter.includes(item.data.carClass)) return false
+        const start = new Date(item.data.eventStartTime)
+        if (timeFilter === 'thisWeek' && start > weekLater) return false
+        if (timeFilter === 'thisMonth' && start > monthLater) return false
+      }
+      if (item.type === 'championship') {
+        if (gameFilter.length > 0 && !gameFilter.includes(item.data.game)) return false
+        if (carClassFilter.length > 0 && !carClassFilter.includes(item.data.carClass)) return false
+        if (item.nextEventTime) {
+          const start = new Date(item.nextEventTime)
+          if (timeFilter === 'thisWeek' && start > weekLater) return false
+          if (timeFilter === 'thisMonth' && start > monthLater) return false
+        }
+      }
       return true
     })
-    if (sortBy === 'popularity') result.sort((a, b) => b.currentRegistrations - a.currentRegistrations)
-    else if (sortBy === 'recent') result.sort((a, b) => new Date(b.registrationCloseAt).getTime() - new Date(a.registrationCloseAt).getTime())
-    else result.sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
+    if (sortBy === 'popularity') {
+      result.sort((a, b) => {
+        const aPop = a.type === 'event' ? a.data.currentRegistrations : events.filter(e => e.championshipId === a.data.id).reduce((s, e) => s + e.currentRegistrations, 0)
+        const bPop = b.type === 'event' ? b.data.currentRegistrations : events.filter(e => e.championshipId === b.data.id).reduce((s, e) => s + e.currentRegistrations, 0)
+        return bPop - aPop
+      })
+    } else if (sortBy === 'recent') {
+      result.sort((a, b) => {
+        const aTime = a.type === 'event' ? a.data.registrationCloseAt : (a.nextEventTime || '')
+        const bTime = b.type === 'event' ? b.data.registrationCloseAt : (b.nextEventTime || '')
+        return new Date(bTime).getTime() - new Date(aTime).getTime()
+      })
+    } else {
+      result.sort((a, b) => {
+        const aTime = a.type === 'event' ? a.data.eventStartTime : (a.nextEventTime || a.data.id)
+        const bTime = b.type === 'event' ? b.data.eventStartTime : (b.nextEventTime || b.data.id)
+        return new Date(aTime).getTime() - new Date(bTime).getTime()
+      })
+    }
     return result
-  }, [events, gameFilter, statusFilter, carClassFilter, regionFilter, typeFilter, sortBy, state.currentRegion])
+  }, [items, gameFilter, carClassFilter, timeFilter, events])
 
   const toggleFilter = (arr: string[], setArr: (v: string[]) => void, val: string) => {
     setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val])
@@ -55,10 +107,8 @@ export function EventsPage() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Filters Sidebar */}
         <div className={cn('md:w-64 flex-shrink-0', showFilters ? 'block' : 'hidden md:block')}>
           <div className="bg-card border border-border rounded-xl p-4 space-y-5 sticky top-20">
-            {/* Game Platform */}
             <div>
               <h3 className="text-sm font-semibold mb-2">{t('events.filters.game')}</h3>
               <div className="space-y-1">
@@ -77,26 +127,6 @@ export function EventsPage() {
               </div>
             </div>
 
-            {/* Status */}
-            <div>
-              <h3 className="text-sm font-semibold mb-2">{t('events.filters.status')}</h3>
-              <div className="space-y-1">
-                {statusOptions.map(s => (
-                  <button
-                    key={s}
-                    onClick={() => toggleFilter(statusFilter, setStatusFilter, s)}
-                    className={cn(
-                      'w-full text-left px-3 py-1.5 rounded text-sm transition-colors',
-                      statusFilter.includes(s) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-accent'
-                    )}
-                  >
-                    {t(`eventDetail.statusNames.${s}`)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Car Class */}
             <div>
               <h3 className="text-sm font-semibold mb-2">{t('events.filters.carClass')}</h3>
               <div className="space-y-1">
@@ -115,39 +145,19 @@ export function EventsPage() {
               </div>
             </div>
 
-            {/* Region */}
             <div>
-              <h3 className="text-sm font-semibold mb-2">{t('events.filters.region')}</h3>
+              <h3 className="text-sm font-semibold mb-2">{t('events.filters.timeRange')}</h3>
               <div className="space-y-1">
-                {[['current', t('events.filters.currentRegion')], ['all', t('events.filters.allRegions')]].map(([v, l]) => (
+                {timeOptions.map(([v, labelKey]) => (
                   <button
                     key={v}
-                    onClick={() => setRegionFilter(v)}
+                    onClick={() => setTimeFilter(v)}
                     className={cn(
                       'w-full text-left px-3 py-1.5 rounded text-sm transition-colors',
-                      regionFilter === v ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-accent'
+                      timeFilter === v ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-accent'
                     )}
                   >
-                    {l}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Type */}
-            <div>
-              <h3 className="text-sm font-semibold mb-2">{t('events.filters.type')}</h3>
-              <div className="space-y-1">
-                {[['all', t('events.filters.all')], ['standalone', t('events.filters.standalone')], ['championship', t('events.filters.championship')]].map(([v, l]) => (
-                  <button
-                    key={v}
-                    onClick={() => setTypeFilter(v)}
-                    className={cn(
-                      'w-full text-left px-3 py-1.5 rounded text-sm transition-colors',
-                      typeFilter === v ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-accent'
-                    )}
-                  >
-                    {l}
+                    {t(labelKey)}
                   </button>
                 ))}
               </div>
@@ -155,11 +165,9 @@ export function EventsPage() {
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="flex-1">
-          {/* Sort Bar */}
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm text-muted-foreground">{filtered.length} events</span>
+            <span className="text-sm text-muted-foreground">{filtered.length} {state.language === 'zh' ? '项' : 'items'}</span>
             <div className="flex items-center gap-2">
               <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
               {[['time', t('events.sort.time')], ['popularity', t('events.sort.popularity')], ['recent', t('events.sort.recent')]].map(([v, l]) => (
@@ -177,10 +185,21 @@ export function EventsPage() {
             </div>
           </div>
 
-          {/* Event Grid */}
           {filtered.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map(e => <EventCard key={e.id} event={e} />)}
+              {filtered.map(item =>
+                item.type === 'event' ? (
+                  <EventCard key={item.data.id} event={item.data} />
+                ) : (
+                  <ChampionshipCard
+                    key={item.data.id}
+                    championship={item.data}
+                    eventCount={item.eventCount}
+                    nextEventTime={item.nextEventTime}
+                    nextRegistrationStatus={item.nextRegistrationStatus}
+                  />
+                )
+              )}
             </div>
           ) : (
             <div className="text-center py-20 text-muted-foreground">

@@ -80,6 +80,7 @@ export const zh = {
   },
   events: {
     title: '赛事',
+    typeChampionship: '锦标赛',
     filters: {
       game: '游戏平台',
       type: '赛事类型',
@@ -89,7 +90,7 @@ export const zh = {
       timeRange: '时间范围',
       all: '全部',
       standalone: '独立赛事',
-      championship: '锦标赛分站',
+      championship: '锦标赛',
       registrationOpen: '报名中',
       upcoming: '即将开始',
       inProgress: '进行中',

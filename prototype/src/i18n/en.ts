@@ -80,6 +80,7 @@ export const en = {
   },
   events: {
     title: 'Events',
+    typeChampionship: 'Championship',
     filters: {
       game: 'Game Platform',
       type: 'Event Type',
@@ -88,8 +89,8 @@ export const en = {
       region: 'Region',
       timeRange: 'Time Range',
       all: 'All',
-      standalone: 'Standalone',
-      championship: 'Championship Round',
+      standalone: 'Standalone Events',
+      championship: 'Championships',
       registrationOpen: 'Registration Open',
       upcoming: 'Upcoming',
       inProgress: 'In Progress',

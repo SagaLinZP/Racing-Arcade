@@ -1,25 +1,58 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
-import { EventCard } from '@/components/EventCard'
+import { EventCard, ChampionshipCard } from '@/components/EventCard'
 import { events } from '@/data/events'
 import { drivers } from '@/data/drivers'
 import { championships } from '@/data/championships'
 import { news } from '@/data/news'
-import { ChevronRight, Trophy, Radio, Zap } from 'lucide-react'
+import { ChevronRight, Radio, Zap } from 'lucide-react'
 import { getCoverGradient } from '@/data/events'
+
+type MixedItem =
+  | { type: 'event'; data: typeof events[number] }
+  | { type: 'championship'; data: typeof championships[number]; eventCount: number; nextEventTime?: string; nextRegistrationStatus?: string }
 
 export function HomePage() {
   const { t } = useTranslation()
   const { state } = useApp()
   const lang = state.language
 
-  const upcomingEvents = events
-    .filter(e => e.status === 'RegistrationOpen')
-    .slice(0, 6)
-  const liveEvents = events.filter(e => e.status === 'InProgress')
+  const standaloneEvents = events.filter(e => !e.championshipId)
+  const liveEvents = standaloneEvents.filter(e => e.status === 'InProgress')
   const topDrivers = [...drivers].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 5)
   const recentNews = news.filter(n => n.regions.includes(state.currentRegion) || n.regions.length === 4).slice(0, 3)
+
+  const mixedItems: MixedItem[] = []
+
+  const regOpenStandalone = standaloneEvents.filter(e => e.status === 'RegistrationOpen').map(e => ({
+    type: 'event' as const,
+    data: e,
+    sortTime: new Date(e.eventStartTime).getTime(),
+  }))
+
+  const champItems = championships.map(ch => {
+    const champEvents = events.filter(e => e.championshipId === ch.id)
+    const eventCount = champEvents.length
+    const futureEvents = champEvents
+      .filter(e => new Date(e.eventStartTime).getTime() > Date.now())
+      .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
+    const nextEvent = futureEvents[0]
+    return {
+      type: 'championship' as const,
+      data: ch,
+      eventCount,
+      nextEventTime: nextEvent?.eventStartTime,
+      nextRegistrationStatus: nextEvent?.status,
+      sortTime: nextEvent ? new Date(nextEvent.eventStartTime).getTime() : Infinity,
+    }
+  })
+
+  mixedItems.push(
+    ...[...regOpenStandalone, ...champItems]
+      .sort((a, b) => a.sortTime - b.sortTime)
+      .slice(0, 6)
+  )
 
   return (
     <div className="space-y-16 pb-16">
@@ -64,7 +97,7 @@ export function HomePage() {
         </section>
       )}
 
-      {/* Upcoming Events */}
+      {/* Upcoming Events + Championships mixed */}
       <section className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold">{t('home.upcomingEvents')}</h2>
@@ -73,42 +106,19 @@ export function HomePage() {
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {upcomingEvents.map(e => <EventCard key={e.id} event={e} />)}
-        </div>
-      </section>
-
-      {/* Championships */}
-      <section className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold">{t('home.championships')}</h2>
-          <Link to="/championships" className="text-sm text-primary hover:underline flex items-center gap-1">
-            {t('home.viewAllChampionships')} <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {championships.map(ch => (
-            <Link
-              key={ch.id}
-              to={`/championships/${ch.id}`}
-              className="group bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-all"
-            >
-              <div className="h-32 flex items-center justify-center" style={{ background: getCoverGradient(ch.id) }}>
-                <Trophy className="w-10 h-10 text-white/60" />
-              </div>
-              <div className="p-4">
-                <h3 className="font-bold mb-1 group-hover:text-primary transition-colors">
-                  {lang === 'zh' ? ch.name_zh : ch.name_en}
-                </h3>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="px-1.5 py-0.5 bg-accent rounded text-xs">{ch.game}</span>
-                  <span>{ch.carClass}</span>
-                </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  {ch.regions.map(r => <span key={r} className="mr-1 px-1.5 py-0.5 bg-primary/10 text-primary rounded">{r}</span>)}
-                </div>
-              </div>
-            </Link>
-          ))}
+          {mixedItems.map(item =>
+            item.type === 'event' ? (
+              <EventCard key={item.data.id} event={item.data} />
+            ) : (
+              <ChampionshipCard
+                key={item.data.id}
+                championship={item.data}
+                eventCount={item.eventCount}
+                nextEventTime={item.nextEventTime}
+                nextRegistrationStatus={item.nextRegistrationStatus}
+              />
+            )
+          )}
         </div>
       </section>
 

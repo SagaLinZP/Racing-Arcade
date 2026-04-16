@@ -8,6 +8,8 @@ import { Trophy, Medal, Flag, BarChart3 } from 'lucide-react'
 
 type TabType = 'points' | 'wins' | 'entries' | 'podiums'
 
+const gameOptions = ['AC', 'ACC', 'AC Evo', 'iRacing', 'LMU', 'F1 25']
+
 export function LeaderboardPage() {
   const { t } = useTranslation()
   const { state } = useApp()
@@ -63,6 +65,10 @@ export function LeaderboardPage() {
         <select value={timeFilter} onChange={e => setTimeFilter(e.target.value)} className="px-3 py-2 bg-accent border border-border rounded-lg text-sm">
           <option value="allTime">{t('leaderboard.allTime')}</option>
           <option value="season">{t('leaderboard.season')}</option>
+        </select>
+        <select value={gameFilter} onChange={e => setGameFilter(e.target.value)} className="px-3 py-2 bg-accent border border-border rounded-lg text-sm">
+          <option value="all">{t('events.filters.all')}</option>
+          {gameOptions.map(g => <option key={g} value={g}>{g}</option>)}
         </select>
         <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)} className="px-3 py-2 bg-accent border border-border rounded-lg text-sm">
           <option value="all">{t('events.filters.allRegions')}</option>

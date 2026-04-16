@@ -36,7 +36,7 @@ export function formatTime(date: string | Date) {
 
 export type Region = 'CN' | 'AP' | 'AM' | 'EU'
 
-export type GamePlatform = 'ACC PC' | 'ACC Crossplay' | 'AC Evo PC' | 'iRacing PC' | 'LMU PC' | 'AMS2 PC'
+export type GamePlatform = 'AC' | 'ACC' | 'AC Evo' | 'iRacing' | 'LMU' | 'F1 25'
 
 export type EventStatus = 'Draft' | 'RegistrationOpen' | 'RegistrationClosed' | 'InProgress' | 'Completed' | 'ResultsPublished' | 'Cancelled'
 

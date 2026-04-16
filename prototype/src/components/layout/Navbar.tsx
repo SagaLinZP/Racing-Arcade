@@ -1,15 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import {
-  Menu, X, ChevronDown, Bell, Globe, User, LogOut, Calendar, Trophy,
+  Menu, X, ChevronDown, Bell, Globe, User, LogOut, Calendar,
   Newspaper, Flag, Users
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { notifications } from '@/data/notifications'
 
 const regions = ['CN', 'AP', 'AM', 'EU'] as const
+
+function useClickOutside(ref: React.RefObject<HTMLElement | null>, onClose: () => void) {
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [ref, onClose])
+}
 
 export function Navbar() {
   const { t, i18n } = useTranslation()
@@ -20,12 +30,19 @@ export function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
 
+  const regionRef = useRef<HTMLDivElement>(null)
+  const userRef = useRef<HTMLDivElement>(null)
+  const notifRef = useRef<HTMLDivElement>(null)
+
+  useClickOutside(regionRef, () => setRegionOpen(false))
+  useClickOutside(userRef, () => setUserMenuOpen(false))
+  useClickOutside(notifRef, () => setNotifOpen(false))
+
   const unreadCount = notifications.filter(n => !n.isRead).length
 
   const navLinks = [
     { to: '/events', label: t('nav.events'), icon: Flag },
     { to: '/calendar', label: t('nav.calendar'), icon: Calendar },
-    { to: '/championships', label: t('nav.championships'), icon: Trophy },
     { to: '/leaderboard', label: t('nav.leaderboard'), icon: Users },
     { to: '/news', label: t('nav.news'), icon: Newspaper },
   ]
@@ -60,7 +77,7 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="relative">
+            <div className="relative" ref={regionRef}>
               <button
                 onClick={() => setRegionOpen(!regionOpen)}
                 className="flex items-center gap-1 px-2 py-1 text-sm text-muted-foreground hover:text-foreground rounded transition-colors"
@@ -99,7 +116,7 @@ export function Navbar() {
             </button>
 
             {state.isLoggedIn && (
-              <div className="relative">
+              <div className="relative" ref={notifRef}>
                 <button
                   onClick={() => setNotifOpen(!notifOpen)}
                   className="relative p-2 text-muted-foreground hover:text-foreground transition-colors"
@@ -145,7 +162,7 @@ export function Navbar() {
             )}
 
             {state.isLoggedIn ? (
-              <div className="relative">
+              <div className="relative" ref={userRef}>
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 p-1 rounded-lg hover:bg-accent transition-colors"

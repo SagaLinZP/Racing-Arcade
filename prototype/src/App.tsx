@@ -8,7 +8,6 @@ import { HomePage } from './pages/HomePage'
 import { EventsPage } from './pages/EventsPage'
 import { EventDetailPage } from './pages/EventDetailPage'
 import { CalendarPage } from './pages/CalendarPage'
-import { ChampionshipsPage } from './pages/ChampionshipsPage'
 import { ChampionshipDetailPage } from './pages/ChampionshipDetailPage'
 import { LeaderboardPage } from './pages/LeaderboardPage'
 import { NotificationsPage } from './pages/NotificationsPage'
@@ -38,8 +37,7 @@ export default function App() {
             <Route path="/events/:id" element={<EventDetailPage />} />
             <Route path="/events/:id/protest/new" element={<ProtestPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/championships" element={<ChampionshipsPage />} />
-            <Route path="/championships/:id" element={<ChampionshipDetailPage />} />
+<Route path="/championships/:id" element={<ChampionshipDetailPage />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/settings" element={<SettingsPage />} />

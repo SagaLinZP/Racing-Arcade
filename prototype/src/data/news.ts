@@ -68,4 +68,18 @@ export const news: NewsArticle[] = [
     publishedAt: '2026-04-14T10:00:00Z',
     author: 'Racing Arcade Team',
   },
+  {
+    id: 'n5',
+    title_zh: '亚太区耐力系列赛 - 伊莫拉站精彩回顾',
+    title_en: 'AP Endurance Series - Imola Round Recap',
+    content_zh: '亚太区耐力系列赛伊莫拉站在激烈的竞争中落下帷幕。TurboMaster以稳健的表现夺得冠军，全程2小时耐力赛中展现了出色的策略和轮胎管理。\n\n最终成绩：\n1. TurboMaster - 2:22:15.678\n2. ApexHunter - +8.234\n3. SilverArrow - +12.456\n\n下一站铃鹿站报名现已开放！',
+    content_en: 'The AP Endurance Series Imola round concluded with thrilling competition. TurboMaster took the win with a consistent performance, showcasing excellent strategy and tire management throughout the 2-hour endurance race.\n\nFinal Results:\n1. TurboMaster - 2:22:15.678\n2. ApexHunter - +8.234\n3. SilverArrow - +12.456\n\nRegistration for the next round at Suzuka is now open!',
+    coverImage: '',
+    category: 'review',
+    regions: ['AP', 'CN'],
+    isPinned: false,
+    publishedAt: '2026-04-02T18:00:00Z',
+    author: 'MOZA Racing',
+    relatedEventIds: ['e11', 'e2'],
+  },
 ]
