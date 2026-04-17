@@ -134,6 +134,7 @@ export const en = {
     cancelRegistration: 'Cancel Registration',
     loginToRegister: 'Log in to Register',
     cannotRegister: 'Cannot Register',
+    notYetOpen: 'Registration Not Open',
     fullWaitlist: 'Full - Join Waitlist',
     splitInfo: '{current} / {max} participants ({splits} servers)',
     split: 'Split {number}',
@@ -162,6 +163,7 @@ export const en = {
     announcements: 'Announcements',
     statusNames: {
       Draft: 'Draft',
+      Upcoming: 'Upcoming',
       RegistrationOpen: 'Registration Open',
       RegistrationClosed: 'Registration Closed',
       InProgress: 'In Progress',

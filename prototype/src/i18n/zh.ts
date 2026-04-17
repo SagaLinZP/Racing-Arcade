@@ -134,6 +134,7 @@ export const zh = {
     cancelRegistration: '取消报名',
     loginToRegister: '登录后报名',
     cannotRegister: '当前无法报名',
+    notYetOpen: '尚未开放报名',
     fullWaitlist: '名额已满 - 加入候补',
     splitInfo: '{current} / {max} 人（{splits} 个服务器）',
     split: '第 {number} 组',
@@ -162,6 +163,7 @@ export const zh = {
     announcements: '赛事公告',
     statusNames: {
       Draft: '草稿',
+      Upcoming: '未来',
       RegistrationOpen: '报名中',
       RegistrationClosed: '报名截止',
       InProgress: '进行中',

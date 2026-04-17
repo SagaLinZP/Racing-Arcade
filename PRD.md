@@ -442,7 +442,8 @@ flowchart TD
 | enable_multi_split | Boolean | 是 | 是否启用多 Split |
 | split_assignment_rule | Enum | 否 | 分组规则（按实力 / 随机 / 手动 / 先到先得） |
 | min_entries | Integer | 否 | 最低开赛人数阈值 |
-| registration_close_at | DateTime | 是 | 报名截止时间（发布后即刻开放报名，至此时间截止） |
+| registration_open_at | DateTime | 是 | 报名起始时间（默认当前时间，即发布即开放；管理员可设置未来时间，赛事进入 Upcoming 状态） |
+| registration_close_at | DateTime | 是 | 报名截止时间 |
 | cancel_registration_deadline | DateTime | 否 | 允许车手取消报名的截止时间 |
 | event_start_time | DateTime | 是 | 比赛开始时间（UTC） |
 | status | Enum | 自动 | 赛事状态（见 4.3） |
@@ -527,6 +528,7 @@ flowchart TD
 | cover_image | URL | 否 | 本场封面图（为空则使用锦标赛封面） |
 | track | String | 是 | 赛道名称 |
 | track_layout | String | 否 | 赛道布局 |
+| registration_open_at | DateTime | 是 | 报名起始时间（默认当前时间） |
 | registration_close_at | DateTime | 是 | 报名截止时间 |
 | event_start_time | DateTime | 是 | 比赛开始时间（UTC） |
 | server_info | String | 否 | 服务器名称 / 密码 |
@@ -562,11 +564,11 @@ flowchart TD
 
 锦标赛子赛事**没有独立的详情页面**，所有子赛事信息都在锦标赛详情页中展示（见 5.2）。锦标赛详情页内按以下分区展示子赛事：
 
-1. **下一场可报名**：展示距当前最近一场尚未报名截止的子赛事，突出显示报名按钮
-2. **未来赛事**：按时间顺序展示所有未来的子赛事（折叠/展开）
+1. **下一场可报名**：展示距当前最近一场处于 RegistrationOpen 状态的子赛事，跳过 Upcoming 状态的赛事
+2. **未来赛事**：按时间顺序展示所有未来的子赛事（含 Upcoming 和 RegistrationOpen 两种状态），Upcoming 状态不显示报名按钮
 3. **过往赛事**：按时间倒序展示所有已结束的子赛事（折叠/展开）
 
-每场子赛事在锦标赛页面中仅展示本场独有字段：赛道、比赛时间、报名状态、报名人数、服务器信息（报名后可见）、成绩（赛后）、抗议入口。
+每场子赛事在锦标赛页面中仅展示本场独有字段：赛道、比赛时间、报名状态（Upcoming/RegistrationOpen 等）、报名人数、服务器信息（报名后可见）、成绩（赛后）、抗议入口。
 
 ### 4.1.6 资源下载（Resource）
 
@@ -639,7 +641,7 @@ flowchart TD
    - 单服务器最大人数
    - 分组规则（按实力/随机/手动/先到先得）
 8. 选择发布区域（CN / AP / AM / EU，可多选或全选）
-9. 设定报名截止时间、取消报名截止时间、比赛开始时间
+ 9. 设定报名起始时间（默认当前时间，可设为未来时间使赛事进入 Upcoming 状态）、报名截止时间、取消报名截止时间、比赛开始时间
 10. 填写准入条件和赛制规则（当前语言版本）
 11. 配置资源下载、直播链接（可选）
 12. 预览赛事信息
@@ -705,7 +707,9 @@ flowchart TD
 ```mermaid
 stateDiagram-v2
     [*] --> Draft: 创建赛事
-    Draft --> RegistrationOpen: 发布（报名即时开放）
+    Draft --> Upcoming: 发布（设置报名起始时间）
+    Draft --> RegistrationOpen: 发布（报名起始时间为当前时间）
+    Upcoming --> RegistrationOpen: 到达报名起始时间
     RegistrationOpen --> RegistrationClosed: 到达报名截止时间<br/>或手动关闭报名
     RegistrationOpen --> Cancelled: 管理员取消<br/>人数不足
     RegistrationClosed --> InProgress: 到达比赛时间
@@ -718,7 +722,8 @@ stateDiagram-v2
 | 状态 | 说明 | 可执行操作 |
 |------|------|-----------|
 | **Draft（草稿）** | 赛事已创建但未发布 | 编辑、删除、发布 |
-| **RegistrationOpen（报名中）** | 已发布，报名通道开放中 | 关闭报名、取消赛事 |
+| **Upcoming（未来）** | 已发布但报名未开放（当前时间 < registrationOpenAt） | 编辑报名起始时间、取消赛事 |
+| **RegistrationOpen（报名中）** | 报名通道开放中 | 关闭报名、取消赛事 |
 | **RegistrationClosed（报名截止）** | 报名已截止，等待比赛开始 | 取消赛事、修改服务器信息 |
 | **InProgress（进行中）** | 比赛正在进行 | 无 |
 | **Completed（已结束）** | 比赛已结束 | 录入成绩 |
@@ -1000,10 +1005,12 @@ flowchart TD
 │ │   ├── 报名人数（数字独立一行凸显）     │
 │ │   ├── 报名按钮 / 取消报名按钮          │
 │ │   └── 服务器信息（独立卡片，报名后可见）│
-│ ├── 未来赛事（不含状态标签）             │
-│ │   ├── 子赛事卡片：名称/赛道/时间       │
-│ │   ├── 报名按钮 / 已报名显示服务器信息  │
-│ │   └── ...更多未来赛事                  │
+│ ├── 未来赛事（含状态标签）                │
+│ │   ├── Upcoming（未来）：不显示报名按钮   │
+│ │   ├── RegistrationOpen（报名中）：       │
+│ │   │   ├── 报名按钮 / 已报名显示服务器信息│
+│ │   │   └── 报名人数                       │
+│ │   └── ...更多未来赛事                    │
 │ └── 过往赛事（不含状态标签）             │
 │     ├── 子赛事卡片：名称/赛道/时间       │
 │     ├── 成绩摘要（冠军/领奖台）          │
@@ -1028,7 +1035,8 @@ flowchart TD
 - 公共信息（游戏、车型、赛制等）由锦标赛页面顶部统一展示，子赛事区域不重复
 - 下一场可报名的子赛事在右侧栏突出显示（含独立的服务器信息卡片）
 - 未来赛事和过往赛事默认折叠，用户可展开查看详情
-- 未来赛事和过往赛事不显示状态标签（未来赛事必然处于报名中状态，过往赛事必然已结束）
+- 未来赛事显示状态标签（区分 Upcoming / RegistrationOpen），过往赛事不显示状态标签
+- Upcoming 状态的子赛事不显示报名按钮，显示"尚未开放报名"
 - 车手报名/取消报名操作在锦标赛页面内完成（每场子赛事有独立的报名按钮）
 - 过往赛事点击"查看成绩"跳转至成绩 Tab 并自动筛选到该赛事
 - 成绩 Tab 必须选择具体赛事查看，不支持全部赛事混合展示
@@ -1043,9 +1051,10 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[车手进入赛事详情页] --> B{赛事是否在报名中?}
-    B -->|否| B1[显示'报名未开放'或'报名已截止']
-    B -->|是| C{车手是否已登录?}
+    A[车手进入赛事详情页] --> B{赛事状态?}
+    B -->|Upcoming| B0[显示'尚未开放报名'<br/>不显示报名按钮]
+    B -->|非报名中| B1[显示'报名已截止'等]
+    B -->|RegistrationOpen| C{车手是否已登录?}
     
     C -->|否| C1[提示登录]
     C -->|是| D{车手是否已报名?}

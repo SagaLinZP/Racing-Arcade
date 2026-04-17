@@ -357,6 +357,11 @@ export function EventDetailPage() {
 
             {!isCancelled && (
               <>
+                {event.status === 'Upcoming' && (
+                  <span className="block w-full px-4 py-2.5 bg-accent text-muted-foreground rounded-lg text-sm text-center">
+                    {t('eventDetail.notYetOpen')}
+                  </span>
+                )}
                 {(event.status === 'RegistrationOpen') && (
                   isRegistered ? (
                     <div className="space-y-2">

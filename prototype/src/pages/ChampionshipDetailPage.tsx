@@ -239,6 +239,10 @@ function RegistrationButton({
     return <button disabled className="w-full px-3 py-2 bg-accent text-muted-foreground rounded-lg text-sm cursor-not-allowed">{t('eventDetail.cancelled')}</button>
   }
 
+  if (event.status === 'Upcoming') {
+    return <span className="block w-full px-3 py-2 bg-accent text-muted-foreground rounded-lg text-sm text-center">{t('eventDetail.notYetOpen')}</span>
+  }
+
   if (event.status === 'RegistrationOpen') {
     if (isRegistered) {
       return (
@@ -314,7 +318,7 @@ export function ChampionshipDetailPage() {
   const now = new Date()
 
   const nextRegistrable = chEvents
-    .filter(e => e.status !== 'Cancelled' && new Date(e.registrationCloseAt) >= now)
+    .filter(e => e.status !== 'Cancelled' && e.status !== 'Upcoming' && new Date(e.registrationCloseAt) >= now)
     .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())[0]
 
   const futureEvents = chEvents
@@ -458,6 +462,7 @@ export function ChampionshipDetailPage() {
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
+              {!isPast && <StatusBadge status={event.status} label={t(`eventDetail.statusNames.${event.status}`)} />}
               <h4 className="font-semibold text-sm">{lang === 'zh' ? event.name_zh : event.name_en}</h4>
             </div>
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
