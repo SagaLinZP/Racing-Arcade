@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { drivers } from '@/data/drivers'
 import { cn } from '@/lib/utils'
+import { Dropdown } from '@/components/Dropdown'
 import { Trophy, Medal, Flag, BarChart3 } from 'lucide-react'
 
 type TabType = 'points' | 'wins' | 'entries' | 'podiums'
@@ -59,15 +60,23 @@ export function LeaderboardPage() {
         ))}
       </div>
 
-      <div className="flex gap-3 mb-6">
-        <select value={timeFilter} onChange={e => setTimeFilter(e.target.value)} className="px-3 py-2 bg-accent border border-border rounded-lg text-sm">
-          <option value="allTime">{t('leaderboard.allTime')}</option>
-          <option value="season">{t('leaderboard.season')}</option>
-        </select>
-        <select value={gameFilter} onChange={e => setGameFilter(e.target.value)} className="px-3 py-2 bg-accent border border-border rounded-lg text-sm">
-          <option value="all">{t('events.filters.all')}</option>
-          {gameOptions.map(g => <option key={g} value={g}>{g}</option>)}
-        </select>
+      <div className="flex items-center gap-2 mb-6">
+        <Dropdown
+          value={timeFilter}
+          onChange={setTimeFilter}
+          options={[
+            { value: 'allTime', label: t('leaderboard.allTime') },
+            { value: 'season', label: t('leaderboard.season') },
+          ]}
+        />
+        <Dropdown
+          value={gameFilter}
+          onChange={setGameFilter}
+          options={[
+            { value: 'all', label: t('events.filters.allGames') },
+            ...gameOptions.map(g => ({ value: g, label: g })),
+          ]}
+        />
       </div>
 
       <div className="bg-card border border-border rounded-xl overflow-hidden">

@@ -89,6 +89,7 @@ export const zh = {
       region: '区域',
       timeRange: '时间范围',
       all: '全部',
+      allGames: '全部游戏',
       standalone: '独立赛事',
       championship: '锦标赛',
       registrationOpen: '报名中',
@@ -161,6 +162,9 @@ export const zh = {
     conditions: '准入条件',
     vod: '观看直播回放',
     announcements: '赛事公告',
+    registrationOpenTime: '报名开放',
+    registrationCloseTime: '报名截止',
+    raceTime: '比赛时间',
     statusNames: {
       Draft: '草稿',
       Upcoming: '未来',

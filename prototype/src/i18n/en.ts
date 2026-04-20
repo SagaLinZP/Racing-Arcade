@@ -89,6 +89,7 @@ export const en = {
       region: 'Region',
       timeRange: 'Time Range',
       all: 'All',
+      allGames: 'All Games',
       standalone: 'Standalone Events',
       championship: 'Championships',
       registrationOpen: 'Registration Open',
@@ -161,6 +162,9 @@ export const en = {
     conditions: 'Entry Requirements',
     vod: 'Watch Live Replay',
     announcements: 'Announcements',
+    registrationOpenTime: 'Registration Opens',
+    registrationCloseTime: 'Registration Deadline',
+    raceTime: 'Race',
     statusNames: {
       Draft: 'Draft',
       Upcoming: 'Upcoming',
