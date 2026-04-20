@@ -193,18 +193,22 @@ export function EventDetailPage() {
           )}
 
           {/* Server Info (only for registered users) */}
-          {isRegistered && event.serverInfo && (
-            <div className="bg-card border border-border rounded-xl p-5">
-              <h2 className="font-bold mb-3 flex items-center gap-2"><Server className="w-4 h-4 text-primary" />{t('eventDetail.serverInfo')}</h2>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverName')}:</span><span className="font-mono">{event.serverInfo}</span></div>
-                {event.serverPassword && (
-                  <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono">{event.serverPassword}</span></div>
-                )}
-                {event.serverJoinLink && (
-                  <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline"><Wifi className="w-4 h-4" />{t('eventDetail.joinLink')}</a>
-                )}
-              </div>
+          {isRegistered && (
+            <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-5">
+              <h2 className="font-bold mb-3 flex items-center gap-2 text-green-400"><Server className="w-4 h-4" />{t('eventDetail.serverInfo')}</h2>
+              {event.serverInfo ? (
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverName')}:</span><span className="font-mono font-medium">{event.serverInfo}</span></div>
+                  {event.serverPassword && (
+                    <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono font-medium">{event.serverPassword}</span></div>
+                  )}
+                  {event.serverJoinLink && (
+                    <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-4 h-4" />{t('eventDetail.joinLink')}</a>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{t('eventDetail.serverInfoPending')}</p>
+              )}
             </div>
           )}
 

@@ -448,16 +448,22 @@ export function ChampionshipDetailPage() {
 
   const renderServerInfo = (event: typeof events[0]) => {
     const isRegistered = isEventRegistered(event)
-    if (!isRegistered || !event.serverInfo) return null
+    if (!isRegistered) return null
     return (
       <div className="mt-3 bg-green-500/5 rounded-lg p-3 border border-green-500/20 space-y-1.5 text-sm">
         <h5 className="font-semibold flex items-center gap-2 text-green-400"><Server className="w-4 h-4" />{t('eventDetail.serverInfo')}</h5>
-        <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverName')}:</span><span className="font-mono font-medium">{event.serverInfo}</span></div>
-        {event.serverPassword && (
-          <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono font-medium">{event.serverPassword}</span></div>
-        )}
-        {event.serverJoinLink && (
-          <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-3 h-3" />{t('eventDetail.joinLink')}</a>
+        {event.serverInfo ? (
+          <>
+            <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverName')}:</span><span className="font-mono font-medium">{event.serverInfo}</span></div>
+            {event.serverPassword && (
+              <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono font-medium">{event.serverPassword}</span></div>
+            )}
+            {event.serverJoinLink && (
+              <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-3 h-3" />{t('eventDetail.joinLink')}</a>
+            )}
+          </>
+        ) : (
+          <p className="text-muted-foreground italic">{t('eventDetail.serverInfoPending')}</p>
         )}
       </div>
     )
@@ -809,18 +815,22 @@ export function ChampionshipDetailPage() {
             </div>
           )}
 
-          {nextRegistered && nextRegistrable.serverInfo && (
+          {nextRegistered && (
             <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-5">
               <h4 className="font-semibold flex items-center gap-2 text-sm text-green-400 mb-3"><Server className="w-4 h-4" />{t('eventDetail.serverInfo')}</h4>
-              <div className="space-y-3 text-sm">
-                <div><div className="text-muted-foreground text-xs mb-0.5">{t('eventDetail.serverName')}</div><div className="font-mono font-medium">{nextRegistrable.serverInfo}</div></div>
-                {nextRegistrable.serverPassword && (
-                  <div><div className="text-muted-foreground text-xs mb-0.5">{t('eventDetail.serverPassword')}</div><div className="font-mono font-medium">{nextRegistrable.serverPassword}</div></div>
-                )}
-                {nextRegistrable.serverJoinLink && (
-                  <a href={nextRegistrable.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-3 h-3" />{t('eventDetail.joinLink')}</a>
-                )}
-              </div>
+              {nextRegistrable.serverInfo ? (
+                <div className="space-y-3 text-sm">
+                  <div><div className="text-muted-foreground text-xs mb-0.5">{t('eventDetail.serverName')}</div><div className="font-mono font-medium">{nextRegistrable.serverInfo}</div></div>
+                  {nextRegistrable.serverPassword && (
+                    <div><div className="text-muted-foreground text-xs mb-0.5">{t('eventDetail.serverPassword')}</div><div className="font-mono font-medium">{nextRegistrable.serverPassword}</div></div>
+                  )}
+                  {nextRegistrable.serverJoinLink && (
+                    <a href={nextRegistrable.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-3 h-3" />{t('eventDetail.joinLink')}</a>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">{t('eventDetail.serverInfoPending')}</p>
+              )}
             </div>
           )}
         </div>

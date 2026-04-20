@@ -186,6 +186,7 @@ export const en = {
     raceFormat: 'Race Format',
     splitConfig: 'Split Configuration',
     accessRequirements: 'Entry Requirements',
+    serverInfoPending: 'Server info will be provided closer to race time',
   },
   calendar: {
     title: 'Event Calendar',

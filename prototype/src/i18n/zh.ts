@@ -186,6 +186,7 @@ export const zh = {
     raceFormat: '赛制参数',
     splitConfig: 'Split 配置',
     accessRequirements: '准入条件',
+    serverInfoPending: '比赛进入方式稍后提供',
   },
   calendar: {
     title: '赛事日历',
