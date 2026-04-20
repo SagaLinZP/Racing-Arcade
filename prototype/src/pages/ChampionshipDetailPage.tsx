@@ -7,7 +7,7 @@ import { events, getCoverGradient } from '@/data/events'
 import { drivers } from '@/data/drivers'
 import { teams } from '@/data/teams'
 import { StatusBadge } from '@/components/StatusBadge'
-import { cn } from '@/lib/utils'
+import { cn, getEventStatus } from '@/lib/utils'
 import {
   Trophy, MapPin, Clock, ChevronDown, ChevronUp, Users, Shield,
   Play, Download, Flag, Cloud, Wrench, Server, Wifi, CheckCircle,
@@ -233,17 +233,22 @@ function RegistrationButton({
   onUnregister: () => void
 }) {
   const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
-  const isCancelled = event.status === 'Cancelled'
+  const status = getEventStatus(event)
+  const isCancelled = status === 'Cancelled'
 
   if (isCancelled) {
     return <button disabled className="w-full px-3 py-2 bg-accent text-muted-foreground rounded-lg text-sm cursor-not-allowed">{t('eventDetail.cancelled')}</button>
   }
 
-  if (event.status === 'Upcoming') {
-    return <span className="block w-full px-3 py-2 bg-accent text-muted-foreground rounded-lg text-sm text-center">{t('eventDetail.notYetOpen')}</span>
+  if (status === 'Upcoming') {
+    return (
+      <div className="space-y-2">
+        <span className="block text-xs text-muted-foreground">{t('eventDetail.notYetOpen')}</span>
+      </div>
+    )
   }
 
-  if (event.status === 'RegistrationOpen') {
+  if (status === 'RegistrationOpen') {
     if (isRegistered) {
       return (
         <button onClick={onUnregister} className="w-full px-4 py-2 bg-accent text-destructive rounded-lg text-sm hover:bg-destructive/10 transition-colors">
@@ -268,7 +273,7 @@ function RegistrationButton({
     )
   }
 
-  if (event.status === 'RegistrationClosed') {
+  if (status === 'RegistrationClosed') {
     return <button disabled className="w-full px-3 py-2 bg-accent text-muted-foreground rounded-lg text-sm cursor-not-allowed">{t('events.registration.closed')}</button>
   }
 
@@ -318,15 +323,19 @@ export function ChampionshipDetailPage() {
   const now = new Date()
 
   const nextRegistrable = chEvents
-    .filter(e => e.status !== 'Cancelled' && e.status !== 'Upcoming' && new Date(e.registrationCloseAt) >= now)
+    .filter(e => { const s = getEventStatus(e); return s !== 'Cancelled' && s !== 'Upcoming' && s !== 'Completed' && new Date(e.registrationCloseAt) >= now })
     .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())[0]
 
   const futureEvents = chEvents
-    .filter(e => e !== nextRegistrable && new Date(e.eventStartTime) >= now && e.status !== 'Cancelled' && e.status !== 'Completed' && e.status !== 'ResultsPublished')
+    .filter(e => {
+      if (e === nextRegistrable) return false
+      const s = getEventStatus(e)
+      return new Date(e.eventStartTime) >= now && s !== 'Cancelled' && s !== 'Completed' && s !== 'ResultsPublished'
+    })
     .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
 
   const pastEvents = chEvents
-    .filter(e => e !== nextRegistrable && !futureEvents.includes(e) && (new Date(e.eventStartTime) < now || e.status === 'Completed' || e.status === 'ResultsPublished'))
+    .filter(e => e !== nextRegistrable && !futureEvents.includes(e) && (new Date(e.eventStartTime) < now || getEventStatus(e) === 'Completed' || getEventStatus(e) === 'ResultsPublished'))
     .sort((a, b) => new Date(b.eventStartTime).getTime() - new Date(a.eventStartTime).getTime())
 
   const formatDateTime = (dateStr: string) => {
@@ -453,6 +462,7 @@ export function ChampionshipDetailPage() {
   const renderEventRow = (event: typeof events[0], showRegButton = true, isPast = false) => {
     const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
     const isRegistered = isEventRegistered(event)
+    const eventStatus = getEventStatus(event)
 
     return (
       <div key={event.id} className={cn(
@@ -462,7 +472,7 @@ export function ChampionshipDetailPage() {
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
-              {!isPast && <StatusBadge status={event.status} label={t(`eventDetail.statusNames.${event.status}`)} />}
+              {!isPast && <StatusBadge status={eventStatus} label={t(`eventDetail.statusNames.${eventStatus}`)} />}
               <h4 className="font-semibold text-sm">{lang === 'zh' ? event.name_zh : event.name_en}</h4>
             </div>
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
@@ -527,6 +537,7 @@ export function ChampionshipDetailPage() {
 
   const nextCapacity = nextRegistrable ? nextRegistrable.maxEntriesPerSplit * (nextRegistrable.maxSplits || 1) : 0
   const nextRegistered = nextRegistrable ? isEventRegistered(nextRegistrable) : false
+  const nextStatus = nextRegistrable ? getEventStatus(nextRegistrable) : null
 
   const tabs: { key: typeof activeTab; label: string; icon: typeof Trophy }[] = [
     { key: 'info', label: lang === 'zh' ? '锦标赛信息' : 'Championship Info', icon: Trophy },
@@ -756,7 +767,7 @@ export function ChampionshipDetailPage() {
                         <CheckCircle className="w-3 h-3" /> {t('eventDetail.registered')}
                       </span>
                     ) : (
-                      <StatusBadge status={nextRegistrable.status} label={t(`eventDetail.statusNames.${nextRegistrable.status}`)} />
+                      <StatusBadge status={nextStatus!} label={t(`eventDetail.statusNames.${nextStatus}`)} />
                     )}
                   </div>
                 </div>
@@ -801,7 +812,7 @@ export function ChampionshipDetailPage() {
                 )}
               </div>
 
-              {(nextRegistrable.streamUrl || ch.streamUrl) && nextRegistrable.status === 'InProgress' && (
+              {(nextRegistrable.streamUrl || ch.streamUrl) && nextStatus === 'InProgress' && (
                 <div className="mt-4 pt-4 border-t border-border">
                   <h4 className="font-semibold flex items-center gap-2 mb-2 text-sm"><Radio className="w-4 h-4 text-red-500" />{t('eventDetail.liveStream')}</h4>
                   <div className="aspect-video bg-black rounded-lg flex items-center justify-center">

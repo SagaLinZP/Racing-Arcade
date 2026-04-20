@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { events } from '@/data/events'
 import { championships } from '@/data/championships'
-import { cn } from '@/lib/utils'
+import { cn, getEventStatus } from '@/lib/utils'
 import { Flag, Clock, CheckCircle, ChevronDown, ChevronRight, Trophy, Download } from 'lucide-react'
 
 export function MyEventsPage() {
@@ -31,17 +31,17 @@ export function MyEventsPage() {
     events: evts,
   })).filter(c => c.championship)
 
-  const statusCategory = (status: string) => {
-    if (['RegistrationOpen', 'RegistrationClosed'].includes(status)) return 'upcoming' as const
-    if (status === 'InProgress') return 'inProgress' as const
+  const statusCategory = (s: string) => {
+    if (['RegistrationOpen', 'RegistrationClosed', 'Upcoming'].includes(s)) return 'upcoming' as const
+    if (s === 'InProgress') return 'inProgress' as const
     return 'completed' as const
   }
 
   const getStandalone = (cat: 'upcoming' | 'inProgress' | 'completed') =>
-    standalone.filter(e => statusCategory(e.status) === cat)
+    standalone.filter(e => statusCategory(getEventStatus(e)) === cat)
 
   const getChampItems = (cat: 'upcoming' | 'inProgress' | 'completed') =>
-    champItems.filter(ci => ci.events.some(e => statusCategory(e.status) === cat))
+    champItems.filter(ci => ci.events.some(e => statusCategory(getEventStatus(e)) === cat))
 
   const counts = {
     upcoming: getStandalone('upcoming').length + getChampItems('upcoming').length,
@@ -63,6 +63,8 @@ export function MyEventsPage() {
 
   const statusColor = (s: string) => {
     if (s === 'RegistrationOpen') return 'bg-green-500/10 text-green-400'
+    if (s === 'RegistrationClosed') return 'bg-yellow-500/10 text-yellow-400'
+    if (s === 'Upcoming') return 'bg-blue-500/10 text-blue-400'
     if (s === 'InProgress') return 'bg-red-500/10 text-red-400'
     return 'bg-gray-500/10 text-gray-400'
   }
@@ -107,8 +109,8 @@ export function MyEventsPage() {
                   <span>{new Date(e.eventStartTime).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' })}</span>
                 </div>
               </div>
-              <span className={cn('px-2.5 py-1 rounded-full text-xs font-medium', statusColor(e.status))}>
-                {t(`eventDetail.statusNames.${e.status}`)}
+              <span className={cn('px-2.5 py-1 rounded-full text-xs font-medium', statusColor(getEventStatus(e)))}>
+                {t(`eventDetail.statusNames.${getEventStatus(e)}`)}
               </span>
               <button
                 onClick={e2 => { e2.preventDefault(); e2.stopPropagation() }}
@@ -157,8 +159,8 @@ export function MyEventsPage() {
                             <span>{new Date(e.eventStartTime).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' })}</span>
                           </div>
                         </div>
-                        <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', statusColor(e.status))}>
-                          {t(`eventDetail.statusNames.${e.status}`)}
+                        <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', statusColor(getEventStatus(e)))}>
+                          {t(`eventDetail.statusNames.${getEventStatus(e)}`)}
                         </span>
                         <button
                           onClick={e2 => { e2.preventDefault(); e2.stopPropagation() }}

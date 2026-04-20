@@ -704,6 +704,8 @@ flowchart TD
 
 ## 4.3 赛事状态流转
 
+> **实现说明**：赛事状态（Draft/Cancelled 除外）由系统根据当前时间和赛事日期字段自动计算，不依赖静态存储的 status 字段。计算逻辑：`getEventStatus(event)` 函数优先检查管理员覆盖状态（Cancelled/Draft），其次通过 results 数据检测已完成赛事，最终根据时间区间返回 Upcoming → RegistrationOpen → RegistrationClosed → InProgress。仅 Cancelled 和 Draft 为管理员手动设置的状态。
+
 ```mermaid
 stateDiagram-v2
     [*] --> Draft: 创建赛事

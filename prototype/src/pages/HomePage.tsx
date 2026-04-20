@@ -8,6 +8,7 @@ import { championships } from '@/data/championships'
 import { news } from '@/data/news'
 import { ChevronRight, Radio, Zap } from 'lucide-react'
 import { getCoverGradient } from '@/data/events'
+import { getEventStatus } from '@/lib/utils'
 
 type MixedItem =
   | { type: 'event'; data: typeof events[number] }
@@ -19,13 +20,13 @@ export function HomePage() {
   const lang = state.language
 
   const standaloneEvents = events.filter(e => !e.championshipId)
-  const liveEvents = standaloneEvents.filter(e => e.status === 'InProgress')
+  const liveEvents = standaloneEvents.filter(e => getEventStatus(e) === 'InProgress')
   const topDrivers = [...drivers].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 5)
   const recentNews = news.slice(0, 3)
 
   const mixedItems: MixedItem[] = []
 
-  const regOpenStandalone = standaloneEvents.filter(e => e.status === 'RegistrationOpen').map(e => ({
+  const regOpenStandalone = standaloneEvents.filter(e => getEventStatus(e) === 'RegistrationOpen').map(e => ({
     type: 'event' as const,
     data: e,
     sortTime: new Date(e.eventStartTime).getTime(),
@@ -43,7 +44,7 @@ export function HomePage() {
       data: ch,
       eventCount,
       nextEventTime: nextEvent?.eventStartTime,
-      nextRegistrationStatus: nextEvent?.status,
+      nextRegistrationStatus: nextEvent ? getEventStatus(nextEvent) : undefined,
       sortTime: nextEvent ? new Date(nextEvent.eventStartTime).getTime() : Infinity,
     }
   })

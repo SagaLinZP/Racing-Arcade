@@ -7,7 +7,7 @@ import { drivers } from '@/data/drivers'
 import { teams } from '@/data/teams'
 import { StatusBadge } from '@/components/StatusBadge'
 import { getCoverGradient } from '@/data/events'
-import { cn } from '@/lib/utils'
+import { cn, getEventStatus } from '@/lib/utils'
 import {
   MapPin, Clock, Cloud, Wrench, Users, ChevronRight,
   Flag, Download, AlertTriangle, Play, Radio, Shield, Server,
@@ -47,7 +47,8 @@ export function EventDetailPage() {
   const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
   const estimatedSplits = event.enableMultiSplit ? Math.ceil(event.currentRegistrations / event.maxEntriesPerSplit) : 1
   const isRegistered = registered
-  const isCancelled = event.status === 'Cancelled'
+  const status = getEventStatus(event)
+  const isCancelled = status === 'Cancelled'
   const hasResults = event.results && event.results.length > 0
 
   const handleRegister = () => {
@@ -203,7 +204,7 @@ export function EventDetailPage() {
           )}
 
           {/* Live Stream */}
-          {event.streamUrl && event.status === 'InProgress' && (
+          {event.streamUrl && status === 'InProgress' && (
             <div className="bg-card border border-border rounded-xl p-5">
               <h2 className="font-bold mb-3 flex items-center gap-2"><Radio className="w-4 h-4 text-red-500" />{t('eventDetail.liveStream')}</h2>
               <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
@@ -334,7 +335,7 @@ export function EventDetailPage() {
                         <CheckCircle className="w-3 h-3" /> {t('eventDetail.registered')}
                       </span>
                     ) : (
-                      <StatusBadge status={event.status} label={t(`eventDetail.statusNames.${event.status}`)} />
+                      <StatusBadge status={status} label={t(`eventDetail.statusNames.${status}`)} />
                     )}
                   </div>
                 </div>
@@ -357,12 +358,12 @@ export function EventDetailPage() {
 
             {!isCancelled && (
               <>
-                {event.status === 'Upcoming' && (
+                {status === 'Upcoming' && (
                   <span className="block w-full px-4 py-2.5 bg-accent text-muted-foreground rounded-lg text-sm text-center">
                     {t('eventDetail.notYetOpen')}
                   </span>
                 )}
-                {(event.status === 'RegistrationOpen') && (
+                {(status === 'RegistrationOpen') && (
                   isRegistered ? (
                     <div className="space-y-2">
                       <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-accent rounded-lg text-sm hover:bg-accent/80 transition-colors">
@@ -394,7 +395,7 @@ export function EventDetailPage() {
                     </Link>
                   )
                 )}
-                {event.status === 'RegistrationClosed' && (
+                {status === 'RegistrationClosed' && (
                   <button disabled className="w-full px-4 py-2.5 bg-accent text-muted-foreground rounded-lg text-sm cursor-not-allowed">
                     {t('events.registration.closed')}
                   </button>

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { Calendar, Users, MapPin, Zap, Radio, Trophy } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, getEventStatus } from '@/lib/utils'
 import type { SimEvent } from '@/data/events'
 import { getCoverGradient } from '@/data/events'
 import type { Championship } from '@/data/championships'
@@ -17,6 +17,7 @@ const gameColors: Record<string, string> = {
 }
 
 const statusColors: Record<string, string> = {
+  Upcoming: 'bg-blue-500/20 text-blue-400',
   RegistrationOpen: 'bg-green-500/20 text-green-400',
   RegistrationClosed: 'bg-yellow-500/20 text-yellow-400',
   InProgress: 'bg-red-500/20 text-red-400',
@@ -34,6 +35,7 @@ export function EventCard({ event }: { event: SimEvent }) {
 
   const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
   const estimatedSplits = event.enableMultiSplit ? Math.ceil(event.currentRegistrations / event.maxEntriesPerSplit) : 1
+  const status = getEventStatus(event)
 
   return (
     <Link
@@ -58,8 +60,8 @@ export function EventCard({ event }: { event: SimEvent }) {
       </div>
       <div className="p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', statusColors[event.status] || 'bg-gray-500/20 text-gray-400')}>
-            {t(`eventDetail.statusNames.${event.status}`)}
+          <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', statusColors[status] || 'bg-gray-500/20 text-gray-400')}>
+            {t(`eventDetail.statusNames.${status}`)}
           </span>
           <span className="text-xs text-muted-foreground">{event.carClass}</span>
         </div>

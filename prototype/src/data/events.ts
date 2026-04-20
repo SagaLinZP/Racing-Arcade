@@ -1,4 +1,5 @@
-export type EventStatus = 'Draft' | 'Upcoming' | 'RegistrationOpen' | 'RegistrationClosed' | 'InProgress' | 'Completed' | 'ResultsPublished' | 'Cancelled'
+import type { EventStatus } from '@/lib/utils'
+export type { EventStatus }
 
 export interface SimEvent {
   id: string

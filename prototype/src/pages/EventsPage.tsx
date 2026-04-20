@@ -4,7 +4,7 @@ import { useApp } from '@/hooks/useAppStore'
 import { EventCard, ChampionshipCard } from '@/components/EventCard'
 import { events, type SimEvent } from '@/data/events'
 import { championships, type Championship } from '@/data/championships'
-import { cn } from '@/lib/utils'
+import { cn, getEventStatus } from '@/lib/utils'
 import { SlidersHorizontal, ArrowUpDown } from 'lucide-react'
 
 type ListItem =
@@ -39,7 +39,7 @@ export function EventsPage() {
         data: ch,
         eventCount: subEvents.length,
         nextEventTime: nextEvent?.eventStartTime,
-        nextRegistrationStatus: nextEvent?.status,
+        nextRegistrationStatus: nextEvent ? getEventStatus(nextEvent) : undefined,
       }
     })
     return [...eventItems, ...champItems]
