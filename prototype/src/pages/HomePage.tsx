@@ -12,7 +12,7 @@ import { getEventStatus } from '@/lib/utils'
 
 type MixedItem =
   | { type: 'event'; data: typeof events[number] }
-  | { type: 'championship'; data: typeof championships[number]; eventCount: number; nextEventTime?: string; nextRegistrationStatus?: string }
+  | { type: 'championship'; data: typeof championships[number]; eventCount: number; nextEvent?: typeof events[number]; nextEventTime?: string; nextRegistrationStatus?: string }
 
 export function HomePage() {
   const { t } = useTranslation()
@@ -49,6 +49,7 @@ export function HomePage() {
       type: 'championship' as const,
       data: ch,
       eventCount,
+      nextEvent,
       nextEventTime: nextEvent.eventStartTime,
       nextRegistrationStatus: getEventStatus(nextEvent),
       sortTime: new Date(nextEvent.registrationOpenAt).getTime(),
@@ -78,14 +79,9 @@ export function HomePage() {
                   ? '加入全球最精彩的模拟赛车赛事，展示你的竞速实力'
                   : 'Join the most exciting sim racing events and showcase your racing skills'}
               </p>
-              <div className="flex gap-3">
-                <Link to="/events" className="px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">
-                  {t('home.viewAllEvents')}
-                </Link>
-                <Link to="/championships" className="px-6 py-2.5 bg-white/10 text-white rounded-lg text-sm font-semibold hover:bg-white/20 transition-colors backdrop-blur">
-                  {t('home.viewAllChampionships')}
-                </Link>
-              </div>
+              <Link to="/events" className="self-start px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">
+                {t('home.viewAllEvents')}
+              </Link>
             </div>
           </div>
         </div>
@@ -121,6 +117,7 @@ export function HomePage() {
                 key={item.data.id}
                 championship={item.data}
                 eventCount={item.eventCount}
+                nextEvent={item.nextEvent}
                 nextEventTime={item.nextEventTime}
                 nextRegistrationStatus={item.nextRegistrationStatus}
               />

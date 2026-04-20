@@ -42,7 +42,7 @@ export function EventCard({ event }: { event: SimEvent }) {
       to={`/events/${event.id}`}
       className="group block bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5"
     >
-      <div className="h-40 flex items-end p-4 relative" style={{ background: getCoverGradient(event.id) }}>
+      <div className="h-40 flex items-center justify-center relative" style={{ background: getCoverGradient(event.id) }}>
         <div className="absolute top-3 left-3 flex gap-2">
           <span className={cn('px-2 py-0.5 rounded text-[11px] font-bold text-white', gameColors[event.game] || 'bg-gray-500')}>
             {event.game}
@@ -53,17 +53,17 @@ export function EventCard({ event }: { event: SimEvent }) {
             </span>
           )}
         </div>
-
-        <div className="relative z-10">
-          <h3 className="text-white font-bold text-lg leading-tight line-clamp-2 group-hover:text-primary transition-colors">{name}</h3>
-        </div>
+        <Zap className="w-12 h-12 text-white/20" />
       </div>
       <div className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', statusColors[status] || 'bg-gray-500/20 text-gray-400')}>
-            {t(`eventDetail.statusNames.${status}`)}
-          </span>
-          <span className="text-xs text-muted-foreground">{event.carClass}</span>
+        <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors line-clamp-1">{name}</h3>
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>{event.carClass}</span>
+          {event.enableMultiSplit && event.maxSplits && (
+            <span className="flex items-center gap-1">
+              <Zap className="w-3 h-3" />{estimatedSplits} splits
+            </span>
+          )}
         </div>
         <div className="space-y-1.5 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
@@ -81,20 +81,19 @@ export function EventCard({ event }: { event: SimEvent }) {
             <span className="font-semibold">{event.currentRegistrations}</span>
             <span className="text-muted-foreground">/ {totalCapacity}</span>
           </div>
-          {event.enableMultiSplit && event.maxSplits && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Zap className="w-3 h-3" />{estimatedSplits} splits
-            </span>
-          )}
+          <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', statusColors[status] || 'bg-gray-500/20 text-gray-400')}>
+            {t(`eventDetail.statusNames.${status}`)}
+          </span>
         </div>
       </div>
     </Link>
   )
 }
 
-export function ChampionshipCard({ championship, eventCount, nextEventTime, nextRegistrationStatus }: {
+export function ChampionshipCard({ championship, eventCount, nextEvent, nextEventTime, nextRegistrationStatus }: {
   championship: Championship
   eventCount: number
+  nextEvent?: SimEvent
   nextEventTime?: string
   nextRegistrationStatus?: string
 }) {
@@ -102,6 +101,7 @@ export function ChampionshipCard({ championship, eventCount, nextEventTime, next
   const { state } = useApp()
   const lang = state.language
   const name = lang === 'zh' ? championship.name_zh : championship.name_en
+  const nextCapacity = nextEvent ? nextEvent.maxEntriesPerSplit * (nextEvent.maxSplits || 1) : 0
 
   return (
     <Link
@@ -124,11 +124,24 @@ export function ChampionshipCard({ championship, eventCount, nextEventTime, next
           <span>{championship.carClass}</span>
           <span>{eventCount} {lang === 'zh' ? '场赛事' : 'events'}</span>
         </div>
-        {nextEventTime && (
-          <div className="flex items-center justify-between pt-2 border-t border-border">
-            <div className="flex items-center gap-2 text-sm">
+        {nextEvent && (
+          <div className="space-y-1.5 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-3.5 h-3.5 text-primary" />
+              <span>{nextEvent.track}{nextEvent.trackLayout ? ` (${nextEvent.trackLayout})` : ''}</span>
+            </div>
+            <div className="flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5 text-primary" />
-              <span>{new Date(nextEventTime).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' })}</span>
+              <span>{new Date(nextEvent.eventStartTime).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+          </div>
+        )}
+        {nextEvent && (
+          <div className="flex items-center justify-between pt-2 border-t border-border">
+            <div className="flex items-center gap-1 text-sm">
+              <Users className="w-4 h-4 text-primary" />
+              <span className="font-semibold">{nextEvent.currentRegistrations}</span>
+              <span className="text-muted-foreground">/ {nextCapacity}</span>
             </div>
             {nextRegistrationStatus && (
               <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', statusColors[nextRegistrationStatus] || 'bg-gray-500/20 text-gray-400')}>

@@ -8,7 +8,7 @@ import { getEventStatus } from '@/lib/utils'
 
 type ListItem =
   | { type: 'event'; data: typeof events[number] }
-  | { type: 'championship'; data: typeof championships[number]; eventCount: number; nextEventTime?: string; nextRegistrationStatus?: string }
+  | { type: 'championship'; data: typeof championships[number]; eventCount: number; nextEvent?: typeof events[number]; nextEventTime?: string; nextRegistrationStatus?: string }
 
 export function EventsPage() {
   const { t } = useTranslation()
@@ -45,6 +45,7 @@ export function EventsPage() {
           type: 'championship',
           data: ch,
           eventCount,
+          nextEvent: regEvents[0],
           nextEventTime: regEvents[0].eventStartTime,
           nextRegistrationStatus: getEventStatus(regEvents[0]),
         })
@@ -90,6 +91,7 @@ export function EventsPage() {
                   key={item.data.id}
                   championship={item.data}
                   eventCount={item.eventCount}
+                  nextEvent={item.nextEvent}
                   nextEventTime={item.nextEventTime}
                   nextRegistrationStatus={item.nextRegistrationStatus}
                 />
