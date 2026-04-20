@@ -24,34 +24,40 @@ export function HomePage() {
   const topDrivers = [...drivers].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 5)
   const recentNews = news.slice(0, 3)
 
+  const registerableStatuses = ['RegistrationOpen', 'RegistrationClosed']
+
   const mixedItems: MixedItem[] = []
 
-  const regOpenStandalone = standaloneEvents.filter(e => getEventStatus(e) === 'RegistrationOpen').map(e => ({
-    type: 'event' as const,
-    data: e,
-    sortTime: new Date(e.eventStartTime).getTime(),
-  }))
+  const regOpenStandalone = standaloneEvents
+    .filter(e => registerableStatuses.includes(getEventStatus(e)))
+    .sort((a, b) => new Date(b.registrationOpenAt).getTime() - new Date(a.registrationOpenAt).getTime())
+    .map(e => ({
+      type: 'event' as const,
+      data: e,
+      sortTime: new Date(e.registrationOpenAt).getTime(),
+    }))
 
   const champItems = championships.map(ch => {
     const champEvents = events.filter(e => e.championshipId === ch.id)
     const eventCount = champEvents.length
-    const futureEvents = champEvents
-      .filter(e => new Date(e.eventStartTime).getTime() > Date.now())
+    const registerable = champEvents
+      .filter(e => registerableStatuses.includes(getEventStatus(e)))
       .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
-    const nextEvent = futureEvents[0]
+    const nextEvent = registerable[0]
+    if (!nextEvent) return null
     return {
       type: 'championship' as const,
       data: ch,
       eventCount,
-      nextEventTime: nextEvent?.eventStartTime,
-      nextRegistrationStatus: nextEvent ? getEventStatus(nextEvent) : undefined,
-      sortTime: nextEvent ? new Date(nextEvent.eventStartTime).getTime() : Infinity,
+      nextEventTime: nextEvent.eventStartTime,
+      nextRegistrationStatus: getEventStatus(nextEvent),
+      sortTime: new Date(nextEvent.registrationOpenAt).getTime(),
     }
-  })
+  }).filter(Boolean) as { type: 'championship'; data: typeof championships[number]; eventCount: number; nextEventTime?: string; nextRegistrationStatus?: string; sortTime: number }[]
 
   mixedItems.push(
     ...[...regOpenStandalone, ...champItems]
-      .sort((a, b) => a.sortTime - b.sortTime)
+      .sort((a, b) => b.sortTime - a.sortTime)
       .slice(0, 6)
   )
 
