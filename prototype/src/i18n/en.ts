@@ -159,7 +159,7 @@ export const en = {
     cancelled: 'This event has been cancelled',
     cancelReason: 'Reason',
     conditions: 'Entry Requirements',
-    vod: 'Watch Replay',
+    vod: 'Watch Live Replay',
     announcements: 'Announcements',
     statusNames: {
       Draft: 'Draft',

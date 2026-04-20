@@ -159,7 +159,7 @@ export const zh = {
     cancelled: '本场赛事已取消',
     cancelReason: '原因',
     conditions: '准入条件',
-    vod: '观看回放',
+    vod: '观看直播回放',
     announcements: '赛事公告',
     statusNames: {
       Draft: '草稿',

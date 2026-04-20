@@ -501,7 +501,7 @@ export function ChampionshipDetailPage() {
           <div className="flex items-center gap-3 mt-3">
             {event.vodUrl && (
               <a href={event.vodUrl} className="flex items-center gap-1 text-xs text-primary hover:underline">
-                <Play className="w-3 h-3" /> {lang === 'zh' ? '回放' : 'VOD'}
+                <Play className="w-3 h-3" /> {lang === 'zh' ? '直播回放' : 'Live Replay'}
               </a>
             )}
             {state.isLoggedIn && event.results && event.results.length > 0 && (
@@ -512,7 +512,6 @@ export function ChampionshipDetailPage() {
           </div>
         )}
 
-        {isPast && renderServerInfo(event)}
       </div>
     )
   }
