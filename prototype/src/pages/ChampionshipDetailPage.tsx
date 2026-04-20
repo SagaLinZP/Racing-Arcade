@@ -323,7 +323,10 @@ export function ChampionshipDetailPage() {
   const now = new Date()
 
   const nextRegistrable = chEvents
-    .filter(e => { const s = getEventStatus(e); return s !== 'Cancelled' && s !== 'Upcoming' && s !== 'Completed' && new Date(e.registrationCloseAt) >= now })
+    .filter(e => {
+      const s = getEventStatus(e)
+      return s !== 'Cancelled' && s !== 'Completed' && s !== 'Upcoming' && new Date(e.eventStartTime) >= now
+    })
     .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())[0]
 
   const futureEvents = chEvents
@@ -459,10 +462,8 @@ export function ChampionshipDetailPage() {
     )
   }
 
-  const renderEventRow = (event: typeof events[0], showRegButton = true, isPast = false) => {
+  const renderEventRow = (event: typeof events[0], isPast = false) => {
     const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
-    const isRegistered = isEventRegistered(event)
-    const eventStatus = getEventStatus(event)
 
     return (
       <div key={event.id} className={cn(
@@ -472,7 +473,6 @@ export function ChampionshipDetailPage() {
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex items-center gap-2 flex-wrap">
-              {!isPast && <StatusBadge status={eventStatus} label={t(`eventDetail.statusNames.${eventStatus}`)} />}
               <h4 className="font-semibold text-sm">{lang === 'zh' ? event.name_zh : event.name_en}</h4>
             </div>
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
@@ -480,27 +480,8 @@ export function ChampionshipDetailPage() {
               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDateTime(event.eventStartTime)}</span>
               <span className="flex items-center gap-1"><Users className="w-3 h-3" />{event.currentRegistrations}/{totalCapacity}</span>
             </div>
-            {!isPast && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>{lang === 'zh' ? '报名截止: ' : 'Reg deadline: '}{formatDateTime(event.registrationCloseAt)}</span>
-              </div>
-            )}
             {isPast && renderResultsSummary(event)}
           </div>
-          {showRegButton && !isPast && (
-            <div className="w-40 flex-shrink-0">
-              <RegistrationButton
-                event={event}
-                isLoggedIn={state.isLoggedIn}
-                userId={state.currentUser?.id || ''}
-                lang={lang}
-                t={t}
-                isRegistered={isEventRegistered(event)}
-                onRegister={() => handleRegister(event)}
-                onUnregister={() => handleUnregister(event.id)}
-              />
-            </div>
-          )}
         </div>
 
         {isPast && event.results && event.results.length > 0 && (
@@ -530,7 +511,7 @@ export function ChampionshipDetailPage() {
           </div>
         )}
 
-        {!isPast && renderServerInfo(event)}
+        {isPast && renderServerInfo(event)}
       </div>
     )
   }
@@ -721,7 +702,7 @@ export function ChampionshipDetailPage() {
                   icon={<Clock className="w-4 h-4 text-primary" />}
                 >
                   <div className="space-y-3">
-                    {futureEvents.map(e => renderEventRow(e, true, false))}
+                    {futureEvents.map(e => renderEventRow(e, false))}
                   </div>
                 </CollapsibleSection>
               )}
@@ -732,7 +713,7 @@ export function ChampionshipDetailPage() {
                   icon={<Flag className="w-4 h-4 text-muted-foreground" />}
                 >
                   <div className="space-y-3">
-                    {pastEvents.map(e => renderEventRow(e, false, true))}
+                    {pastEvents.map(e => renderEventRow(e, true))}
                   </div>
                 </CollapsibleSection>
               )}
