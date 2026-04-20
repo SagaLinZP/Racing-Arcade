@@ -727,9 +727,9 @@ export function ChampionshipDetailPage() {
         </div>
 
         {activeTab !== 'results' && (
-        <div className="space-y-4">
+        <div className="space-y-4 sticky top-20">
           {nextRegistrable && (
-            <div className="bg-card border border-border rounded-xl p-5 sticky top-20">
+            <div className="bg-card border border-border rounded-xl p-5">
               <h3 className="font-bold mb-3">{lang === 'zh' ? '下一场赛事' : 'Next Event'}</h3>
               <div className="space-y-2 text-sm mb-4">
                 <div className="flex items-center gap-2">
