@@ -1,3 +1,5 @@
+import type { ScoringTableEntry } from '@/lib/utils'
+
 export interface Championship {
   id: string
   name_zh: string
@@ -22,8 +24,9 @@ export interface Championship {
   minEntries?: number
   cancelRegistrationDeadlineOffset?: string
   accessRequirements?: string
-  scoringRules_zh: string
-  scoringRules_en: string
+  scoringRules_zh?: string
+  scoringRules_en?: string
+  scoringTable?: ScoringTableEntry[]
   progressionRules_zh?: string
   progressionRules_en?: string
   rules_zh?: string
@@ -59,8 +62,18 @@ export const championships: Championship[] = [
     minEntries: 10,
     cancelRegistrationDeadlineOffset: '2 hours before race start',
     accessRequirements: 'Must read and agree to the rules',
-    scoringRules_zh: '第1名25分，第2名18分，第3名15分，第4名12分，第5名10分，第6名8分，第7名6分，第8名4分，第9名2分，第10名1分',
-    scoringRules_en: '1st 25pts, 2nd 18pts, 3rd 15pts, 4th 12pts, 5th 10pts, 6th 8pts, 7th 6pts, 8th 4pts, 9th 2pts, 10th 1pt',
+    scoringTable: [
+      { position: 1, points: 25 },
+      { position: 2, points: 18 },
+      { position: 3, points: 15 },
+      { position: 4, points: 12 },
+      { position: 5, points: 10 },
+      { position: 6, points: 8 },
+      { position: 7, points: 6 },
+      { position: 8, points: 4 },
+      { position: 9, points: 2 },
+      { position: 10, points: 1 },
+    ],
     progressionRules_zh: '5站总积分最高者获得年度总冠军，前3名晋级总决赛',
     progressionRules_en: 'Highest total points across 5 rounds wins the title. Top 3 advance to the grand final.',
     rules_zh: '1. 公平竞赛，禁止故意碰撞\n2. 服从管理员指示\n3. 使用真实姓名参赛',
@@ -94,8 +107,20 @@ export const championships: Championship[] = [
     minEntries: 15,
     cancelRegistrationDeadlineOffset: '4 hours before race start',
     accessRequirements: 'Minimum 10 ACC races completed',
-    scoringRules_zh: '耐力赛积分加倍：第1名50分，第2名36分，第3名30分，第4名24分，第5名20分，第6名16分，第7名12分，第8名8分，第9名4分，第10名2分',
-    scoringRules_en: 'Endurance double points: 1st 50pts, 2nd 36pts, 3rd 30pts, 4th 24pts, 5th 20pts, 6th 16pts, 7th 12pts, 8th 8pts, 9th 4pts, 10th 2pts',
+    scoringRules_zh: '耐力赛积分加倍',
+    scoringRules_en: 'Endurance double points',
+    scoringTable: [
+      { position: 1, points: 50, note_zh: '标准积分×2', note_en: 'Standard points ×2' },
+      { position: 2, points: 36, note_zh: '标准积分×2', note_en: 'Standard points ×2' },
+      { position: 3, points: 30, note_zh: '标准积分×2', note_en: 'Standard points ×2' },
+      { position: 4, points: 24, note_zh: '标准积分×2', note_en: 'Standard points ×2' },
+      { position: 5, points: 20, note_zh: '标准积分×2', note_en: 'Standard points ×2' },
+      { position: 6, points: 16 },
+      { position: 7, points: 12 },
+      { position: 8, points: 8 },
+      { position: 9, points: 4 },
+      { position: 10, points: 2 },
+    ],
     progressionRules_zh: '6站总积分最高者获得系列赛冠军',
     progressionRules_en: 'Highest total points across 6 rounds wins the series.',
     rules_zh: '1. 必须进站至少1次\n2. 进站窗口为赛程30%-70%\n3. 禁止使用TC大于3',
@@ -129,8 +154,20 @@ export const championships: Championship[] = [
     minEntries: 10,
     cancelRegistrationDeadlineOffset: '2 hours before race start',
     accessRequirements: 'LMU license required, minimum 5 LMU races completed',
-    scoringRules_zh: '标准FIA积分系统：第1名25分，第2名18分，第3名15分，第4名12分，第5名10分，第6名8分，第7名6分，第8名4分，第9名2分，第10名1分',
-    scoringRules_en: 'Standard FIA points system: 1st 25pts, 2nd 18pts, 3rd 15pts, 4th 12pts, 5th 10pts, 6th 8pts, 7th 6pts, 8th 4pts, 9th 2pts, 10th 1pt',
+    scoringRules_zh: '标准FIA积分系统',
+    scoringRules_en: 'Standard FIA points system',
+    scoringTable: [
+      { position: 1, points: 25 },
+      { position: 2, points: 18 },
+      { position: 3, points: 15 },
+      { position: 4, points: 12 },
+      { position: 5, points: 10 },
+      { position: 6, points: 8 },
+      { position: 7, points: 6 },
+      { position: 8, points: 4 },
+      { position: 9, points: 2 },
+      { position: 10, points: 1, note_zh: '最快圈额外+1分', note_en: 'Fastest lap bonus +1pt' },
+    ],
     progressionRules_zh: '积分前10名晋级总决赛',
     progressionRules_en: 'Top 10 in points advance to finals',
     rules_zh: '1. 所有车手必须使用 GT3 车辆\n2. 需进站换人（耐力赛）\n3. 动态天气需准备雨胎策略',
@@ -162,8 +199,17 @@ export const championships: Championship[] = [
     minEntries: 8,
     cancelRegistrationDeadlineOffset: '1 hour before race start',
     accessRequirements: 'Invite only',
-    scoringRules_zh: '第1名25分，第2名18分，第3名15分，第4名12分，第5名10分，第6名8分，第7名6分，第8名4分，第9名2分，第10名1分',
-    scoringRules_en: '1st 25pts, 2nd 18pts, 3rd 15pts, 4th 12pts, 5th 10pts, 6th 8pts, 7th 6pts, 8th 4pts, 9th 2pts, 10th 1pt',
+    scoringTable: [
+      { position: 1, points: 12 },
+      { position: 2, points: 10 },
+      { position: 3, points: 8 },
+      { position: 4, points: 6 },
+      { position: 5, points: 5 },
+      { position: 6, points: 4 },
+      { position: 7, points: 3 },
+      { position: 8, points: 2 },
+      { position: 9, points: 1 },
+    ],
     rules_zh: '1. 仅限受邀车手参加\n2. 使用GT4车型\n3. 禁止TC和ABS辅助',
     rules_en: '1. Invite only drivers\n2. GT4 cars only\n3. TC and ABS assists prohibited',
     resources_zh: 'GT4 调校指南：https://example.com/gt4-setup-cn',
@@ -192,8 +238,18 @@ export const championships: Championship[] = [
     minEntries: 6,
     cancelRegistrationDeadlineOffset: '1 hour before race start',
     accessRequirements: 'Open to all rookie drivers (totalEntries < 20)',
-    scoringRules_zh: '第1名25分，第2名18分，第3名15分，第4名12分，第5名10分，第6名8分，第7名6分，第8名4分，第9名2分，第10名1分',
-    scoringRules_en: '1st 25pts, 2nd 18pts, 3rd 15pts, 4th 12pts, 5th 10pts, 6th 8pts, 7th 6pts, 8th 4pts, 9th 2pts, 10th 1pt',
+    scoringTable: [
+      { position: 1, points: 25, note_zh: '杆位额外+2分', note_en: 'Pole position bonus +2pts' },
+      { position: 2, points: 18 },
+      { position: 3, points: 15 },
+      { position: 4, points: 12 },
+      { position: 5, points: 10 },
+      { position: 6, points: 8 },
+      { position: 7, points: 6 },
+      { position: 8, points: 4 },
+      { position: 9, points: 2 },
+      { position: 10, points: 1 },
+    ],
     progressionRules_zh: '5站总积分最高者获得冠军',
     progressionRules_en: 'Highest total points across 5 rounds wins the championship.',
     rules_zh: '1. 仅限新手车手（参赛次数<20）\n2. 禁止使用驾驶辅助\n3. 尊重赛道界限',

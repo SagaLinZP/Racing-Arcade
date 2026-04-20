@@ -1,4 +1,4 @@
-import type { EventStatus } from '@/lib/utils'
+import type { EventStatus, ScoringTableEntry } from '@/lib/utils'
 export type { EventStatus }
 
 export interface SimEvent {
@@ -40,6 +40,7 @@ export interface SimEvent {
   vodUrl?: string
   scoringRules_zh?: string
   scoringRules_en?: string
+  scoringTable?: ScoringTableEntry[]
   resources_zh?: string
   resources_en?: string
   currentRegistrations: number
@@ -105,8 +106,20 @@ export const events: SimEvent[] = [
     accessRequirements: 'Must read and agree to the rules',
     rules_zh: '1. 公平竞赛，禁止故意碰撞\n2. 服从管理员指示\n3. 使用真实姓名参赛',
     rules_en: '1. Fair play, no intentional contact\n2. Follow admin instructions\n3. Race under real name',
-    scoringRules_zh: '第1名 25分，第2名 18分，第3名 15分，第4名 12分，第5名 10分...',
-    scoringRules_en: '1st 25pts, 2nd 18pts, 3rd 15pts, 4th 12pts, 5th 10pts...',
+    scoringRules_zh: '标准积分系统',
+    scoringRules_en: 'Standard points system',
+    scoringTable: [
+      { position: 1, points: 25 },
+      { position: 2, points: 18 },
+      { position: 3, points: 15 },
+      { position: 4, points: 12 },
+      { position: 5, points: 10 },
+      { position: 6, points: 8 },
+      { position: 7, points: 6 },
+      { position: 8, points: 4 },
+      { position: 9, points: 2 },
+      { position: 10, points: 1 },
+    ],
     currentRegistrations: 87,
     registeredDriverIds: ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd12', 'd14', 'd15', 'd16', 'd17', 'd18', 'd19', 'd20', 'd21', 'd22', 'd23', 'd24', 'd25'],
     serverInfo: 'MOZA GT3 Monza Server 1',

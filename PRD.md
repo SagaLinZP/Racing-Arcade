@@ -453,7 +453,8 @@ flowchart TD
 | server_join_link | URL | 否 | 游戏直连链接（赛事开始前可见） |
 | stream_url | URL | 否 | 直播嵌入链接 |
 | vod_url | URL | 否 | 赛后回放链接 |
-| scoring_rules_zh / scoring_rules_en | RichText | 否 | 积分规则描述（中/英） |
+| scoring_rules_zh / scoring_rules_en | RichText | 否 | 积分规则自定义文字描述（中/英），可选 |
+| scoring_table | ScoringTableEntry[] | 否 | 积分表格（名次-积分-备注），可选。与 scoring_rules 可同时存在，先显示文字再显示表格 |
 | resources_zh / resources_en | RichText | 否 | 资源下载（中/英），自由文本区域，管理员可填写 MOD 下载链接、安装说明等任意内容 |
 | created_by | UUID | 自动 | 创建者管理员 ID |
 | created_at | DateTime | 自动 | 创建时间 |
@@ -495,7 +496,8 @@ flowchart TD
 | min_entries | Integer | 否 | 最低开赛人数阈值 |
 | cancel_registration_deadline_offset | String | 否 | 取消报名截止规则描述（如"比赛开始前 2 小时"） |
 | access_requirements | String | 否 | 准入条件描述 |
-| scoring_rules_zh / scoring_rules_en | RichText | 是（至少一种） | 积分规则（中/英） |
+| scoring_rules_zh / scoring_rules_en | RichText | 否 | 积分规则自定义文字描述（中/英），可选 |
+| scoring_table | ScoringTableEntry[] | 否 | 积分表格（名次-积分-备注），可选 |
 | progression_rules_zh / progression_rules_en | RichText | 否 | 晋级/淘汰规则（中/英） |
 | rules_zh / rules_en | RichText | 否 | 赛事规则（中/英） |
 | resources_zh / resources_en | RichText | 否 | 资源下载（中/英） |
@@ -506,6 +508,19 @@ flowchart TD
 | updated_at | DateTime | 自动 | 最后更新时间 |
 
 > **结构说明**：锦标赛内包含各个赛事。轮次/分站信息由管理员写入各赛事的名称和描述中（如"第 1 站 - 蒙扎"、"Round 2 - Silverstone"）。锦标赛内的赛事排序由管理员手动调整（拖拽排序）。
+
+**积分表数据结构（ScoringTableEntry）**：
+
+管理员可选择使用纯文字描述积分规则，或使用结构化的积分表格，或两者兼有。前台展示时先显示自定义文字，再显示积分表格。
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| position | Integer | 是 | 名次（如 1, 2, 3） |
+| points | Integer | 是 | 对应积分 |
+| note_zh | String | 否 | 备注（中文），为空时前端不显示 |
+| note_en | String | 否 | 备注（英文），为空时前端不显示 |
+
+前台渲染逻辑：如果整张积分表的备注列全部为空，则不显示"备注"列。
 
 ### 4.1.5 赛事（Event）关联锦标赛
 
@@ -1199,7 +1214,7 @@ flowchart TD
 ### 6.2.1 锦标赛积分榜
 
 - 按锦标赛维度展示积分排名
-- 积分规则由管理员在锦标赛配置中以富文本描述（平台不做强制计算）
+- 积分规则由管理员在锦标赛配置中以自定义文字和/或结构化积分表格描述（平台不做强制计算）
 - 管理员可手动输入每位车手在每轮的积分
 - 积分榜支持展示：总积分、各赛事得分明细、参赛场次
 

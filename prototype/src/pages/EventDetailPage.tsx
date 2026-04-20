@@ -6,6 +6,7 @@ import { events } from '@/data/events'
 import { drivers } from '@/data/drivers'
 import { teams } from '@/data/teams'
 import { StatusBadge } from '@/components/StatusBadge'
+import { ScoringRulesCard } from '@/components/ScoringRulesCard'
 import { getCoverGradient } from '@/data/events'
 import { cn, getEventStatus } from '@/lib/utils'
 import {
@@ -35,6 +36,7 @@ export function EventDetailPage() {
   const desc = lang === 'zh' ? event.description_zh : event.description_en
   const eventRules = lang === 'zh' ? event.rules_zh : event.rules_en
   const scoringRules = lang === 'zh' ? event.scoringRules_zh : event.scoringRules_en
+  const hasScoringContent = scoringRules || (event.scoringTable && event.scoringTable.length > 0)
   const eventResources = lang === 'zh' ? event.resources_zh : event.resources_en
 
   const effectiveWeather = event.weather
@@ -172,10 +174,13 @@ export function EventDetailPage() {
           )}
 
           {/* Scoring Rules */}
-          {scoringRules && (
+          {hasScoringContent && (
             <div className="bg-card border border-border rounded-xl p-5">
               <h2 className="font-bold mb-3">{t('eventDetail.scoring')}</h2>
-              <div className="text-sm text-muted-foreground whitespace-pre-line">{scoringRules}</div>
+              <ScoringRulesCard
+                rulesText={scoringRules}
+                scoringTable={event.scoringTable}
+              />
             </div>
           )}
 

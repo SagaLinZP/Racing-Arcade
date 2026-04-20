@@ -7,6 +7,7 @@ import { events, getCoverGradient } from '@/data/events'
 import { drivers } from '@/data/drivers'
 import { teams } from '@/data/teams'
 import { StatusBadge } from '@/components/StatusBadge'
+import { ScoringRulesCard } from '@/components/ScoringRulesCard'
 import { cn, getEventStatus } from '@/lib/utils'
 import {
   Trophy, MapPin, Clock, ChevronDown, ChevronUp, Users, Shield,
@@ -623,10 +624,15 @@ export function ChampionshipDetailPage() {
                 </div>
               )}
 
-              <div className="bg-card border border-border rounded-xl p-5">
-                <h2 className="font-bold mb-3">{t('eventDetail.scoring')}</h2>
-                <p className="text-sm text-muted-foreground">{lang === 'zh' ? ch.scoringRules_zh : ch.scoringRules_en}</p>
-              </div>
+              {(ch.scoringRules_zh || ch.scoringRules_en || (ch.scoringTable && ch.scoringTable.length > 0)) && (
+                <div className="bg-card border border-border rounded-xl p-5">
+                  <h2 className="font-bold mb-3">{t('eventDetail.scoring')}</h2>
+                  <ScoringRulesCard
+                    rulesText={lang === 'zh' ? ch.scoringRules_zh : ch.scoringRules_en}
+                    scoringTable={ch.scoringTable}
+                  />
+                </div>
+              )}
 
               {progression && (
                 <div className="bg-card border border-border rounded-xl p-5">
