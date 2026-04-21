@@ -187,6 +187,10 @@ export const zh = {
     splitConfig: 'Split 配置',
     accessRequirements: '准入条件',
     serverInfoPending: '比赛进入方式稍后提供',
+    serverJoinHintSelf: '请在游戏内搜索服务器名称加入',
+    serverJoinHintIracing: '请在 iRacing 客户端中查找对应 Session',
+    sessionName: 'Session 名称',
+    hostedSessionLink: 'Hosted Session 链接',
   },
   calendar: {
     title: '赛事日历',

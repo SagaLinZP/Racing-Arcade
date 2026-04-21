@@ -22,6 +22,7 @@ export function EventDetailPage() {
   const lang = state.language
   const event = events.find(e => e.id === id)
   const [registered, setRegistered] = useState(event?.registeredDriverIds.includes(state.currentUser?.id || '') || false)
+  const [regCount, setRegCount] = useState(event?.currentRegistrations ?? 0)
   const [showRulesDialog, setShowRulesDialog] = useState(false)
   const [rulesChecked, setRulesChecked] = useState(false)
   const [activeSplit, setActiveSplit] = useState(1)
@@ -47,7 +48,7 @@ export function EventDetailPage() {
   const effectiveRaceDurationType = event.raceDurationType
 
   const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
-  const estimatedSplits = event.enableMultiSplit ? Math.ceil(event.currentRegistrations / event.maxEntriesPerSplit) : 1
+  const estimatedSplits = event.enableMultiSplit ? Math.ceil(regCount / event.maxEntriesPerSplit) : 1
   const isRegistered = registered
   const status = getEventStatus(event)
   const isCancelled = status === 'Cancelled'
@@ -60,6 +61,7 @@ export function EventDetailPage() {
       setShowRulesDialog(true)
     } else {
       setRegistered(true)
+      setRegCount(c => c + 1)
     }
   }
 
@@ -67,6 +69,12 @@ export function EventDetailPage() {
     if (!rulesChecked) return
     setShowRulesDialog(false)
     setRegistered(true)
+    setRegCount(c => c + 1)
+  }
+
+  const handleUnregister = () => {
+    setRegistered(false)
+    setRegCount(c => c - 1)
   }
 
   const getDriverName = (driverId: string) => drivers.find(d => d.id === driverId)?.nickname || driverId
@@ -198,13 +206,14 @@ export function EventDetailPage() {
               <h2 className="font-bold mb-3 flex items-center gap-2 text-green-400"><Server className="w-4 h-4" />{t('eventDetail.serverInfo')}</h2>
               {event.serverInfo ? (
                 <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverName')}:</span><span className="font-mono font-medium">{event.serverInfo}</span></div>
+                  <div className="flex items-center gap-2"><span className="text-muted-foreground">{event.game === 'iRacing' ? t('eventDetail.sessionName') : t('eventDetail.serverName')}:</span><span className="font-mono font-medium">{event.serverInfo}</span></div>
                   {event.serverPassword && (
                     <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono font-medium">{event.serverPassword}</span></div>
                   )}
                   {event.serverJoinLink && (
-                    <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-4 h-4" />{t('eventDetail.joinLink')}</a>
+                    <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-4 h-4" />{event.game === 'iRacing' ? t('eventDetail.hostedSessionLink') : t('eventDetail.joinLink')}</a>
                   )}
+                  <p className="text-muted-foreground text-xs mt-2 pt-2 border-t border-green-500/10">{event.game === 'iRacing' ? t('eventDetail.serverJoinHintIracing') : t('eventDetail.serverJoinHintSelf')}</p>
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground italic">{t('eventDetail.serverInfoPending')}</p>
@@ -243,9 +252,9 @@ export function EventDetailPage() {
                   </Link>
                 ) : null
               })}
-              {event.currentRegistrations > 20 && (
+              {regCount > 20 && (
                 <div className="flex items-center justify-center px-3 py-2 text-sm text-muted-foreground">
-                  +{event.currentRegistrations - 20} more
+                  +{regCount - 20} more
                 </div>
               )}
             </div>
@@ -349,7 +358,7 @@ export function EventDetailPage() {
                   </div>
                 </div>
                 <div className="text-2xl font-bold">
-                  {event.currentRegistrations} <span className="text-lg text-muted-foreground">/</span> {totalCapacity}
+                  {regCount} <span className="text-lg text-muted-foreground">/</span> {totalCapacity}
                 </div>
               </div>
               {event.enableMultiSplit && (
@@ -360,7 +369,7 @@ export function EventDetailPage() {
               <div className="w-full bg-accent rounded-full h-2">
                 <div
                   className="bg-primary rounded-full h-2 transition-all"
-                  style={{ width: `${Math.min(100, (event.currentRegistrations / totalCapacity) * 100)}%` }}
+                  style={{ width: `${Math.min(100, (regCount / totalCapacity) * 100)}%` }}
                 />
               </div>
             </div>
@@ -379,14 +388,14 @@ export function EventDetailPage() {
                         <Download className="w-4 h-4" /> {t('eventDetail.addendum')}
                       </button>
                       <button
-                        onClick={() => setRegistered(false)}
+                        onClick={handleUnregister}
                         className="w-full px-4 py-2 bg-accent text-destructive rounded-lg text-sm hover:bg-destructive/10 transition-colors"
                       >
                         {t('eventDetail.cancelRegistration')}
                       </button>
                     </div>
                   ) : state.isLoggedIn ? (
-                    event.currentRegistrations >= totalCapacity ? (
+                    regCount >= totalCapacity ? (
                       <button className="w-full px-4 py-2.5 bg-accent text-yellow-400 rounded-lg text-sm font-medium">
                         {t('eventDetail.fullWaitlist')}
                       </button>

@@ -187,6 +187,10 @@ export const en = {
     splitConfig: 'Split Configuration',
     accessRequirements: 'Entry Requirements',
     serverInfoPending: 'Server info will be provided closer to race time',
+    serverJoinHintSelf: 'Search for the server name in-game to join',
+    serverJoinHintIracing: 'Find the corresponding session in the iRacing client',
+    sessionName: 'Session Name',
+    hostedSessionLink: 'Hosted Session Link',
   },
   calendar: {
     title: 'Event Calendar',

@@ -223,6 +223,7 @@ function RegistrationButton({
   isRegistered,
   onRegister,
   onUnregister,
+  regCount,
 }: {
   event: typeof events[0]
   isLoggedIn: boolean
@@ -232,6 +233,7 @@ function RegistrationButton({
   isRegistered: boolean
   onRegister: () => void
   onUnregister: () => void
+  regCount: number
 }) {
   const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
   const status = getEventStatus(event)
@@ -264,7 +266,7 @@ function RegistrationButton({
         </Link>
       )
     }
-    if (event.currentRegistrations >= totalCapacity) {
+    if (regCount >= totalCapacity) {
       return <button className="w-full px-3 py-2 bg-accent text-yellow-400 rounded-lg text-sm font-medium">{t('eventDetail.fullWaitlist')}</button>
     }
     return (
@@ -291,6 +293,7 @@ export function ChampionshipDetailPage() {
   const [showRulesDialog, setShowRulesDialog] = useState<{ eventId: string; rules: string } | null>(null)
   const [rulesChecked, setRulesChecked] = useState(false)
   const [registeredOverrides, setRegisteredOverrides] = useState<Record<string, boolean>>({})
+  const [regCountOverrides, setRegCountOverrides] = useState<Record<string, number>>({})
   const [activeTab, setActiveTab] = useState<'info' | 'schedule' | 'results'>('info')
   const [resultsEventFilter, setResultsEventFilter] = useState('')
   const [resultsSession, setResultsSession] = useState<'race' | 'qualifying'>('race')
@@ -349,6 +352,8 @@ export function ChampionshipDetailPage() {
     })
   }
 
+  const getRegCount = (event: typeof events[0]) => regCountOverrides[event.id] ?? event.currentRegistrations
+
   const handleRegister = (event: typeof events[0]) => {
     if (!state.isLoggedIn) return
     const eventRules = lang === 'zh' ? event.rules_zh : event.rules_en
@@ -360,17 +365,27 @@ export function ChampionshipDetailPage() {
       setShowRulesDialog({ eventId: event.id, rules: effectiveRules || accessReq || '' })
     } else {
       setRegisteredOverrides(prev => ({ ...prev, [event.id]: true }))
+      setRegCountOverrides(prev => ({ ...prev, [event.id]: (prev[event.id] ?? event.currentRegistrations) + 1 }))
     }
   }
 
   const handleConfirmRules = () => {
     if (!rulesChecked || !showRulesDialog) return
-    setRegisteredOverrides(prev => ({ ...prev, [showRulesDialog.eventId]: true }))
+    const eid = showRulesDialog.eventId
+    setRegisteredOverrides(prev => ({ ...prev, [eid]: true }))
+    setRegCountOverrides(prev => {
+      const ev = chEvents.find(e => e.id === eid)
+      return { ...prev, [eid]: (prev[eid] ?? (ev?.currentRegistrations ?? 0)) + 1 }
+    })
     setShowRulesDialog(null)
   }
 
   const handleUnregister = (eventId: string) => {
     setRegisteredOverrides(prev => ({ ...prev, [eventId]: false }))
+    setRegCountOverrides(prev => {
+      const ev = chEvents.find(e => e.id === eventId)
+      return { ...prev, [eventId]: (prev[eventId] ?? (ev?.currentRegistrations ?? 0)) - 1 }
+    })
   }
 
   const isEventRegistered = (event: typeof events[0]) => {
@@ -449,18 +464,20 @@ export function ChampionshipDetailPage() {
   const renderServerInfo = (event: typeof events[0]) => {
     const isRegistered = isEventRegistered(event)
     if (!isRegistered) return null
+    const isIracing = championship.game === 'iRacing'
     return (
       <div className="mt-3 bg-green-500/5 rounded-lg p-3 border border-green-500/20 space-y-1.5 text-sm">
         <h5 className="font-semibold flex items-center gap-2 text-green-400"><Server className="w-4 h-4" />{t('eventDetail.serverInfo')}</h5>
         {event.serverInfo ? (
           <>
-            <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverName')}:</span><span className="font-mono font-medium">{event.serverInfo}</span></div>
+            <div className="flex items-center gap-2"><span className="text-muted-foreground">{isIracing ? t('eventDetail.sessionName') : t('eventDetail.serverName')}:</span><span className="font-mono font-medium">{event.serverInfo}</span></div>
             {event.serverPassword && (
               <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono font-medium">{event.serverPassword}</span></div>
             )}
             {event.serverJoinLink && (
-              <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-3 h-3" />{t('eventDetail.joinLink')}</a>
+              <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-3 h-3" />{isIracing ? t('eventDetail.hostedSessionLink') : t('eventDetail.joinLink')}</a>
             )}
+            <p className="text-muted-foreground text-xs mt-1.5 pt-1.5 border-t border-green-500/10">{isIracing ? t('eventDetail.serverJoinHintIracing') : t('eventDetail.serverJoinHintSelf')}</p>
           </>
         ) : (
           <p className="text-muted-foreground italic">{t('eventDetail.serverInfoPending')}</p>
@@ -485,7 +502,7 @@ export function ChampionshipDetailPage() {
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{event.track}{event.trackLayout ? ` (${event.trackLayout})` : ''}</span>
               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDateTime(event.eventStartTime)}</span>
-              <span className="flex items-center gap-1"><Users className="w-3 h-3" />{event.currentRegistrations}/{totalCapacity}</span>
+              <span className="flex items-center gap-1"><Users className="w-3 h-3" />{getRegCount(event)}/{totalCapacity}</span>
             </div>
             {isPast && renderResultsSummary(event)}
           </div>
@@ -764,12 +781,12 @@ export function ChampionshipDetailPage() {
                   </div>
                 </div>
                 <div className="text-2xl font-bold">
-                  {nextRegistrable.currentRegistrations} <span className="text-lg text-muted-foreground">/</span> {nextCapacity}
+                  {getRegCount(nextRegistrable)} <span className="text-lg text-muted-foreground">/</span> {nextCapacity}
                 </div>
                 <div className="w-full bg-accent rounded-full h-2">
                   <div
                     className="bg-primary rounded-full h-2 transition-all"
-                    style={{ width: `${Math.min(100, (nextRegistrable.currentRegistrations / nextCapacity) * 100)}%` }}
+                    style={{ width: `${Math.min(100, (getRegCount(nextRegistrable) / nextCapacity) * 100)}%` }}
                   />
                 </div>
               </div>
@@ -783,6 +800,7 @@ export function ChampionshipDetailPage() {
                 t={t}
                 onRegister={() => handleRegister(nextRegistrable)}
                 onUnregister={() => handleUnregister(nextRegistrable.id)}
+                regCount={getRegCount(nextRegistrable)}
               />
 
               {nextRegistered && (
@@ -820,13 +838,14 @@ export function ChampionshipDetailPage() {
               <h4 className="font-semibold flex items-center gap-2 text-sm text-green-400 mb-3"><Server className="w-4 h-4" />{t('eventDetail.serverInfo')}</h4>
               {nextRegistrable.serverInfo ? (
                 <div className="space-y-3 text-sm">
-                  <div><div className="text-muted-foreground text-xs mb-0.5">{t('eventDetail.serverName')}</div><div className="font-mono font-medium">{nextRegistrable.serverInfo}</div></div>
+                  <div><div className="text-muted-foreground text-xs mb-0.5">{championship.game === 'iRacing' ? t('eventDetail.sessionName') : t('eventDetail.serverName')}</div><div className="font-mono font-medium">{nextRegistrable.serverInfo}</div></div>
                   {nextRegistrable.serverPassword && (
                     <div><div className="text-muted-foreground text-xs mb-0.5">{t('eventDetail.serverPassword')}</div><div className="font-mono font-medium">{nextRegistrable.serverPassword}</div></div>
                   )}
                   {nextRegistrable.serverJoinLink && (
-                    <a href={nextRegistrable.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-3 h-3" />{t('eventDetail.joinLink')}</a>
+                    <a href={nextRegistrable.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-3 h-3" />{championship.game === 'iRacing' ? t('eventDetail.hostedSessionLink') : t('eventDetail.joinLink')}</a>
                   )}
+                  <p className="text-muted-foreground text-xs pt-2 border-t border-green-500/10">{championship.game === 'iRacing' ? t('eventDetail.serverJoinHintIracing') : t('eventDetail.serverJoinHintSelf')}</p>
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground italic">{t('eventDetail.serverInfoPending')}</p>
