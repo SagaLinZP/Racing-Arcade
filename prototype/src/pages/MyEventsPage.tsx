@@ -41,7 +41,10 @@ export function MyEventsPage() {
     standalone.filter(e => statusCategory(getEventStatus(e)) === cat)
 
   const getChampItems = (cat: 'upcoming' | 'inProgress' | 'completed') =>
-    champItems.filter(ci => ci.events.some(e => statusCategory(getEventStatus(e)) === cat))
+    champItems.map(ci => ({
+      ...ci,
+      events: ci.events.filter(e => statusCategory(getEventStatus(e)) === cat),
+    })).filter(ci => ci.events.length > 0)
 
   const counts = {
     upcoming: getStandalone('upcoming').length + getChampItems('upcoming').length,
@@ -138,7 +141,7 @@ export function MyEventsPage() {
                       <span className="px-1.5 py-0.5 rounded bg-accent text-[10px] font-semibold">{ch.game}</span>
                       <span>{ch.carClass}</span>
                       <span>·</span>
-                      <span>{ci.events.length} {lang === 'zh' ? '场已报名' : 'registered'}</span>
+                      <span>{ci.events.length} {lang === 'zh' ? '场赛事' : 'events'}</span>
                     </div>
                   </div>
                   {expanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}

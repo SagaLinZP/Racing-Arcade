@@ -65,24 +65,22 @@ export function HomePage() {
   return (
     <div className="space-y-16 pb-16">
       {/* Hero Banner */}
-      <section className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 pt-12 pb-16">
-          <div className="relative rounded-2xl overflow-hidden h-64 md:h-80" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #9f1239 100%)' }}>
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
-            <div className="relative z-10 h-full flex flex-col justify-center px-8 md:px-12 max-w-2xl">
-              <span className="text-primary text-sm font-semibold mb-2 tracking-wider uppercase">MOZA Racing Official</span>
-              <h1 className="text-3xl md:text-5xl font-black text-white mb-4 leading-tight">
-                {lang === 'zh' ? '2026 赛季正式开启' : '2026 Season is Here'}
-              </h1>
-              <p className="text-white/70 text-sm md:text-base mb-6">
-                {lang === 'zh'
-                  ? '加入全球最精彩的模拟赛车赛事，展示你的竞速实力'
-                  : 'Join the most exciting sim racing events and showcase your racing skills'}
-              </p>
-              <Link to="/events" className="self-start px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">
-                {t('home.viewAllEvents')}
-              </Link>
-            </div>
+      <section className="max-w-7xl mx-auto px-4 pt-12">
+        <div className="relative rounded-2xl overflow-hidden h-64 md:h-80" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #9f1239 100%)' }}>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
+          <div className="relative z-10 h-full flex flex-col justify-center px-8 md:px-12 max-w-2xl">
+            <span className="text-primary text-sm font-semibold mb-2 tracking-wider uppercase">MOZA Racing Official</span>
+            <h1 className="text-3xl md:text-5xl font-black text-white mb-4 leading-tight">
+              {lang === 'zh' ? '2026 赛季正式开启' : '2026 Season is Here'}
+            </h1>
+            <p className="text-white/70 text-sm md:text-base mb-6">
+              {lang === 'zh'
+                ? '加入全球最精彩的模拟赛车赛事，展示你的竞速实力'
+                : 'Join the most exciting sim racing events and showcase your racing skills'}
+            </p>
+            <Link to="/events" className="self-start px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">
+              {t('home.viewAllEvents')}
+            </Link>
           </div>
         </div>
       </section>
