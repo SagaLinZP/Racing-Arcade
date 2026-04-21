@@ -415,16 +415,10 @@ export function EventDetailPage() {
             {/* Important Dates */}
             <div className="mt-4 pt-4 border-t border-border space-y-2 text-xs text-muted-foreground">
               {status !== 'Upcoming' && (
-                <>
-                  <div className="flex justify-between">
-                    <span>{t('eventDetail.registrationOpenTime')}</span>
-                    <span>{lang === 'zh' ? '发布即开放' : 'Open on publish'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>{t('eventDetail.registrationCloseTime')}</span>
-                    <span>{formatDateTime(event.registrationCloseAt)}</span>
-                  </div>
-                </>
+                <div className="flex justify-between">
+                  <span>{t('eventDetail.registrationCloseTime')}</span>
+                  <span>{formatDateTime(event.registrationCloseAt)}</span>
+                </div>
               )}
               <div className="flex justify-between">
                 <span>{t('eventDetail.raceTime')}</span>

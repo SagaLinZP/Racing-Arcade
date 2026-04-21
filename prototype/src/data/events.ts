@@ -687,7 +687,7 @@ export const events: SimEvent[] = [
     eventStartTime: '2026-05-10T14:00:00Z',
     status: 'Upcoming',
     currentRegistrations: 28,
-    registeredDriverIds: ['d1', 'd2', 'd3', 'd4', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd14', 'd15', 'd17', 'd21', 'd22', 'd24'],
+    registeredDriverIds: ['d2', 'd3', 'd4', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd14', 'd15', 'd17', 'd21', 'd22', 'd24'],
     serverInfo: 'MOZA GT3 Silverstone Server',
   },
   {
@@ -1005,7 +1005,7 @@ export const events: SimEvent[] = [
     eventStartTime: '2026-06-07T12:00:00Z',
     status: 'Upcoming',
     currentRegistrations: 18,
-    registeredDriverIds: ['d1', 'd2', 'd3', 'd4', 'd5', 'd7', 'd8', 'd10', 'd11', 'd14', 'd15', 'd16', 'd17', 'd19', 'd21', 'd22', 'd24', 'd25'],
+    registeredDriverIds: ['d2', 'd3', 'd4', 'd5', 'd7', 'd8', 'd10', 'd11', 'd14', 'd15', 'd16', 'd17', 'd19', 'd21', 'd22', 'd24', 'd25'],
     serverInfo: 'MOZA GT3 Nurburgring Finals Server',
   },
   {
@@ -1081,7 +1081,7 @@ export const events: SimEvent[] = [
     eventStartTime: '2026-05-24T06:00:00Z',
     status: 'Upcoming',
     currentRegistrations: 16,
-    registeredDriverIds: ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd12', 'd13', 'd14', 'd15', 'd16'],
+    registeredDriverIds: ['d2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd12', 'd13', 'd14', 'd15', 'd16'],
   },
   {
     id: 'e26',
@@ -1111,7 +1111,7 @@ export const events: SimEvent[] = [
     eventStartTime: '2026-06-12T06:00:00Z',
     status: 'Upcoming',
     currentRegistrations: 10,
-    registeredDriverIds: ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10'],
+    registeredDriverIds: ['d2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10'],
   },
   {
     id: 'e27',
@@ -1186,7 +1186,7 @@ export const events: SimEvent[] = [
     eventStartTime: '2026-05-30T18:00:00Z',
     status: 'Upcoming',
     currentRegistrations: 14,
-    registeredDriverIds: ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd12', 'd13', 'd14'],
+    registeredDriverIds: ['d2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd12', 'd13', 'd14'],
   },
   {
     id: 'e29',
@@ -1217,7 +1217,7 @@ export const events: SimEvent[] = [
     eventStartTime: '2026-06-17T18:00:00Z',
     status: 'Upcoming',
     currentRegistrations: 8,
-    registeredDriverIds: ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8'],
+    registeredDriverIds: ['d2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8'],
   },
   {
     id: 'e30',
@@ -1285,7 +1285,7 @@ export const events: SimEvent[] = [
     eventStartTime: '2026-06-04T12:00:00Z',
     status: 'Upcoming',
     currentRegistrations: 12,
-    registeredDriverIds: ['d1', 'd2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd12'],
+    registeredDriverIds: ['d2', 'd3', 'd4', 'd5', 'd6', 'd7', 'd8', 'd9', 'd10', 'd11', 'd12'],
   },
   {
     id: 'e32',

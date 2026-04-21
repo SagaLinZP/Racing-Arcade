@@ -5,7 +5,7 @@ import { useApp } from '@/hooks/useAppStore'
 import { events } from '@/data/events'
 import { championships } from '@/data/championships'
 import { cn, getEventStatus } from '@/lib/utils'
-import { Flag, Clock, CheckCircle, ChevronDown, ChevronRight, Trophy, Download } from 'lucide-react'
+import { Flag, Clock, CheckCircle, ChevronDown, ChevronRight, Trophy, Download, Zap } from 'lucide-react'
 
 export function MyEventsPage() {
   const { t } = useTranslation()
@@ -102,9 +102,11 @@ export function MyEventsPage() {
               to={`/events/${e.id}`}
               className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl hover:border-primary/30 transition-colors"
             >
+              <Zap className="w-5 h-5 text-primary flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <h3 className="font-medium text-sm">{lang === 'zh' ? e.name_zh : e.name_en}</h3>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                  <span className="px-1.5 py-0.5 rounded bg-accent text-[10px] font-semibold">{e.game}</span>
                   <span>{e.track}</span>
                   <span>·</span>
                   <span>{e.carClass}</span>
