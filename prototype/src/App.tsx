@@ -27,7 +27,7 @@ export default function App() {
 
   return (
     <AppContext.Provider value={{ state, setState }}>
-      <BrowserRouter>
+      <BrowserRouter basename="/Racing-Arcade">
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<HomePage />} />
