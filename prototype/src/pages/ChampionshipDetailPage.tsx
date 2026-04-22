@@ -290,7 +290,7 @@ export function ChampionshipDetailPage() {
   const lang = state.language
 
   const [expandedResults, setExpandedResults] = useState<Record<string, boolean>>({})
-  const [showRulesDialog, setShowRulesDialog] = useState<{ eventId: string; rules: string } | null>(null)
+  const [showRulesDialog, setShowRulesDialog] = useState<{ eventId: string; accessReq?: string; rules?: string } | null>(null)
   const [rulesChecked, setRulesChecked] = useState(false)
   const [registeredOverrides, setRegisteredOverrides] = useState<Record<string, boolean>>({})
   const [regCountOverrides, setRegCountOverrides] = useState<Record<string, number>>({})
@@ -364,7 +364,7 @@ export function ChampionshipDetailPage() {
     const accessReq = eventAccessReq || chAccessReq
     if (effectiveRules || accessReq) {
       setRulesChecked(false)
-      setShowRulesDialog({ eventId: event.id, rules: effectiveRules || accessReq || '' })
+      setShowRulesDialog({ eventId: event.id, accessReq: accessReq || undefined, rules: effectiveRules || undefined })
     } else {
       setRegisteredOverrides(prev => ({ ...prev, [event.id]: true }))
       setRegCountOverrides(prev => ({ ...prev, [event.id]: (prev[event.id] ?? event.currentRegistrations) + 1 }))
@@ -861,7 +861,15 @@ export function ChampionshipDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-card border border-border rounded-xl p-6 max-w-lg mx-4 w-full">
             <h3 className="font-bold mb-3">{t('eventDetail.rules')}</h3>
-            <div className="text-sm text-muted-foreground whitespace-pre-line mb-4 max-h-60 overflow-y-auto">{showRulesDialog.rules}</div>
+            <div className="text-sm text-muted-foreground whitespace-pre-line mb-4 max-h-60 overflow-y-auto">
+              {showRulesDialog.accessReq && (
+                <div className="mb-3">
+                  <h4 className="font-semibold text-foreground mb-1 flex items-center gap-2"><Shield className="w-3.5 h-3.5 text-primary" />{t('championships.accessRequirements')}</h4>
+                  <p>{showRulesDialog.accessReq}</p>
+                </div>
+              )}
+              {showRulesDialog.rules && <div className="whitespace-pre-line">{showRulesDialog.rules}</div>}
+            </div>
             <label className="flex items-center gap-2 mb-4 cursor-pointer">
               <input type="checkbox" checked={rulesChecked} onChange={e => setRulesChecked(e.target.checked)} className="accent-[var(--color-primary)]" />
               <span className="text-sm">{t('dialogs.registerConfirm')}</span>

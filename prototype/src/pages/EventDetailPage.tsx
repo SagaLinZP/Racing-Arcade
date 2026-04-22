@@ -452,7 +452,15 @@ export function EventDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-card border border-border rounded-xl p-6 max-w-lg mx-4 w-full">
             <h3 className="font-bold mb-3">{t('eventDetail.rules')}</h3>
-            <div className="text-sm text-muted-foreground whitespace-pre-line mb-4 max-h-60 overflow-y-auto">{eventRules || eventAccessReq}</div>
+            <div className="text-sm text-muted-foreground whitespace-pre-line mb-4 max-h-60 overflow-y-auto">
+              {eventAccessReq && (
+                <div className="mb-3">
+                  <h4 className="font-semibold text-foreground mb-1 flex items-center gap-2"><Shield className="w-3.5 h-3.5 text-primary" />{t('eventDetail.accessRequirements')}</h4>
+                  <p>{eventAccessReq}</p>
+                </div>
+              )}
+              {eventRules && <div className="whitespace-pre-line">{eventRules}</div>}
+            </div>
             <label className="flex items-center gap-2 mb-4 cursor-pointer">
               <input type="checkbox" checked={rulesChecked} onChange={e => setRulesChecked(e.target.checked)} className="accent-[var(--color-primary)]" />
               <span className="text-sm">{t('dialogs.registerConfirm')}</span>
