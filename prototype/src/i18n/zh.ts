@@ -387,7 +387,8 @@ export const zh = {
   },
   dialogs: {
     loginRequired: '请先登录以继续操作',
-    registerConfirm: '我已阅读并同意赛事规则',
+    registerConfirm: '我已阅读并同意以上内容',
+    registerNotice: '报名前须知',
     registerSuccess: '报名成功！',
     registerSuccessMsg: '您已成功报名该赛事。',
     addToCalendar: '添加到日历',

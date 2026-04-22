@@ -387,7 +387,8 @@ export const en = {
   },
   dialogs: {
     loginRequired: 'Please log in to continue',
-    registerConfirm: 'I have read and agree to the event rules',
+    registerConfirm: 'I have read and agree to the above',
+    registerNotice: 'Notice Before Registration',
     registerSuccess: 'Registration Successful!',
     registerSuccessMsg: 'You have been registered for this event.',
     addToCalendar: 'Add to Calendar',

@@ -12,7 +12,7 @@ import { cn, getEventStatus } from '@/lib/utils'
 import {
   Trophy, MapPin, Clock, ChevronDown, ChevronUp, Users, Shield,
   Play, Download, Flag, Cloud, Wrench, Server, Wifi, CheckCircle,
-  Radio, AlertTriangle, Calendar, BarChart3,
+  Radio, AlertTriangle, Calendar, BarChart3, ScrollText,
 } from 'lucide-react'
 
 function CollapsibleSection({
@@ -860,15 +860,20 @@ export function ChampionshipDetailPage() {
       {showRulesDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-card border border-border rounded-xl p-6 max-w-lg mx-4 w-full">
-            <h3 className="font-bold mb-3">{t('eventDetail.rules')}</h3>
-            <div className="text-sm text-muted-foreground whitespace-pre-line mb-4 max-h-60 overflow-y-auto">
+            <h3 className="font-bold mb-3">{t('dialogs.registerNotice')}</h3>
+            <div className="mb-4 max-h-60 overflow-y-auto space-y-4">
               {showRulesDialog.accessReq && (
-                <div className="mb-3">
-                  <h4 className="font-semibold text-foreground mb-1 flex items-center gap-2"><Shield className="w-3.5 h-3.5 text-primary" />{t('championships.accessRequirements')}</h4>
-                  <p>{showRulesDialog.accessReq}</p>
+                <div>
+                  <h4 className="font-semibold text-sm mb-1 flex items-center gap-2"><Shield className="w-3.5 h-3.5 text-primary" />{t('championships.accessRequirements')}</h4>
+                  <p className="text-sm text-muted-foreground">{showRulesDialog.accessReq}</p>
                 </div>
               )}
-              {showRulesDialog.rules && <div className="whitespace-pre-line">{showRulesDialog.rules}</div>}
+              {showRulesDialog.rules && (
+                <div>
+                  <h4 className="font-semibold text-sm mb-1 flex items-center gap-2"><ScrollText className="w-3.5 h-3.5 text-primary" />{t('eventDetail.rules')}</h4>
+                  <div className="text-sm text-muted-foreground whitespace-pre-line">{showRulesDialog.rules}</div>
+                </div>
+              )}
             </div>
             <label className="flex items-center gap-2 mb-4 cursor-pointer">
               <input type="checkbox" checked={rulesChecked} onChange={e => setRulesChecked(e.target.checked)} className="accent-[var(--color-primary)]" />
