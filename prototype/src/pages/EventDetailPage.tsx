@@ -54,9 +54,11 @@ export function EventDetailPage() {
   const isCancelled = status === 'Cancelled'
   const hasResults = event.results && event.results.length > 0
 
+  const eventAccessReq = lang === 'zh' ? event.accessRequirements_zh : event.accessRequirements_en
+
   const handleRegister = () => {
     if (!state.isLoggedIn) return
-    if (event.accessRequirements) {
+    if (eventAccessReq) {
       setRulesChecked(false)
       setShowRulesDialog(true)
     } else {
@@ -450,7 +452,7 @@ export function EventDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-card border border-border rounded-xl p-6 max-w-lg mx-4 w-full">
             <h3 className="font-bold mb-3">{t('eventDetail.rules')}</h3>
-            <div className="text-sm text-muted-foreground whitespace-pre-line mb-4 max-h-60 overflow-y-auto">{eventRules}</div>
+            <div className="text-sm text-muted-foreground whitespace-pre-line mb-4 max-h-60 overflow-y-auto">{eventRules || eventAccessReq}</div>
             <label className="flex items-center gap-2 mb-4 cursor-pointer">
               <input type="checkbox" checked={rulesChecked} onChange={e => setRulesChecked(e.target.checked)} className="accent-[var(--color-primary)]" />
               <span className="text-sm">{t('dialogs.registerConfirm')}</span>

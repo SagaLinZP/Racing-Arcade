@@ -323,6 +323,7 @@ export function ChampionshipDetailPage() {
   const rules = lang === 'zh' ? ch.rules_zh : ch.rules_en
   const resources = lang === 'zh' ? ch.resources_zh : ch.resources_en
   const progression = lang === 'zh' ? ch.progressionRules_zh : ch.progressionRules_en
+  const chAccessReq = lang === 'zh' ? ch.accessRequirements_zh : ch.accessRequirements_en
 
   const now = new Date()
 
@@ -358,8 +359,9 @@ export function ChampionshipDetailPage() {
     if (!state.isLoggedIn) return
     const eventRules = lang === 'zh' ? event.rules_zh : event.rules_en
     const chRules = rules
+    const eventAccessReq = lang === 'zh' ? event.accessRequirements_zh : event.accessRequirements_en
     const effectiveRules = eventRules || chRules
-    const accessReq = event.accessRequirements || ch.accessRequirements
+    const accessReq = eventAccessReq || chAccessReq
     if (effectiveRules || accessReq) {
       setRulesChecked(false)
       setShowRulesDialog({ eventId: event.id, rules: effectiveRules || accessReq || '' })
@@ -663,10 +665,10 @@ export function ChampionshipDetailPage() {
                 </div>
               )}
 
-              {ch.accessRequirements && (
+              {chAccessReq && (
                 <div className="bg-card border border-border rounded-xl p-5">
                   <h2 className="font-bold mb-3 flex items-center gap-2"><Shield className="w-4 h-4 text-primary" />{t('championships.accessRequirements')}</h2>
-                  <p className="text-sm text-muted-foreground">{ch.accessRequirements}</p>
+                  <p className="text-sm text-muted-foreground">{chAccessReq}</p>
                 </div>
               )}
 

@@ -446,7 +446,7 @@ flowchart TD
 | cancel_registration_deadline | DateTime | 否 | 允许车手取消报名的截止时间 |
 | event_start_time | DateTime | 是 | 比赛开始时间（UTC） |
 | status | Enum | 自动 | 赛事状态（见 4.3） |
-| access_requirements | String | 否 | 准入条件描述（自由文本，如"需阅读规则并确认"） |
+| access_requirements_zh / access_requirements_en | String | 否 | 准入条件描述（中/英，自由文本，如"需阅读规则并确认"） |
 | rules_zh / rules_en | RichText | 否 | 赛制规则（中/英） |
 | server_info | String | 否 | 服务器名称 / 密码（赛事开始前可见） |
 | server_join_link | URL | 否 | 游戏直连链接（赛事开始前可见） |
@@ -494,7 +494,7 @@ flowchart TD
 | split_assignment_rule | Enum | 否 | 分组规则 |
 | min_entries | Integer | 否 | 最低开赛人数阈值 |
 | cancel_registration_deadline_offset | String | 否 | 取消报名截止规则描述（如"比赛开始前 2 小时"） |
-| access_requirements | String | 否 | 准入条件描述 |
+| access_requirements_zh / access_requirements_en | String | 否 | 准入条件描述（中/英） |
 | scoring_rules_zh / scoring_rules_en | RichText | 否 | 积分规则自定义文字描述（中/英），可选 |
 | scoring_table | ScoringTableEntry[] | 否 | 积分表格（名次-积分-备注），可选 |
 | progression_rules_zh / progression_rules_en | RichText | 否 | 晋级/淘汰规则（中/英） |
@@ -845,7 +845,7 @@ flowchart TD
 |---------|------|---------|
 | 无限制 | 所有注册用户均可报名 | 默认选项 |
 | 规则确认 | 报名前需阅读并勾选确认赛事规则 | 勾选框 |
-| 自定义条件 | 文字描述准入条件（如"需持有 DLC"） | 自由文本 |
+| 自定义条件 | 双语文字描述准入条件（如"需持有 DLC"） | 自由文本（中/英） |
 
 > 注：MVP 阶段不含 Rating 系统，因此暂不包含基于 Rating 的准入门槛。后续版本可扩展。
 
