@@ -5,14 +5,14 @@ import { useApp } from '@/hooks/useAppStore'
 import { events } from '@/data/events'
 import { championships } from '@/data/championships'
 import { cn, getEventStatus } from '@/lib/utils'
-import { Flag, Clock, CheckCircle, ChevronDown, ChevronRight, Trophy, Download, Zap } from 'lucide-react'
+import { Flag, CheckCircle, ChevronDown, ChevronRight, Trophy, Download, Zap } from 'lucide-react'
 
 export function MyEventsPage() {
   const { t } = useTranslation()
   const { state } = useApp()
   const lang = state.language
   const userId = state.currentUser?.id || ''
-  const [tab, setTab] = useState<'upcoming' | 'inProgress' | 'completed'>('upcoming')
+  const [tab, setTab] = useState<'registered' | 'completed'>('registered')
   const [expandedChamps, setExpandedChamps] = useState<Set<string>>(new Set())
 
   const myEvents = events.filter(e => e.registeredDriverIds.includes(userId))
@@ -32,23 +32,21 @@ export function MyEventsPage() {
   })).filter(c => c.championship)
 
   const statusCategory = (s: string) => {
-    if (['RegistrationOpen', 'RegistrationClosed', 'Upcoming'].includes(s)) return 'upcoming' as const
-    if (s === 'InProgress') return 'inProgress' as const
-    return 'completed' as const
+    if (['Completed', 'ResultsPublished'].includes(s)) return 'completed' as const
+    return 'registered' as const
   }
 
-  const getStandalone = (cat: 'upcoming' | 'inProgress' | 'completed') =>
+  const getStandalone = (cat: 'registered' | 'completed') =>
     standalone.filter(e => statusCategory(getEventStatus(e)) === cat)
 
-  const getChampItems = (cat: 'upcoming' | 'inProgress' | 'completed') =>
+  const getChampItems = (cat: 'registered' | 'completed') =>
     champItems.map(ci => ({
       ...ci,
       events: ci.events.filter(e => statusCategory(getEventStatus(e)) === cat),
     })).filter(ci => ci.events.length > 0)
 
   const counts = {
-    upcoming: getStandalone('upcoming').length + getChampItems('upcoming').length,
-    inProgress: getStandalone('inProgress').length + getChampItems('inProgress').length,
+    registered: getStandalone('registered').length + getChampItems('registered').length,
     completed: getStandalone('completed').length + getChampItems('completed').length,
   }
 
@@ -78,8 +76,7 @@ export function MyEventsPage() {
 
       <div className="flex gap-2 mb-6">
         {([
-          { key: 'upcoming', label: t('myEvents.upcoming'), icon: Clock, count: counts.upcoming },
-          { key: 'inProgress', label: t('myEvents.inProgress'), icon: Flag, count: counts.inProgress },
+          { key: 'registered', label: t('myEvents.registered'), icon: Flag, count: counts.registered },
           { key: 'completed', label: t('myEvents.completed'), icon: CheckCircle, count: counts.completed },
         ] as const).map(({ key, label, icon: Icon, count }) => (
           <button
@@ -114,15 +111,19 @@ export function MyEventsPage() {
                   <span>{new Date(e.eventStartTime).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' })}</span>
                 </div>
               </div>
-              <span className={cn('px-2.5 py-1 rounded-full text-xs font-medium', statusColor(getEventStatus(e)))}>
-                {t(`eventDetail.statusNames.${getEventStatus(e)}`)}
-              </span>
-              <button
-                onClick={e2 => { e2.preventDefault(); e2.stopPropagation() }}
-                className="flex items-center gap-1 px-2 py-1 text-xs text-primary hover:bg-primary/10 rounded transition-colors"
-              >
-                <Download className="w-3 h-3" /> {t('eventDetail.addendum')}
-              </button>
+              {tab !== 'completed' && (
+                <span className={cn('px-2.5 py-1 rounded-full text-xs font-medium', statusColor(getEventStatus(e)))}>
+                  {t(`eventDetail.statusNames.${getEventStatus(e)}`)}
+                </span>
+              )}
+              {tab !== 'completed' && (
+                <button
+                  onClick={e2 => { e2.preventDefault(); e2.stopPropagation() }}
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-primary hover:bg-primary/10 rounded transition-colors"
+                >
+                  <Download className="w-3 h-3" /> {t('eventDetail.addendum')}
+                </button>
+              )}
             </Link>
           ))}
 
@@ -164,15 +165,19 @@ export function MyEventsPage() {
                             <span>{new Date(e.eventStartTime).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' })}</span>
                           </div>
                         </div>
-                        <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', statusColor(getEventStatus(e)))}>
-                          {t(`eventDetail.statusNames.${getEventStatus(e)}`)}
-                        </span>
-                        <button
-                          onClick={e2 => { e2.preventDefault(); e2.stopPropagation() }}
-                          className="flex items-center gap-1 px-2 py-1 text-xs text-primary hover:bg-primary/10 rounded transition-colors"
-                        >
-                          <Download className="w-3 h-3" /> {t('eventDetail.addendum')}
-                        </button>
+                        {tab !== 'completed' && (
+                          <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', statusColor(getEventStatus(e)))}>
+                            {t(`eventDetail.statusNames.${getEventStatus(e)}`)}
+                          </span>
+                        )}
+                        {tab !== 'completed' && (
+                          <button
+                            onClick={e2 => { e2.preventDefault(); e2.stopPropagation() }}
+                            className="flex items-center gap-1 px-2 py-1 text-xs text-primary hover:bg-primary/10 rounded transition-colors"
+                          >
+                            <Download className="w-3 h-3" /> {t('eventDetail.addendum')}
+                          </button>
+                        )}
                         <span className="text-xs text-primary hover:underline whitespace-nowrap">{lang === 'zh' ? '查看详情' : 'View Details'}</span>
                       </Link>
                     ))}

@@ -305,8 +305,7 @@ export const zh = {
   },
   myEvents: {
     title: '我的赛事',
-    upcoming: '即将到来',
-    inProgress: '正在进行',
+    registered: '已报名',
     completed: '已完成',
   },
   protest: {

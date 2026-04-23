@@ -305,8 +305,7 @@ export const en = {
   },
   myEvents: {
     title: 'My Events',
-    upcoming: 'Upcoming',
-    inProgress: 'In Progress',
+    registered: 'Registered',
     completed: 'Completed',
   },
   protest: {
