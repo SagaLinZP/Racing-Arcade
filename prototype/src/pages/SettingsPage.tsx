@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { mozaDevices } from '@/data/mozaDevices'
+import { drivers } from '@/data/drivers'
 import { cn } from '@/lib/utils'
 import { User, Gamepad2, Monitor, Link2, Bell, Camera, Check, Unlink } from 'lucide-react'
 
@@ -17,6 +18,10 @@ export function SettingsPage() {
   const [iracingId, setIracingId] = useState('12345')
   const [iracingPublic, setIracingPublic] = useState(false)
   const [emailEnabled, setEmailEnabled] = useState(true)
+  const [pitHouseEnabled, setPitHouseEnabled] = useState(true)
+
+  const currentDriver = drivers.find(d => d.id === state.currentUser?.id)
+  const ownedDevices = mozaDevices.filter(d => currentDriver?.ownedDeviceIds.includes(d.id))
 
   const tabs = [
     { icon: User, label: t('settings.profile') },
@@ -131,10 +136,14 @@ export function SettingsPage() {
 
           {activeTab === 2 && (
             <div className="space-y-5">
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 flex items-center gap-2 text-sm">
+                <Gamepad2 className="w-4 h-4 text-primary flex-shrink-0" />
+                <span className="text-muted-foreground">{t('settings.pitHouseSyncHint')}</span>
+              </div>
               <div>
                 <label className="block text-sm font-medium mb-3">{t('settings.devices')}</label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {mozaDevices.map(device => (
+                  {ownedDevices.map(device => (
                     <button
                       key={device.id}
                       onClick={() => toggleDevice(device.id)}
@@ -191,6 +200,12 @@ export function SettingsPage() {
           {activeTab === 4 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between py-3 border-b border-border">
+                <div><div className="text-sm font-medium">{t('settings.pitHouseToggle')}</div><div className="text-xs text-muted-foreground">{t('settings.pitHouseNotif')}</div></div>
+                <button onClick={() => setPitHouseEnabled(!pitHouseEnabled)} className={cn('w-11 h-6 rounded-full transition-colors relative', pitHouseEnabled ? 'bg-primary' : 'bg-accent')}>
+                  <div className={cn('w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all', pitHouseEnabled ? 'left-[22px]' : 'left-0.5')} />
+                </button>
+              </div>
+              <div className="flex items-center justify-between py-3 border-b border-border">
                 <div><div className="text-sm font-medium">{t('settings.emailToggle')}</div><div className="text-xs text-muted-foreground">{t('settings.emailNotif')}</div></div>
                 <button onClick={() => setEmailEnabled(!emailEnabled)} className={cn('w-11 h-6 rounded-full transition-colors relative', emailEnabled ? 'bg-primary' : 'bg-accent')}>
                   <div className={cn('w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all', emailEnabled ? 'left-[22px]' : 'left-0.5')} />
@@ -199,7 +214,10 @@ export function SettingsPage() {
               {['Registration', 'Event Cancellation', 'Results', 'Protest', 'Penalty', 'Team', 'Waitlist'].map(type => (
                 <div key={type} className="flex items-center justify-between py-2">
                   <span className="text-sm">{type}</span>
-                  <input type="checkbox" defaultChecked className="accent-[var(--color-primary)] w-4 h-4" />
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-1 text-xs text-muted-foreground"><input type="checkbox" defaultChecked className="accent-[var(--color-primary)] w-3.5 h-3.5" />PH</label>
+                    <input type="checkbox" defaultChecked className="accent-[var(--color-primary)] w-4 h-4" />
+                  </div>
                 </div>
               ))}
               <button className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold">{t('common.save')}</button>

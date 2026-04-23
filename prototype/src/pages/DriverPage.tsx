@@ -4,8 +4,9 @@ import { useApp } from '@/hooks/useAppStore'
 import { drivers } from '@/data/drivers'
 import { teams } from '@/data/teams'
 import { events } from '@/data/events'
+import { mozaDevices } from '@/data/mozaDevices'
 import { cn } from '@/lib/utils'
-import { Trophy, Flag, Target, Zap, Users, Edit } from 'lucide-react'
+import { Trophy, Flag, Target, Zap, Users, Edit, Monitor } from 'lucide-react'
 
 export function DriverPage() {
   const { id } = useParams()
@@ -77,13 +78,19 @@ export function DriverPage() {
       )}
 
       {/* MOZA Devices */}
-      {driver.showDevices && driver.mozaDevices.length > 0 && (
+      {driver.showDevices && driver.displayedDeviceIds.length > 0 && (
         <div className="bg-card border border-border rounded-xl p-5 mb-6">
-          <h2 className="font-bold mb-3">{t('driver.mozaDevices')}</h2>
+          <h2 className="font-bold mb-3 flex items-center gap-2"><Monitor className="w-4 h-4 text-primary" />{t('driver.mozaDevices')}</h2>
           <div className="flex flex-wrap gap-2">
-            {driver.mozaDevices.map(d => (
-              <span key={d} className="px-3 py-1.5 bg-accent rounded-lg text-sm">{d}</span>
-            ))}
+            {driver.displayedDeviceIds.map(dId => {
+              const device = mozaDevices.find(d => d.id === dId)
+              if (!device) return null
+              return (
+                <span key={dId} className="px-3 py-1.5 bg-accent rounded-lg text-sm flex items-center gap-1.5">
+                  <span>{device.icon}</span> {device.name}
+                </span>
+              )
+            })}
           </div>
         </div>
       )}
