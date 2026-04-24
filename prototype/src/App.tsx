@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Layout } from './components/layout/Layout'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { AppContext, defaultState, type AppState } from './hooks/useAppStore'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
@@ -20,6 +21,7 @@ import { TeamManagePage } from './pages/TeamManagePage'
 import { TeamPublicPage } from './pages/TeamPublicPage'
 import { NewsPage } from './pages/NewsPage'
 import { NewsDetailPage } from './pages/NewsDetailPage'
+import { NotFoundPage } from './pages/NotFoundPage'
 import './i18n'
 
 export default function App() {
@@ -29,7 +31,7 @@ export default function App() {
     <AppContext.Provider value={{ state, setState }}>
       <BrowserRouter basename="/Racing-Arcade">
         <Routes>
-          <Route element={<Layout />}>
+          <Route element={<ErrorBoundary><Layout /></ErrorBoundary>}>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register/complete" element={<RegisterPage />} />
@@ -37,7 +39,7 @@ export default function App() {
             <Route path="/events/:id" element={<EventDetailPage />} />
             <Route path="/events/:id/protest/new" element={<ProtestPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
-<Route path="/championships/:id" element={<ChampionshipDetailPage />} />
+            <Route path="/championships/:id" element={<ChampionshipDetailPage />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
@@ -48,6 +50,7 @@ export default function App() {
             <Route path="/team/:id" element={<TeamPublicPage />} />
             <Route path="/news" element={<NewsPage />} />
             <Route path="/news/:id" element={<NewsDetailPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

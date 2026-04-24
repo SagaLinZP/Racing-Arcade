@@ -1,16 +1,12 @@
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useApp } from '@/hooks/useAppStore'
 import { teams } from '@/data/teams'
 import { drivers } from '@/data/drivers'
-import { cn } from '@/lib/utils'
 import { Crown, Flag, Trophy, Users } from 'lucide-react'
 
 export function TeamPublicPage() {
   const { id } = useParams()
   const { t } = useTranslation()
-  const { state } = useApp()
-  const lang = state.language
   const team = teams.find(tm => tm.id === id)
 
   if (!team) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">{t('common.noData')}</div>

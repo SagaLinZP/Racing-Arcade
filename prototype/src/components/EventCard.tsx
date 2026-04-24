@@ -82,11 +82,10 @@ export function EventCard({ event }: { event: SimEvent }) {
   )
 }
 
-export function ChampionshipCard({ championship, eventCount, nextEvent, nextEventTime, nextRegistrationStatus }: {
+export function ChampionshipCard({ championship, eventCount, nextEvent, nextRegistrationStatus }: {
   championship: Championship
   eventCount: number
   nextEvent?: SimEvent
-  nextEventTime?: string
   nextRegistrationStatus?: string
 }) {
   const { t } = useTranslation()

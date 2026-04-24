@@ -1,73 +1,55 @@
-# React + TypeScript + Vite
+# Racing Arcade Prototype
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Racing Arcade is a Vite + React + TypeScript prototype for the MOZA Racing event platform. The current implementation is a static-data frontend prototype that demonstrates the user-facing flows described in `../PRD.md` and `../PROTOTYPE.md`.
 
-Currently, two official plugins are available:
+## Commands
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
+npm run lint
+npm run typecheck
+npm run build
+npm run check
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+`npm run check` is the default pre-handoff quality gate. It runs lint and production build/typecheck.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Current Architecture
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+src/
+  components/        Shared presentational components and layout
+  data/              Static mock data used by the prototype
+  hooks/             App-wide React context
+  i18n/              English and Chinese UI translations
+  lib/               Small shared utilities
+  pages/             Route-level pages
 ```
+
+The prototype currently keeps most domain logic inside route pages. This is acceptable for quick visual iteration, but it should not be the long-term production shape.
+
+## Architecture Direction
+
+The next refactor should introduce a clearer boundary between UI and domain logic:
+
+```text
+src/
+  app/               Router, providers, guards, app shell
+  domain/            Types, event status machine, registration rules
+  data/              API clients, repositories, mock adapters
+  features/          Events, championships, calendar, teams, profile
+  shared/            UI primitives, i18n helpers, generic utilities
+```
+
+Priority extraction targets:
+
+- Event and championship selectors currently duplicated across home, events, calendar, and my-events pages.
+- Registration state and capacity logic currently kept as local component state.
+- Region and language fallback rules currently applied manually in pages.
+- Route protection and profile-completion gates currently not modeled.
+
+## Guardrails Added
+
+- `src/components/ErrorBoundary.tsx` catches route render failures and offers a refresh action.
+- `src/pages/NotFoundPage.tsx` provides a real fallback for unmatched routes.
+- `npm run check` gives contributors one command for the current quality gate.

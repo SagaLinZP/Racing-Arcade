@@ -12,7 +12,7 @@ import { cn, getEventStatus } from '@/lib/utils'
 import {
   Trophy, MapPin, Clock, ChevronDown, ChevronUp, Users, Shield,
   Play, Download, Flag, Cloud, Wrench, Server, Wifi, CheckCircle,
-  Radio, AlertTriangle, Calendar, BarChart3, ScrollText,
+  Radio, Calendar, BarChart3, ScrollText,
 } from 'lucide-react'
 
 function CollapsibleSection({
@@ -217,8 +217,6 @@ function ResultsTab({
 function RegistrationButton({
   event,
   isLoggedIn,
-  userId,
-  lang,
   t,
   isRegistered,
   onRegister,
@@ -227,8 +225,6 @@ function RegistrationButton({
 }: {
   event: typeof events[0]
   isLoggedIn: boolean
-  userId: string
-  lang: 'en' | 'zh'
   t: (key: string) => string
   isRegistered: boolean
   onRegister: () => void
@@ -289,7 +285,6 @@ export function ChampionshipDetailPage() {
   const { state } = useApp()
   const lang = state.language
 
-  const [expandedResults, setExpandedResults] = useState<Record<string, boolean>>({})
   const [showRulesDialog, setShowRulesDialog] = useState<{ eventId: string; accessReq?: string; rules?: string } | null>(null)
   const [rulesChecked, setRulesChecked] = useState(false)
   const [registeredOverrides, setRegisteredOverrides] = useState<Record<string, boolean>>({})
@@ -314,7 +309,6 @@ export function ChampionshipDetailPage() {
   ).sort((a, b) => b[1] - a[1])
 
   const getDriverName = (driverId: string) => drivers.find(d => d.id === driverId)?.nickname || driverId
-  const getTeamName = (teamId?: string) => teamId ? teams.find(t2 => t2.id === teamId)?.name || '' : ''
   const getTeamForDriver = (driverId: string) => {
     const team = teams.find(t2 => t2.members.some(m => m.userId === driverId))
     return team?.name || ''
@@ -412,77 +406,6 @@ export function ChampionshipDetailPage() {
             {lang === 'zh' ? '领奖台: ' : 'Podium: '}
             {podium.map(r => getDriverName(r.driverId)).join(', ')}
           </span>
-        )}
-      </div>
-    )
-  }
-
-  const renderResultsTable = (event: typeof events[0]) => {
-    if (!event.results || event.results.length === 0) return null
-    return (
-      <div className="overflow-x-auto mt-3">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-muted-foreground text-xs border-b border-border">
-              <th className="text-left py-2 pr-3">{t('eventDetail.position')}</th>
-              <th className="text-left py-2 pr-3">{t('eventDetail.driver')}</th>
-              <th className="text-left py-2 pr-3 hidden md:table-cell">{t('eventDetail.team')}</th>
-              <th className="text-left py-2 pr-3 hidden md:table-cell">{t('eventDetail.totalTime')}</th>
-              <th className="text-left py-2 pr-3 hidden lg:table-cell">{t('eventDetail.bestLap')}</th>
-              <th className="text-left py-2 pr-3">{t('eventDetail.status')}</th>
-              <th className="text-right py-2">{t('eventDetail.points')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {event.results.map(r => (
-              <tr key={r.driverId} className="border-b border-border/50 hover:bg-accent/50">
-                <td className="py-2.5 pr-3 font-bold">{r.position}</td>
-                <td className="py-2.5 pr-3">
-                  <Link to={`/driver/${r.driverId}`} className="hover:text-primary transition-colors">{getDriverName(r.driverId)}</Link>
-                </td>
-                <td className="py-2.5 pr-3 text-muted-foreground hidden md:table-cell">{getTeamName(r.teamId)}</td>
-                <td className="py-2.5 pr-3 font-mono text-xs hidden md:table-cell">{r.totalTime || '-'}</td>
-                <td className="py-2.5 pr-3 font-mono text-xs hidden lg:table-cell">{r.bestLap || '-'}</td>
-                <td className="py-2.5 pr-3">
-                  <span className={cn(
-                    'text-xs px-1.5 py-0.5 rounded',
-                    r.status === 'Finished' ? 'bg-green-500/10 text-green-400' :
-                    r.status === 'DNF' ? 'bg-red-500/10 text-red-400' :
-                    r.status === 'DSQ' ? 'bg-red-500/10 text-red-400' :
-                    'bg-yellow-500/10 text-yellow-400'
-                  )}>
-                    {r.status}
-                  </span>
-                </td>
-                <td className="py-2.5 text-right font-bold">{r.points}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    )
-  }
-
-  const renderServerInfo = (event: typeof events[0]) => {
-    const isRegistered = isEventRegistered(event)
-    if (!isRegistered) return null
-    const isIracing = championship.game === 'iRacing'
-    return (
-      <div className="mt-3 bg-green-500/5 rounded-lg p-3 border border-green-500/20 space-y-1.5 text-sm">
-        <h5 className="font-semibold flex items-center gap-2 text-green-400"><Server className="w-4 h-4" />{t('eventDetail.serverInfo')}</h5>
-        {event.serverInfo ? (
-          <>
-            <div className="flex items-center gap-2"><span className="text-muted-foreground">{isIracing ? t('eventDetail.sessionName') : t('eventDetail.serverName')}:</span><span className="font-mono font-medium">{event.serverInfo}</span></div>
-            {event.serverPassword && (
-              <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono font-medium">{event.serverPassword}</span></div>
-            )}
-            {event.serverJoinLink && (
-              <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-3 h-3" />{isIracing ? t('eventDetail.hostedSessionLink') : t('eventDetail.joinLink')}</a>
-            )}
-            <p className="text-muted-foreground text-xs mt-1.5 pt-1.5 border-t border-green-500/10">{isIracing ? t('eventDetail.serverJoinHintIracing') : t('eventDetail.serverJoinHintSelf')}</p>
-          </>
-        ) : (
-          <p className="text-muted-foreground italic">{t('eventDetail.serverInfoPending')}</p>
         )}
       </div>
     )
@@ -796,9 +719,7 @@ export function ChampionshipDetailPage() {
               <RegistrationButton
                 event={nextRegistrable}
                 isLoggedIn={state.isLoggedIn}
-                userId={state.currentUser?.id || ''}
                 isRegistered={nextRegistered}
-                lang={lang}
                 t={t}
                 onRegister={() => handleRegister(nextRegistrable)}
                 onUnregister={() => handleUnregister(nextRegistrable.id)}

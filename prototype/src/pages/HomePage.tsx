@@ -116,7 +116,6 @@ export function HomePage() {
                 championship={item.data}
                 eventCount={item.eventCount}
                 nextEvent={item.nextEvent}
-                nextEventTime={item.nextEventTime}
                 nextRegistrationStatus={item.nextRegistrationStatus}
               />
             )

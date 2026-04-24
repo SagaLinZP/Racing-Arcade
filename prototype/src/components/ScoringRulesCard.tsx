@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import type { ScoringTableEntry } from '@/lib/utils'
 
@@ -9,7 +8,6 @@ export function ScoringRulesCard({
   rulesText?: string
   scoringTable?: ScoringTableEntry[]
 }) {
-  const { t } = useTranslation()
   const { state } = useApp()
   const lang = state.language
 

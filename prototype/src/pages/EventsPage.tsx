@@ -6,15 +6,16 @@ import { events } from '@/data/events'
 import { championships } from '@/data/championships'
 import { getEventStatus } from '@/lib/utils'
 
+const REGISTERABLE_STATUSES = ['RegistrationOpen', 'RegistrationClosed']
+
 type ListItem =
   | { type: 'event'; data: typeof events[number] }
-  | { type: 'championship'; data: typeof championships[number]; eventCount: number; nextEvent?: typeof events[number]; nextEventTime?: string; nextRegistrationStatus?: string }
+  | { type: 'championship'; data: typeof championships[number]; eventCount: number; nextEvent?: typeof events[number]; nextRegistrationStatus?: string }
 
 export function EventsPage() {
   const { t } = useTranslation()
   const { state } = useApp()
   const lang = state.language
-  const registerableStatuses = ['RegistrationOpen', 'RegistrationClosed']
 
   const { registerable, completed } = useMemo(() => {
     const regItems: ListItem[] = []
@@ -23,7 +24,7 @@ export function EventsPage() {
     const standalone = events.filter(e => !e.championshipId)
     for (const e of standalone) {
       const s = getEventStatus(e)
-      if (registerableStatuses.includes(s)) {
+      if (REGISTERABLE_STATUSES.includes(s)) {
         regItems.push({ type: 'event', data: e })
       } else if (s === 'Completed') {
         compItems.push({ type: 'event', data: e })
@@ -35,7 +36,7 @@ export function EventsPage() {
       const eventCount = subEvents.length
 
       const regEvents = subEvents
-        .filter(e => registerableStatuses.includes(getEventStatus(e)))
+        .filter(e => REGISTERABLE_STATUSES.includes(getEventStatus(e)))
         .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
 
       const hasCompleted = subEvents.some(e => getEventStatus(e) === 'Completed')
@@ -46,7 +47,6 @@ export function EventsPage() {
           data: ch,
           eventCount,
           nextEvent: regEvents[0],
-          nextEventTime: regEvents[0].eventStartTime,
           nextRegistrationStatus: getEventStatus(regEvents[0]),
         })
       }
@@ -61,8 +61,8 @@ export function EventsPage() {
     }
 
     regItems.sort((a, b) => {
-      const aTime = a.type === 'event' ? a.data.registrationOpenAt : events.filter(e => e.championshipId === a.data.id && registerableStatuses.includes(getEventStatus(e)))[0]?.registrationOpenAt || ''
-      const bTime = b.type === 'event' ? b.data.registrationOpenAt : events.filter(e => e.championshipId === b.data.id && registerableStatuses.includes(getEventStatus(e)))[0]?.registrationOpenAt || ''
+      const aTime = a.type === 'event' ? a.data.registrationOpenAt : events.filter(e => e.championshipId === a.data.id && REGISTERABLE_STATUSES.includes(getEventStatus(e)))[0]?.registrationOpenAt || ''
+      const bTime = b.type === 'event' ? b.data.registrationOpenAt : events.filter(e => e.championshipId === b.data.id && REGISTERABLE_STATUSES.includes(getEventStatus(e)))[0]?.registrationOpenAt || ''
       return new Date(bTime).getTime() - new Date(aTime).getTime()
     })
 
@@ -73,7 +73,7 @@ export function EventsPage() {
     })
 
     return { registerable: regItems, completed: compItems }
-  }, [events, championships])
+  }, [])
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -92,7 +92,6 @@ export function EventsPage() {
                   championship={item.data}
                   eventCount={item.eventCount}
                   nextEvent={item.nextEvent}
-                  nextEventTime={item.nextEventTime}
                   nextRegistrationStatus={item.nextRegistrationStatus}
                 />
               )

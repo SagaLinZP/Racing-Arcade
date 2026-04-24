@@ -10,9 +10,9 @@ import { ScoringRulesCard } from '@/components/ScoringRulesCard'
 import { getCoverGradient } from '@/data/events'
 import { cn, getEventStatus } from '@/lib/utils'
 import {
-  MapPin, Clock, Cloud, Wrench, Users, ChevronRight,
+  MapPin, Clock, Cloud, Wrench, Users,
   Flag, Download, AlertTriangle, Play, Radio, Shield, Server,
-  Wifi, CheckCircle, Trophy, ScrollText
+  Wifi, CheckCircle, ScrollText
 } from 'lucide-react'
 
 export function EventDetailPage() {
