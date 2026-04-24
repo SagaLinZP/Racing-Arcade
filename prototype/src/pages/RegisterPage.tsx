@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { Camera, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { gamePlatforms } from '@/data/gamePlatforms'
 
-const games = ['ACC', 'AC Evo', 'iRacing', 'LMU', 'AMS2', 'rFactor 2', 'F1 24']
 const countries = [
   'China', 'Japan', 'South Korea', 'United States', 'Canada', 'Brazil', 'United Kingdom',
   'Germany', 'France', 'Italy', 'Spain', 'Australia', 'India', 'Singapore', 'Mexico',
@@ -103,7 +103,7 @@ export function RegisterPage() {
           <div>
             <label className="block text-sm font-medium mb-1.5">{t('register.primaryGames')} *</label>
             <div className="flex flex-wrap gap-2">
-              {games.map(game => (
+              {gamePlatforms.map(game => (
                 <button
                   key={game}
                   onClick={() => toggleGame(game)}

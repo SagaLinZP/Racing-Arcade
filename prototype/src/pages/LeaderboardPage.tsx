@@ -5,11 +5,10 @@ import { useApp } from '@/hooks/useAppStore'
 import { drivers } from '@/data/drivers'
 import { cn } from '@/lib/utils'
 import { Dropdown } from '@/components/Dropdown'
+import { gamePlatforms } from '@/data/gamePlatforms'
 import { Trophy, Medal, Flag, BarChart3 } from 'lucide-react'
 
 type TabType = 'points' | 'wins' | 'entries' | 'podiums'
-
-const gameOptions = ['AC', 'ACC', 'AC Evo', 'iRacing', 'LMU', 'F1 25']
 
 export function LeaderboardPage() {
   const { t } = useTranslation()
@@ -74,7 +73,7 @@ export function LeaderboardPage() {
           onChange={setGameFilter}
           options={[
             { value: 'all', label: t('events.filters.allGames') },
-            ...gameOptions.map(g => ({ value: g, label: g })),
+            ...gamePlatforms.map(g => ({ value: g, label: g })),
           ]}
         />
       </div>

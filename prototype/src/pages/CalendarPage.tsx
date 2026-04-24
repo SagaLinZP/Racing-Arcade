@@ -3,27 +3,25 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { events } from '@/data/events'
-import { championships } from '@/data/championships'
+import { gamePlatformColors, gamePlatforms } from '@/data/gamePlatforms'
 import { cn } from '@/lib/utils'
-import { ChevronLeft, ChevronRight, List, Grid3X3 } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, List, Grid3X3 } from 'lucide-react'
 
 const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const DAYS_ZH = ['日', '一', '二', '三', '四', '五', '六']
 
-const gameColors: Record<string, string> = {
-  'AC': 'bg-yellow-500',
-  'ACC': 'bg-orange-500',
-  'AC Evo': 'bg-blue-500',
-  'iRacing': 'bg-green-500',
-  'LMU': 'bg-purple-500',
-  'F1 25': 'bg-red-500',
+const getStartOfWeek = (date: Date) => {
+  const start = new Date(date)
+  start.setHours(0, 0, 0, 0)
+  start.setDate(start.getDate() - start.getDay())
+  return start
 }
-const gameNames = Object.keys(gameColors)
 
 export function CalendarPage() {
   const { t } = useTranslation()
   const { state } = useApp()
   const lang = state.language
+  const locale = lang === 'zh' ? 'zh-CN' : 'en-US'
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month')
   const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1))
   const [gameFilter, setGameFilter] = useState<string[]>([])
@@ -37,7 +35,7 @@ export function CalendarPage() {
       if (myEventsOnly && !e.registeredDriverIds.includes(state.currentUser?.id || '')) return false
       return true
     })
-  }, [events, gameFilter, myEventsOnly, state.currentUser])
+  }, [gameFilter, myEventsOnly, state.currentUser])
 
   const getEventLink = (e: typeof events[number]) => {
     if (e.championshipId) {
@@ -66,11 +64,22 @@ export function CalendarPage() {
     return daysArray
   }
 
+  const weekDays = useMemo(() => {
+    const start = getStartOfWeek(currentDate)
+    return Array.from({ length: 7 }, (_, idx) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + idx))
+  }, [currentDate])
+
   const navigateMonth = (dir: number) => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + dir, 1))
   }
 
-  const monthName = currentDate.toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'long' })
+  const navigateWeek = (dir: number) => {
+    const start = getStartOfWeek(currentDate)
+    setCurrentDate(new Date(start.getFullYear(), start.getMonth(), start.getDate() + dir * 7))
+  }
+
+  const monthName = currentDate.toLocaleString(locale, { year: 'numeric', month: 'long' })
+  const weekRangeTitle = `${weekDays[0].toLocaleDateString(locale, { month: 'short', day: 'numeric' })} - ${weekDays[6].toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}`
 
   const toggleGame = (game: string) => {
     setGameFilter(prev => prev.includes(game) ? prev.filter(g => g !== game) : [...prev, game])
@@ -81,14 +90,39 @@ export function CalendarPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">{t('calendar.title')}</h1>
         <div className="flex items-center gap-2">
-          <button onClick={() => setViewMode('month')} className={cn('px-3 py-1.5 rounded-lg text-sm', viewMode === 'month' ? 'bg-primary text-primary-foreground' : 'bg-accent text-muted-foreground')}><Grid3X3 className="w-4 h-4" /></button>
-          <button onClick={() => setViewMode('list')} className={cn('px-3 py-1.5 rounded-lg text-sm', viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-accent text-muted-foreground')}><List className="w-4 h-4" /></button>
+          <button
+            onClick={() => setViewMode('month')}
+            title={t('calendar.month')}
+            aria-label={t('calendar.month')}
+            aria-pressed={viewMode === 'month'}
+            className={cn('px-3 py-1.5 rounded-lg text-sm', viewMode === 'month' ? 'bg-primary text-primary-foreground' : 'bg-accent text-muted-foreground')}
+          >
+            <Grid3X3 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setViewMode('week')}
+            title={t('calendar.week')}
+            aria-label={t('calendar.week')}
+            aria-pressed={viewMode === 'week'}
+            className={cn('px-3 py-1.5 rounded-lg text-sm', viewMode === 'week' ? 'bg-primary text-primary-foreground' : 'bg-accent text-muted-foreground')}
+          >
+            <CalendarDays className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            title={t('calendar.list')}
+            aria-label={t('calendar.list')}
+            aria-pressed={viewMode === 'list'}
+            className={cn('px-3 py-1.5 rounded-lg text-sm', viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-accent text-muted-foreground')}
+          >
+            <List className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {gameNames.map(g => (
+        {gamePlatforms.map(g => (
           <button
             key={g}
             onClick={() => toggleGame(g)}
@@ -136,13 +170,62 @@ export function CalendarPage() {
                         <Link
                           key={e.id}
                           to={getEventLink(e)}
-                          className={cn('block px-1.5 py-0.5 rounded text-[10px] text-white truncate hover:opacity-80', gameColors[e.game] || 'bg-gray-500')}
+                          className={cn('block px-1.5 py-0.5 rounded text-[10px] text-white truncate hover:opacity-80', gamePlatformColors[e.game as keyof typeof gamePlatformColors] || 'bg-gray-500')}
                         >
                           {lang === 'zh' ? e.name_zh : e.name_en}
                         </Link>
                       ))}
                       {dayEvents.length > 3 && (
                         <span className="text-[10px] text-muted-foreground px-1">+{dayEvents.length - 3} more</span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </>
+      ) : viewMode === 'week' ? (
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={() => navigateWeek(-1)} className="p-2 hover:bg-accent rounded-lg"><ChevronLeft className="w-5 h-5" /></button>
+            <h2 className="text-lg font-bold">{weekRangeTitle}</h2>
+            <button onClick={() => navigateWeek(1)} className="p-2 hover:bg-accent rounded-lg"><ChevronRight className="w-5 h-5" /></button>
+          </div>
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-7 divide-y md:divide-y-0 md:divide-x divide-border">
+              {weekDays.map(date => {
+                const dayEvents = getEventsForDate(date).sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
+                const isToday = new Date().toDateString() === date.toDateString()
+                return (
+                  <div key={date.toISOString()} className={cn('min-h-56 p-3', isToday && 'bg-primary/5')}>
+                    <div className="mb-3 flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-semibold text-muted-foreground">{days[date.getDay()]}</div>
+                        <div className={cn('text-lg font-bold', isToday && 'text-primary')}>{date.getDate()}</div>
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">{date.toLocaleDateString(locale, { month: 'short' })}</div>
+                    </div>
+                    <div className="space-y-2">
+                      {dayEvents.length === 0 ? (
+                        <div className="rounded-lg border border-border/60 px-2 py-3 text-center text-xs text-muted-foreground">{lang === 'zh' ? '暂无赛事' : 'No events'}</div>
+                      ) : (
+                        dayEvents.map(e => (
+                          <Link
+                            key={e.id}
+                            to={getEventLink(e)}
+                            className="block rounded-lg border border-border/70 bg-background/40 p-2 hover:border-primary/40 transition-colors"
+                          >
+                            <div className="mb-1 flex items-center justify-between gap-2">
+                              <span className="text-xs font-semibold text-primary">
+                                {new Date(e.eventStartTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                              </span>
+                              <span className={cn('shrink-0 rounded px-1.5 py-0.5 text-[10px] text-white', gamePlatformColors[e.game as keyof typeof gamePlatformColors] || 'bg-gray-500')}>{e.game}</span>
+                            </div>
+                            <div className="truncate text-xs font-medium">{lang === 'zh' ? e.name_zh : e.name_en}</div>
+                            <div className="mt-1 truncate text-[10px] text-muted-foreground">{e.track}</div>
+                          </Link>
+                        ))
                       )}
                     </div>
                   </div>
@@ -167,7 +250,7 @@ export function CalendarPage() {
                   </div>
                   <div className="text-xl font-bold">{new Date(e.eventStartTime).getDate()}</div>
                 </div>
-                <div className={cn('w-1 h-10 rounded-full', gameColors[e.game] || 'bg-gray-500')} />
+                <div className={cn('w-1 h-10 rounded-full', gamePlatformColors[e.game as keyof typeof gamePlatformColors] || 'bg-gray-500')} />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-sm truncate">{lang === 'zh' ? e.name_zh : e.name_en}</h3>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
@@ -184,7 +267,7 @@ export function CalendarPage() {
                 </div>
                 <div className="text-right text-xs text-muted-foreground">
                   <div>{new Date(e.eventStartTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
-                  <div className={cn('px-1.5 py-0.5 rounded text-[10px] text-white mt-1', gameColors[e.game])}>{e.game}</div>
+                  <div className={cn('px-1.5 py-0.5 rounded text-[10px] text-white mt-1', gamePlatformColors[e.game as keyof typeof gamePlatformColors] || 'bg-gray-500')}>{e.game}</div>
                 </div>
               </Link>
             ))}

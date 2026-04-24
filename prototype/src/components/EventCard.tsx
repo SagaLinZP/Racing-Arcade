@@ -6,17 +6,7 @@ import { cn, getEventStatus } from '@/lib/utils'
 import type { SimEvent } from '@/data/events'
 import { getCoverGradient } from '@/data/events'
 import type { Championship } from '@/data/championships'
-
-const gameColors: Record<string, string> = {
-  'AC': 'bg-yellow-500',
-  'ACC': 'bg-orange-500',
-  'AC Evo': 'bg-blue-500',
-  'iRacing': 'bg-green-500',
-  'LMU': 'bg-purple-500',
-  'rF2': 'bg-cyan-500',
-  'ETS2': 'bg-amber-600',
-  'F1 25': 'bg-red-500',
-}
+import { gamePlatformColors } from '@/data/gamePlatforms'
 
 const statusColors: Record<string, string> = {
   Upcoming: 'bg-blue-500/20 text-blue-400',
@@ -46,7 +36,7 @@ export function EventCard({ event }: { event: SimEvent }) {
     >
       <div className="h-40 flex items-center justify-center relative" style={{ background: getCoverGradient(event.id) }}>
         <div className="absolute top-3 left-3 flex gap-2">
-          <span className={cn('px-2 py-0.5 rounded text-[11px] font-bold text-white', gameColors[event.game] || 'bg-gray-500')}>
+          <span className={cn('px-2 py-0.5 rounded text-[11px] font-bold text-white', gamePlatformColors[event.game as keyof typeof gamePlatformColors] || 'bg-gray-500')}>
             {event.game}
           </span>
           {event.streamUrl && (
@@ -113,7 +103,7 @@ export function ChampionshipCard({ championship, eventCount, nextEvent, nextEven
       <div className="h-40 flex items-center justify-center relative" style={{ background: getCoverGradient(championship.id) }}>
         <Trophy className="w-12 h-12 text-white/20" />
         <div className="absolute top-3 left-3 flex gap-2">
-          <span className={cn('px-2 py-0.5 rounded text-[11px] font-bold text-white', gameColors[championship.game] || 'bg-gray-500')}>
+          <span className={cn('px-2 py-0.5 rounded text-[11px] font-bold text-white', gamePlatformColors[championship.game as keyof typeof gamePlatformColors] || 'bg-gray-500')}>
             {championship.game}
           </span>
           <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-primary/80 text-white">{t('events.typeChampionship', 'Championship')}</span>

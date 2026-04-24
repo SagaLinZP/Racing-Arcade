@@ -4,13 +4,11 @@ import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { teams } from '@/data/teams'
 import { drivers } from '@/data/drivers'
-import { cn } from '@/lib/utils'
 import { Plus, UserMinus, LogOut, Trash2, Crown, Shield } from 'lucide-react'
 
 export function TeamManagePage() {
   const { t } = useTranslation()
   const { state } = useApp()
-  const lang = state.language
   const userId = state.currentUser?.id || ''
   const myTeam = teams.find(tm => tm.members.some(m => m.userId === userId))
   const isCaptain = myTeam?.captainId === userId
@@ -94,7 +92,7 @@ export function TeamManagePage() {
           </div>
           <h1 className="text-2xl font-bold">{t('team.manage')}</h1>
         </div>
-        <Link to={`/teams/${myTeam.id}`} className="text-sm text-primary hover:underline">{t('common.viewMore')}</Link>
+        <Link to={`/team/${myTeam.id}`} className="text-sm text-primary hover:underline">{t('common.viewMore')}</Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

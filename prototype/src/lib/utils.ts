@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import type { SimEvent } from "@/data/events"
+export type { GamePlatform } from "@/data/gamePlatforms"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -54,8 +55,6 @@ export function formatTime(date: string | Date) {
 }
 
 export type Region = 'CN' | 'AP' | 'AM' | 'EU'
-
-export type GamePlatform = 'AC' | 'ACC' | 'AC Evo' | 'iRacing' | 'LMU' | 'F1 25'
 
 export type CarClass = 'GT3' | 'GT4' | 'Porsche Cup' | 'LMP2' | 'Formula' | 'GTE' | 'TCR'
 
