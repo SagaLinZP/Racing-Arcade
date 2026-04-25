@@ -9,7 +9,8 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { ScoringRulesCard } from '@/components/ScoringRulesCard'
 import { getCoverGradient } from '@/data/events'
 import { cn } from '@/lib/utils'
-import { getEstimatedSplits, getEventCapacity, getEventStatus, isUserRegisteredForEvent } from '@/domain/events'
+import { getEventStatus } from '@/domain/events'
+import { useEventRegistration } from '@/hooks/useEventRegistration'
 import {
   MapPin, Clock, Cloud, Wrench, Users,
   Flag, Download, AlertTriangle, Play, Radio, Shield, Server,
@@ -22,8 +23,7 @@ export function EventDetailPage() {
   const { state } = useApp()
   const lang = state.language
   const event = events.find(e => e.id === id)
-  const [registered, setRegistered] = useState(isUserRegisteredForEvent(event ?? { registeredDriverIds: [] }, state.currentUser?.id))
-  const [regCount, setRegCount] = useState(event?.currentRegistrations ?? 0)
+  const { getSnapshot, register, unregister } = useEventRegistration()
   const [showRulesDialog, setShowRulesDialog] = useState(false)
   const [rulesChecked, setRulesChecked] = useState(false)
   const [activeSplit, setActiveSplit] = useState(1)
@@ -48,9 +48,11 @@ export function EventDetailPage() {
   const effectiveRaceDuration = event.raceDuration
   const effectiveRaceDurationType = event.raceDurationType
 
-  const totalCapacity = getEventCapacity(event)
-  const estimatedSplits = getEstimatedSplits(event, regCount)
-  const isRegistered = registered
+  const registration = getSnapshot(event)
+  const regCount = registration.registrationCount
+  const totalCapacity = registration.capacity
+  const estimatedSplits = registration.estimatedSplits
+  const isRegistered = registration.isRegistered
   const status = getEventStatus(event)
   const isCancelled = status === 'Cancelled'
   const hasResults = event.results && event.results.length > 0
@@ -63,21 +65,18 @@ export function EventDetailPage() {
       setRulesChecked(false)
       setShowRulesDialog(true)
     } else {
-      setRegistered(true)
-      setRegCount(c => c + 1)
+      register(event)
     }
   }
 
   const handleConfirmRules = () => {
     if (!rulesChecked) return
     setShowRulesDialog(false)
-    setRegistered(true)
-    setRegCount(c => c + 1)
+    register(event)
   }
 
   const handleUnregister = () => {
-    setRegistered(false)
-    setRegCount(c => c - 1)
+    unregister(event)
   }
 
   const getDriverName = (driverId: string) => drivers.find(d => d.id === driverId)?.nickname || driverId
@@ -372,7 +371,7 @@ export function EventDetailPage() {
               <div className="w-full bg-accent rounded-full h-2">
                 <div
                   className="bg-primary rounded-full h-2 transition-all"
-                  style={{ width: `${Math.min(100, (regCount / totalCapacity) * 100)}%` }}
+                  style={{ width: `${registration.progressPercent}%` }}
                 />
               </div>
             </div>
@@ -398,7 +397,7 @@ export function EventDetailPage() {
                       </button>
                     </div>
                   ) : state.isLoggedIn ? (
-                    regCount >= totalCapacity ? (
+                    registration.isFull ? (
                       <button className="w-full px-4 py-2.5 bg-accent text-yellow-400 rounded-lg text-sm font-medium">
                         {t('eventDetail.fullWaitlist')}
                       </button>

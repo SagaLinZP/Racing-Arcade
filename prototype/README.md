@@ -22,13 +22,13 @@ src/
   components/        Shared presentational components and layout
   data/              Static mock data used by the prototype
   domain/            Domain types, event status rules, and pure selectors
-  hooks/             App-wide React context
+  hooks/             App-wide React context and shared stateful UI hooks
   i18n/              English and Chinese UI translations
   lib/               Small shared utilities
   pages/             Route-level pages
 ```
 
-Route pages now delegate shared event and championship rules to `src/domain/`, while route composition, global providers, profile-completion gating, and auth guards live in `src/app/`. Static mock records still live in `src/data/`.
+Route pages now delegate shared event and championship rules to `src/domain/`, while route composition, global providers, profile-completion gating, and auth guards live in `src/app/`. Registration count/ownership overrides are centralized through `src/hooks/useEventRegistration.ts`. Static mock records still live in `src/data/`.
 
 ## Architecture Direction
 
@@ -45,7 +45,6 @@ src/
 
 Remaining extraction targets:
 
-- Registration state and capacity logic currently kept as local component state.
 - Region and language fallback rules currently applied manually in pages.
 
 ## Guardrails Added

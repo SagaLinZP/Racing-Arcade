@@ -19,6 +19,7 @@ export function LoginPage() {
       isLoggedIn: true,
       hasCompletedProfile: true,
       currentUser: { id: 'd1', nickname: 'SpeedDemon', avatar: '', region: 'CN' },
+      registrationOverrides: {},
     }))
     navigate(redirectTarget, { replace: true })
   }

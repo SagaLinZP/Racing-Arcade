@@ -204,7 +204,7 @@ export function Navbar() {
                     </Link>
                     <div className="border-t border-border my-1" />
                     <button
-                      onClick={() => { setState(s => ({ ...s, isLoggedIn: false, currentUser: null })); setUserMenuOpen(false) }}
+                      onClick={() => { setState(s => ({ ...s, isLoggedIn: false, currentUser: null, registrationOverrides: {} })); setUserMenuOpen(false) }}
                       className="flex items-center gap-2 w-full px-3 py-2 text-sm text-destructive hover:bg-accent transition-colors"
                     >
                       <LogOut className="w-4 h-4" /> {t('nav.logout')}

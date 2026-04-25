@@ -41,6 +41,7 @@ export function RegisterPage() {
       hasCompletedProfile: true,
       currentUser: { id: 'd5', nickname: form.nickname, avatar: '', region: 'CN' },
       language: form.language,
+      registrationOverrides: {},
     }))
 
     const from = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from

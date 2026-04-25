@@ -9,8 +9,9 @@ import { teams } from '@/data/teams'
 import { StatusBadge } from '@/components/StatusBadge'
 import { ScoringRulesCard } from '@/components/ScoringRulesCard'
 import { cn } from '@/lib/utils'
-import { getEventCapacity, getEventStatus, isUserRegisteredForEvent } from '@/domain/events'
+import { getEventStatus } from '@/domain/events'
 import { getChampionshipSchedule, getChampionshipStandings } from '@/domain/championships'
+import { useEventRegistration, type EventRegistrationSnapshot } from '@/hooks/useEventRegistration'
 import {
   Trophy, MapPin, Clock, ChevronDown, ChevronUp, Users, Shield,
   Play, Download, Flag, Cloud, Wrench, Server, Wifi, CheckCircle,
@@ -220,20 +221,20 @@ function RegistrationButton({
   event,
   isLoggedIn,
   t,
-  isRegistered,
+  registration,
   onRegister,
   onUnregister,
-  regCount,
 }: {
   event: typeof events[0]
   isLoggedIn: boolean
   t: (key: string) => string
-  isRegistered: boolean
+  registration: EventRegistrationSnapshot
   onRegister: () => void
   onUnregister: () => void
-  regCount: number
 }) {
-  const totalCapacity = getEventCapacity(event)
+  const totalCapacity = registration.capacity
+  const regCount = registration.registrationCount
+  const isRegistered = registration.isRegistered
   const status = getEventStatus(event)
   const isCancelled = status === 'Cancelled'
 
@@ -286,11 +287,10 @@ export function ChampionshipDetailPage() {
   const { t } = useTranslation()
   const { state } = useApp()
   const lang = state.language
+  const { getSnapshot, register, unregister } = useEventRegistration()
 
   const [showRulesDialog, setShowRulesDialog] = useState<{ eventId: string; accessReq?: string; rules?: string } | null>(null)
   const [rulesChecked, setRulesChecked] = useState(false)
-  const [registeredOverrides, setRegisteredOverrides] = useState<Record<string, boolean>>({})
-  const [regCountOverrides, setRegCountOverrides] = useState<Record<string, number>>({})
   const [activeTab, setActiveTab] = useState<'info' | 'schedule' | 'results'>('info')
   const [resultsEventFilter, setResultsEventFilter] = useState('')
   const [resultsSession, setResultsSession] = useState<'race' | 'qualifying'>('race')
@@ -327,8 +327,6 @@ export function ChampionshipDetailPage() {
     })
   }
 
-  const getRegCount = (event: typeof events[0]) => regCountOverrides[event.id] ?? event.currentRegistrations
-
   const handleRegister = (event: typeof events[0]) => {
     if (!state.isLoggedIn) return
     const eventRules = lang === 'zh' ? event.rules_zh : event.rules_en
@@ -340,33 +338,19 @@ export function ChampionshipDetailPage() {
       setRulesChecked(false)
       setShowRulesDialog({ eventId: event.id, accessReq: accessReq || undefined, rules: effectiveRules || undefined })
     } else {
-      setRegisteredOverrides(prev => ({ ...prev, [event.id]: true }))
-      setRegCountOverrides(prev => ({ ...prev, [event.id]: (prev[event.id] ?? event.currentRegistrations) + 1 }))
+      register(event)
     }
   }
 
   const handleConfirmRules = () => {
     if (!rulesChecked || !showRulesDialog) return
-    const eid = showRulesDialog.eventId
-    setRegisteredOverrides(prev => ({ ...prev, [eid]: true }))
-    setRegCountOverrides(prev => {
-      const ev = chEvents.find(e => e.id === eid)
-      return { ...prev, [eid]: (prev[eid] ?? (ev?.currentRegistrations ?? 0)) + 1 }
-    })
+    const event = chEvents.find(e => e.id === showRulesDialog.eventId)
+    if (event) register(event)
     setShowRulesDialog(null)
   }
 
-  const handleUnregister = (eventId: string) => {
-    setRegisteredOverrides(prev => ({ ...prev, [eventId]: false }))
-    setRegCountOverrides(prev => {
-      const ev = chEvents.find(e => e.id === eventId)
-      return { ...prev, [eventId]: (prev[eventId] ?? (ev?.currentRegistrations ?? 0)) - 1 }
-    })
-  }
-
-  const isEventRegistered = (event: typeof events[0]) => {
-    if (registeredOverrides[event.id] !== undefined) return registeredOverrides[event.id]
-    return isUserRegisteredForEvent(event, state.currentUser?.id)
+  const handleUnregister = (event: typeof events[0]) => {
+    unregister(event)
   }
 
   const renderResultsSummary = (event: typeof events[0]) => {
@@ -392,7 +376,7 @@ export function ChampionshipDetailPage() {
   }
 
   const renderEventRow = (event: typeof events[0], isPast = false) => {
-    const totalCapacity = getEventCapacity(event)
+    const registration = getSnapshot(event)
 
     return (
       <div key={event.id} className={cn(
@@ -407,7 +391,7 @@ export function ChampionshipDetailPage() {
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{event.track}{event.trackLayout ? ` (${event.trackLayout})` : ''}</span>
               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDateTime(event.eventStartTime)}</span>
-              <span className="flex items-center gap-1"><Users className="w-3 h-3" />{getRegCount(event)}/{totalCapacity}</span>
+              <span className="flex items-center gap-1"><Users className="w-3 h-3" />{registration.registrationCount}/{registration.capacity}</span>
             </div>
             {isPast && renderResultsSummary(event)}
           </div>
@@ -444,8 +428,9 @@ export function ChampionshipDetailPage() {
     )
   }
 
-  const nextCapacity = nextRegistrable ? getEventCapacity(nextRegistrable) : 0
-  const nextRegistered = nextRegistrable ? isEventRegistered(nextRegistrable) : false
+  const nextRegistration = nextRegistrable ? getSnapshot(nextRegistrable) : null
+  const nextCapacity = nextRegistration?.capacity ?? 0
+  const nextRegistered = nextRegistration?.isRegistered ?? false
   const nextStatus = nextRegistrable ? getEventStatus(nextRegistrable) : null
 
   const tabs: { key: typeof activeTab; label: string; icon: typeof Trophy }[] = [
@@ -686,25 +671,26 @@ export function ChampionshipDetailPage() {
                   </div>
                 </div>
                 <div className="text-2xl font-bold">
-                  {getRegCount(nextRegistrable)} <span className="text-lg text-muted-foreground">/</span> {nextCapacity}
+                  {nextRegistration?.registrationCount ?? 0} <span className="text-lg text-muted-foreground">/</span> {nextCapacity}
                 </div>
                 <div className="w-full bg-accent rounded-full h-2">
                   <div
                     className="bg-primary rounded-full h-2 transition-all"
-                    style={{ width: `${Math.min(100, (getRegCount(nextRegistrable) / nextCapacity) * 100)}%` }}
+                    style={{ width: `${nextRegistration?.progressPercent ?? 0}%` }}
                   />
                 </div>
               </div>
 
-              <RegistrationButton
-                event={nextRegistrable}
-                isLoggedIn={state.isLoggedIn}
-                isRegistered={nextRegistered}
-                t={t}
-                onRegister={() => handleRegister(nextRegistrable)}
-                onUnregister={() => handleUnregister(nextRegistrable.id)}
-                regCount={getRegCount(nextRegistrable)}
-              />
+              {nextRegistration && (
+                <RegistrationButton
+                  event={nextRegistrable}
+                  isLoggedIn={state.isLoggedIn}
+                  registration={nextRegistration}
+                  t={t}
+                  onRegister={() => handleRegister(nextRegistrable)}
+                  onUnregister={() => handleUnregister(nextRegistrable)}
+                />
+              )}
 
               {nextRegistered && (
                 <button className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2 bg-accent rounded-lg text-sm hover:bg-accent/80 transition-colors">
