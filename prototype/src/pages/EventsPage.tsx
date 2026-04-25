@@ -4,76 +4,14 @@ import { useApp } from '@/hooks/useAppStore'
 import { EventCard, ChampionshipCard } from '@/components/EventCard'
 import { events } from '@/data/events'
 import { championships } from '@/data/championships'
-import { getEventStatus } from '@/lib/utils'
-
-const REGISTERABLE_STATUSES = ['RegistrationOpen', 'RegistrationClosed']
-
-type ListItem =
-  | { type: 'event'; data: typeof events[number] }
-  | { type: 'championship'; data: typeof championships[number]; eventCount: number; nextEvent?: typeof events[number]; nextRegistrationStatus?: string }
+import { getEventListSections } from '@/domain/championships'
 
 export function EventsPage() {
   const { t } = useTranslation()
   const { state } = useApp()
   const lang = state.language
 
-  const { registerable, completed } = useMemo(() => {
-    const regItems: ListItem[] = []
-    const compItems: ListItem[] = []
-
-    const standalone = events.filter(e => !e.championshipId)
-    for (const e of standalone) {
-      const s = getEventStatus(e)
-      if (REGISTERABLE_STATUSES.includes(s)) {
-        regItems.push({ type: 'event', data: e })
-      } else if (s === 'Completed') {
-        compItems.push({ type: 'event', data: e })
-      }
-    }
-
-    for (const ch of championships) {
-      const subEvents = events.filter(e => e.championshipId === ch.id)
-      const eventCount = subEvents.length
-
-      const regEvents = subEvents
-        .filter(e => REGISTERABLE_STATUSES.includes(getEventStatus(e)))
-        .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
-
-      const hasCompleted = subEvents.some(e => getEventStatus(e) === 'Completed')
-
-      if (regEvents.length > 0) {
-        regItems.push({
-          type: 'championship',
-          data: ch,
-          eventCount,
-          nextEvent: regEvents[0],
-          nextRegistrationStatus: getEventStatus(regEvents[0]),
-        })
-      }
-
-      if (hasCompleted && regEvents.length === 0) {
-        compItems.push({
-          type: 'championship',
-          data: ch,
-          eventCount,
-        })
-      }
-    }
-
-    regItems.sort((a, b) => {
-      const aTime = a.type === 'event' ? a.data.registrationOpenAt : events.filter(e => e.championshipId === a.data.id && REGISTERABLE_STATUSES.includes(getEventStatus(e)))[0]?.registrationOpenAt || ''
-      const bTime = b.type === 'event' ? b.data.registrationOpenAt : events.filter(e => e.championshipId === b.data.id && REGISTERABLE_STATUSES.includes(getEventStatus(e)))[0]?.registrationOpenAt || ''
-      return new Date(bTime).getTime() - new Date(aTime).getTime()
-    })
-
-    compItems.sort((a, b) => {
-      const aTime = a.type === 'event' ? a.data.eventStartTime : events.filter(e => e.championshipId === a.data.id).sort((x, y) => new Date(y.eventStartTime).getTime() - new Date(x.eventStartTime).getTime())[0]?.eventStartTime || ''
-      const bTime = b.type === 'event' ? b.data.eventStartTime : events.filter(e => e.championshipId === b.data.id).sort((x, y) => new Date(y.eventStartTime).getTime() - new Date(x.eventStartTime).getTime())[0]?.eventStartTime || ''
-      return new Date(bTime).getTime() - new Date(aTime).getTime()
-    })
-
-    return { registerable: regItems, completed: compItems }
-  }, [])
+  const { registerable, completed } = useMemo(() => getEventListSections(events, championships), [])
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">

@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { events } from '@/data/events'
 import { gamePlatformColors, gamePlatforms } from '@/data/gamePlatforms'
+import type { GamePlatform } from '@/data/gamePlatforms'
 import { cn } from '@/lib/utils'
+import { filterEvents, getEventsForDate, sortEventsByStartAsc } from '@/domain/events'
 import { CalendarDays, ChevronLeft, ChevronRight, List, Grid3X3 } from 'lucide-react'
 
 const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -24,16 +26,16 @@ export function CalendarPage() {
   const locale = lang === 'zh' ? 'zh-CN' : 'en-US'
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month')
   const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1))
-  const [gameFilter, setGameFilter] = useState<string[]>([])
+  const [gameFilter, setGameFilter] = useState<GamePlatform[]>([])
   const [myEventsOnly, setMyEventsOnly] = useState(false)
 
   const days = lang === 'zh' ? DAYS_ZH : DAYS_EN
 
   const filteredEvents = useMemo(() => {
-    return events.filter(e => {
-      if (gameFilter.length > 0 && !gameFilter.includes(e.game)) return false
-      if (myEventsOnly && !e.registeredDriverIds.includes(state.currentUser?.id || '')) return false
-      return true
+    return filterEvents(events, {
+      games: gameFilter,
+      registeredOnly: myEventsOnly,
+      userId: state.currentUser?.id,
     })
   }, [gameFilter, myEventsOnly, state.currentUser])
 
@@ -42,15 +44,6 @@ export function CalendarPage() {
       return `/championships/${e.championshipId}`
     }
     return `/events/${e.id}`
-  }
-
-  const getEventsForDate = (date: Date) => {
-    return filteredEvents.filter(e => {
-      const eventDate = new Date(e.eventStartTime)
-      return eventDate.getFullYear() === date.getFullYear() &&
-        eventDate.getMonth() === date.getMonth() &&
-        eventDate.getDate() === date.getDate()
-    })
   }
 
   const getCalendarDays = () => {
@@ -81,7 +74,7 @@ export function CalendarPage() {
   const monthName = currentDate.toLocaleString(locale, { year: 'numeric', month: 'long' })
   const weekRangeTitle = `${weekDays[0].toLocaleDateString(locale, { month: 'short', day: 'numeric' })} - ${weekDays[6].toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}`
 
-  const toggleGame = (game: string) => {
+  const toggleGame = (game: GamePlatform) => {
     setGameFilter(prev => prev.includes(game) ? prev.filter(g => g !== game) : [...prev, game])
   }
 
@@ -160,7 +153,7 @@ export function CalendarPage() {
               {getCalendarDays().map((day, idx) => {
                 if (day === null) return <div key={`empty-${idx}`} className="min-h-24 border-b border-r border-border p-1" />
                 const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-                const dayEvents = getEventsForDate(date)
+                const dayEvents = getEventsForDate(filteredEvents, date)
                 const isToday = new Date().toDateString() === date.toDateString()
                 return (
                   <div key={day} className={cn('min-h-24 border-b border-r border-border p-1', isToday && 'bg-primary/5')}>
@@ -195,7 +188,7 @@ export function CalendarPage() {
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="grid grid-cols-1 md:grid-cols-7 divide-y md:divide-y-0 md:divide-x divide-border">
               {weekDays.map(date => {
-                const dayEvents = getEventsForDate(date).sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
+                const dayEvents = sortEventsByStartAsc(getEventsForDate(filteredEvents, date))
                 const isToday = new Date().toDateString() === date.toDateString()
                 return (
                   <div key={date.toISOString()} className={cn('min-h-56 p-3', isToday && 'bg-primary/5')}>
@@ -236,8 +229,7 @@ export function CalendarPage() {
         </>
       ) : (
         <div className="space-y-2">
-          {filteredEvents
-            .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
+          {sortEventsByStartAsc(filteredEvents)
             .map(e => (
               <Link
                 key={e.id}

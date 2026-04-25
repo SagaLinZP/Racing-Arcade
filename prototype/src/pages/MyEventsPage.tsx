@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { events } from '@/data/events'
 import { championships } from '@/data/championships'
-import { cn, getEventStatus } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import { getEventStatus, getEventStatusCategory, isChampionshipEvent, isStandaloneEvent, isUserRegisteredForEvent } from '@/domain/events'
 import { Flag, CheckCircle, ChevronDown, ChevronRight, Trophy, Download, Zap } from 'lucide-react'
 
 export function MyEventsPage() {
@@ -15,9 +16,9 @@ export function MyEventsPage() {
   const [tab, setTab] = useState<'registered' | 'completed'>('registered')
   const [expandedChamps, setExpandedChamps] = useState<Set<string>>(new Set())
 
-  const myEvents = events.filter(e => e.registeredDriverIds.includes(userId))
-  const standalone = myEvents.filter(e => !e.championshipId)
-  const withChampionship = myEvents.filter(e => e.championshipId)
+  const myEvents = events.filter(e => isUserRegisteredForEvent(e, userId))
+  const standalone = myEvents.filter(isStandaloneEvent)
+  const withChampionship = myEvents.filter(isChampionshipEvent)
 
   const champGroups = new Map<string, typeof withChampionship>()
   for (const e of withChampionship) {
@@ -31,18 +32,13 @@ export function MyEventsPage() {
     events: evts,
   })).filter(c => c.championship)
 
-  const statusCategory = (s: string) => {
-    if (['Completed', 'ResultsPublished'].includes(s)) return 'completed' as const
-    return 'registered' as const
-  }
-
   const getStandalone = (cat: 'registered' | 'completed') =>
-    standalone.filter(e => statusCategory(getEventStatus(e)) === cat)
+    standalone.filter(e => getEventStatusCategory(getEventStatus(e)) === cat)
 
   const getChampItems = (cat: 'registered' | 'completed') =>
     champItems.map(ci => ({
       ...ci,
-      events: ci.events.filter(e => statusCategory(getEventStatus(e)) === cat),
+      events: ci.events.filter(e => getEventStatusCategory(getEventStatus(e)) === cat),
     })).filter(ci => ci.events.length > 0)
 
   const counts = {

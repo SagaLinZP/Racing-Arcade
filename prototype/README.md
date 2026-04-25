@@ -20,13 +20,14 @@ npm run check
 src/
   components/        Shared presentational components and layout
   data/              Static mock data used by the prototype
+  domain/            Domain types, event status rules, and pure selectors
   hooks/             App-wide React context
   i18n/              English and Chinese UI translations
   lib/               Small shared utilities
   pages/             Route-level pages
 ```
 
-The prototype currently keeps most domain logic inside route pages. This is acceptable for quick visual iteration, but it should not be the long-term production shape.
+Route pages now delegate shared event and championship rules to `src/domain/`. Static mock records still live in `src/data/`, while UI components and pages consume typed domain helpers for status, capacity, registration ownership, list grouping, calendar filtering, and championship standings.
 
 ## Architecture Direction
 
@@ -41,9 +42,8 @@ src/
   shared/            UI primitives, i18n helpers, generic utilities
 ```
 
-Priority extraction targets:
+Remaining extraction targets:
 
-- Event and championship selectors currently duplicated across home, events, calendar, and my-events pages.
 - Registration state and capacity logic currently kept as local component state.
 - Region and language fallback rules currently applied manually in pages.
 - Route protection and profile-completion gates currently not modeled.

@@ -8,7 +8,8 @@ import { teams } from '@/data/teams'
 import { StatusBadge } from '@/components/StatusBadge'
 import { ScoringRulesCard } from '@/components/ScoringRulesCard'
 import { getCoverGradient } from '@/data/events'
-import { cn, getEventStatus } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import { getEstimatedSplits, getEventCapacity, getEventStatus, isUserRegisteredForEvent } from '@/domain/events'
 import {
   MapPin, Clock, Cloud, Wrench, Users,
   Flag, Download, AlertTriangle, Play, Radio, Shield, Server,
@@ -21,7 +22,7 @@ export function EventDetailPage() {
   const { state } = useApp()
   const lang = state.language
   const event = events.find(e => e.id === id)
-  const [registered, setRegistered] = useState(event?.registeredDriverIds.includes(state.currentUser?.id || '') || false)
+  const [registered, setRegistered] = useState(isUserRegisteredForEvent(event ?? { registeredDriverIds: [] }, state.currentUser?.id))
   const [regCount, setRegCount] = useState(event?.currentRegistrations ?? 0)
   const [showRulesDialog, setShowRulesDialog] = useState(false)
   const [rulesChecked, setRulesChecked] = useState(false)
@@ -47,8 +48,8 @@ export function EventDetailPage() {
   const effectiveRaceDuration = event.raceDuration
   const effectiveRaceDurationType = event.raceDurationType
 
-  const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
-  const estimatedSplits = event.enableMultiSplit ? Math.ceil(regCount / event.maxEntriesPerSplit) : 1
+  const totalCapacity = getEventCapacity(event)
+  const estimatedSplits = getEstimatedSplits(event, regCount)
   const isRegistered = registered
   const status = getEventStatus(event)
   const isCancelled = status === 'Cancelled'

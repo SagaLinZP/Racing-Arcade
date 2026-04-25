@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { Calendar, Users, MapPin, Zap, Radio, Trophy } from 'lucide-react'
-import { cn, getEventStatus } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import { getEstimatedSplits, getEventCapacity, getEventStatus } from '@/domain/events'
 import type { SimEvent } from '@/data/events'
 import { getCoverGradient } from '@/data/events'
 import type { Championship } from '@/data/championships'
@@ -25,8 +26,8 @@ export function EventCard({ event }: { event: SimEvent }) {
   const lang = state.language
   const name = lang === 'zh' ? event.name_zh : event.name_en
 
-  const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
-  const estimatedSplits = event.enableMultiSplit ? Math.ceil(event.currentRegistrations / event.maxEntriesPerSplit) : 1
+  const totalCapacity = getEventCapacity(event)
+  const estimatedSplits = getEstimatedSplits(event, event.currentRegistrations)
   const status = getEventStatus(event)
 
   return (
@@ -92,7 +93,7 @@ export function ChampionshipCard({ championship, eventCount, nextEvent, nextRegi
   const { state } = useApp()
   const lang = state.language
   const name = lang === 'zh' ? championship.name_zh : championship.name_en
-  const nextCapacity = nextEvent ? nextEvent.maxEntriesPerSplit * (nextEvent.maxSplits || 1) : 0
+  const nextCapacity = nextEvent ? getEventCapacity(nextEvent) : 0
 
   return (
     <Link

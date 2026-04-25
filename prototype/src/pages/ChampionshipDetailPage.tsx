@@ -8,7 +8,9 @@ import { drivers } from '@/data/drivers'
 import { teams } from '@/data/teams'
 import { StatusBadge } from '@/components/StatusBadge'
 import { ScoringRulesCard } from '@/components/ScoringRulesCard'
-import { cn, getEventStatus } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import { getEventCapacity, getEventStatus, isUserRegisteredForEvent } from '@/domain/events'
+import { getChampionshipSchedule, getChampionshipStandings } from '@/domain/championships'
 import {
   Trophy, MapPin, Clock, ChevronDown, ChevronUp, Users, Shield,
   Play, Download, Flag, Cloud, Wrench, Server, Wifi, CheckCircle,
@@ -231,7 +233,7 @@ function RegistrationButton({
   onUnregister: () => void
   regCount: number
 }) {
-  const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
+  const totalCapacity = getEventCapacity(event)
   const status = getEventStatus(event)
   const isCancelled = status === 'Cancelled'
 
@@ -297,16 +299,15 @@ export function ChampionshipDetailPage() {
   if (!championship) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">{t('common.noData')}</div>
 
   const ch = championship
-  const chEvents = events.filter(e => ch.eventIds.includes(e.id))
-  const eventsWithResults = chEvents.filter(e => e.results && e.results.length > 0)
+  const {
+    events: chEvents,
+    eventsWithResults,
+    nextRegistrable,
+    futureEvents,
+    pastEvents,
+  } = getChampionshipSchedule(ch, events)
   const effectiveResultsEventFilter = resultsEventFilter || (eventsWithResults.length > 0 ? eventsWithResults[0].id : '')
-  const allResults = chEvents.flatMap(e => e.results || [])
-  const standings = Object.entries(
-    allResults.reduce<Record<string, number>>((acc, r) => {
-      acc[r.driverId] = (acc[r.driverId] || 0) + r.points
-      return acc
-    }, {})
-  ).sort((a, b) => b[1] - a[1])
+  const standings = getChampionshipStandings(chEvents)
 
   const getDriverName = (driverId: string) => drivers.find(d => d.id === driverId)?.nickname || driverId
   const getTeamForDriver = (driverId: string) => {
@@ -318,27 +319,6 @@ export function ChampionshipDetailPage() {
   const resources = lang === 'zh' ? ch.resources_zh : ch.resources_en
   const progression = lang === 'zh' ? ch.progressionRules_zh : ch.progressionRules_en
   const chAccessReq = lang === 'zh' ? ch.accessRequirements_zh : ch.accessRequirements_en
-
-  const now = new Date()
-
-  const nextRegistrable = chEvents
-    .filter(e => {
-      const s = getEventStatus(e)
-      return s !== 'Cancelled' && s !== 'Completed' && s !== 'Upcoming' && new Date(e.eventStartTime) >= now
-    })
-    .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())[0]
-
-  const futureEvents = chEvents
-    .filter(e => {
-      if (e === nextRegistrable) return false
-      const s = getEventStatus(e)
-      return new Date(e.eventStartTime) >= now && s !== 'Cancelled' && s !== 'Completed' && s !== 'ResultsPublished'
-    })
-    .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
-
-  const pastEvents = chEvents
-    .filter(e => e !== nextRegistrable && !futureEvents.includes(e) && (new Date(e.eventStartTime) < now || getEventStatus(e) === 'Completed' || getEventStatus(e) === 'ResultsPublished'))
-    .sort((a, b) => new Date(b.eventStartTime).getTime() - new Date(a.eventStartTime).getTime())
 
   const formatDateTime = (dateStr: string) => {
     return new Date(dateStr).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {
@@ -386,7 +366,7 @@ export function ChampionshipDetailPage() {
 
   const isEventRegistered = (event: typeof events[0]) => {
     if (registeredOverrides[event.id] !== undefined) return registeredOverrides[event.id]
-    return event.registeredDriverIds.includes(state.currentUser?.id || '')
+    return isUserRegisteredForEvent(event, state.currentUser?.id)
   }
 
   const renderResultsSummary = (event: typeof events[0]) => {
@@ -412,7 +392,7 @@ export function ChampionshipDetailPage() {
   }
 
   const renderEventRow = (event: typeof events[0], isPast = false) => {
-    const totalCapacity = event.maxEntriesPerSplit * (event.maxSplits || 1)
+    const totalCapacity = getEventCapacity(event)
 
     return (
       <div key={event.id} className={cn(
@@ -464,7 +444,7 @@ export function ChampionshipDetailPage() {
     )
   }
 
-  const nextCapacity = nextRegistrable ? nextRegistrable.maxEntriesPerSplit * (nextRegistrable.maxSplits || 1) : 0
+  const nextCapacity = nextRegistrable ? getEventCapacity(nextRegistrable) : 0
   const nextRegistered = nextRegistrable ? isEventRegistered(nextRegistrable) : false
   const nextStatus = nextRegistrable ? getEventStatus(nextRegistrable) : null
 

@@ -8,59 +8,19 @@ import { championships } from '@/data/championships'
 import { news } from '@/data/news'
 import { ChevronRight, Radio, Zap } from 'lucide-react'
 import { getCoverGradient } from '@/data/events'
-import { getEventStatus } from '@/lib/utils'
-
-type MixedItem =
-  | { type: 'event'; data: typeof events[number] }
-  | { type: 'championship'; data: typeof championships[number]; eventCount: number; nextEvent?: typeof events[number]; nextEventTime?: string; nextRegistrationStatus?: string }
+import { getEventStatus, isStandaloneEvent } from '@/domain/events'
+import { getHomeEventHighlights } from '@/domain/championships'
 
 export function HomePage() {
   const { t } = useTranslation()
   const { state } = useApp()
   const lang = state.language
 
-  const standaloneEvents = events.filter(e => !e.championshipId)
+  const standaloneEvents = events.filter(isStandaloneEvent)
   const liveEvents = standaloneEvents.filter(e => getEventStatus(e) === 'InProgress')
   const topDrivers = [...drivers].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 5)
   const recentNews = news.slice(0, 3)
-
-  const registerableStatuses = ['RegistrationOpen', 'RegistrationClosed']
-
-  const mixedItems: MixedItem[] = []
-
-  const regOpenStandalone = standaloneEvents
-    .filter(e => registerableStatuses.includes(getEventStatus(e)))
-    .sort((a, b) => new Date(b.registrationOpenAt).getTime() - new Date(a.registrationOpenAt).getTime())
-    .map(e => ({
-      type: 'event' as const,
-      data: e,
-      sortTime: new Date(e.registrationOpenAt).getTime(),
-    }))
-
-  const champItems = championships.map(ch => {
-    const champEvents = events.filter(e => e.championshipId === ch.id)
-    const eventCount = champEvents.length
-    const registerable = champEvents
-      .filter(e => registerableStatuses.includes(getEventStatus(e)))
-      .sort((a, b) => new Date(a.eventStartTime).getTime() - new Date(b.eventStartTime).getTime())
-    const nextEvent = registerable[0]
-    if (!nextEvent) return null
-    return {
-      type: 'championship' as const,
-      data: ch,
-      eventCount,
-      nextEvent,
-      nextEventTime: nextEvent.eventStartTime,
-      nextRegistrationStatus: getEventStatus(nextEvent),
-      sortTime: new Date(nextEvent.registrationOpenAt).getTime(),
-    }
-  }).filter(Boolean) as { type: 'championship'; data: typeof championships[number]; eventCount: number; nextEventTime?: string; nextRegistrationStatus?: string; sortTime: number }[]
-
-  mixedItems.push(
-    ...[...regOpenStandalone, ...champItems]
-      .sort((a, b) => b.sortTime - a.sortTime)
-      .slice(0, 6)
-  )
+  const mixedItems = getHomeEventHighlights(events, championships)
 
   return (
     <div className="space-y-16 pb-16">
