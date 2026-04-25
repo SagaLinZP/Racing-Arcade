@@ -1,23 +1,5 @@
-export interface Driver {
-  id: string
-  nickname: string
-  avatar: string
-  country: string
-  region: 'CN' | 'AP' | 'AM' | 'EU'
-  bio_zh: string
-  bio_en: string
-  iracingId?: string
-  steamBound: boolean
-  ownedDeviceIds: string[]
-  displayedDeviceIds: string[]
-  showDevices: boolean
-  totalEntries: number
-  wins: number
-  podiums: number
-  totalPoints: number
-  teamId?: string
-  primaryGames: string[]
-}
+import type { Driver } from '@/domain/drivers'
+export type { Driver } from '@/domain/drivers'
 
 export const drivers: Driver[] = [
   {

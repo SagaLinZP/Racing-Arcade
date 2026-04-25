@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
-import { events } from '@/data/events'
-import { drivers } from '@/data/drivers'
+import { useLocale } from '@/hooks/useLocale'
+import { useEventDetail } from '@/features/events/hooks'
+import { useDriverList } from '@/features/profile/hooks'
 import { cn } from '@/lib/utils'
 import { Shield, AlertTriangle, Upload } from 'lucide-react'
 
@@ -12,8 +13,9 @@ export function ProtestPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { state } = useApp()
-  const lang = state.language
-  const event = events.find(e => e.id === id)
+  const { field } = useLocale()
+  const event = useEventDetail(id)
+  const drivers = useDriverList()
 
   const [targetDriver, setTargetDriver] = useState('')
   const [type, setType] = useState<'dangerous' | 'blocking' | 'other'>('dangerous')
@@ -49,7 +51,7 @@ export function ProtestPage() {
         </div>
         <div>
           <h1 className="text-xl font-bold">{t('protest.title')}</h1>
-          <p className="text-sm text-muted-foreground">{lang === 'zh' ? event.name_zh : event.name_en}</p>
+          <p className="text-sm text-muted-foreground">{field(event, 'name')}</p>
         </div>
       </div>
 

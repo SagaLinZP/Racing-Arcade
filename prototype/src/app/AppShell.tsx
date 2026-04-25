@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
+import { BannedUserBanner } from '@/components/BannedUserBanner'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -18,6 +19,7 @@ export function AppShell() {
     <div className="min-h-screen flex flex-col">
       <ScrollToTop />
       <Navbar />
+      <BannedUserBanner />
       <main className="flex-1">
         <Outlet />
       </main>

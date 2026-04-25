@@ -1,29 +1,32 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
-import { protests } from '@/data/protests'
-import { events } from '@/data/events'
-import { drivers } from '@/data/drivers'
+import { useLocale } from '@/hooks/useLocale'
+import { useEventList } from '@/features/events/hooks'
+import { useDriverList } from '@/features/profile/hooks'
+import { protestRepository } from '@/data/repositories'
 import { cn } from '@/lib/utils'
 import { Shield, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react'
 
 export function MyProtestsPage() {
   const { t } = useTranslation()
   const { state } = useApp()
-  const lang = state.language
+  const { field, dateTime } = useLocale()
+  const events = useEventList()
+  const drivers = useDriverList()
   const [tab, setTab] = useState<'submitted' | 'received'>('submitted')
   const [expanded, setExpanded] = useState<string | null>(null)
   const [appealId, setAppealId] = useState<string | null>(null)
   const [appealReason, setAppealReason] = useState('')
 
   const userId = state.currentUser?.id || ''
-  const submitted = protests.filter(p => p.reporterId === userId)
-  const received = protests.filter(p => p.reportedId === userId)
+  const submitted = protestRepository.listByReporterId(userId)
+  const received = protestRepository.listByReportedId(userId)
   const current = tab === 'submitted' ? submitted : received
 
   const getEventName = (eventId: string) => {
     const event = events.find(e => e.id === eventId)
-    return event ? (lang === 'zh' ? event.name_zh : event.name_en) : eventId
+    return event ? field(event, 'name') : eventId
   }
 
   const getDriverName = (driverId: string) => drivers.find(d => d.id === driverId)?.nickname || driverId
@@ -87,7 +90,7 @@ export function MyProtestsPage() {
                       <span>·</span>
                       <span>{tab === 'submitted' ? getDriverName(p.reportedId) : getDriverName(p.reporterId)}</span>
                       <span>·</span>
-                      <span>{new Date(p.createdAt).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                      <span>{dateTime(p.createdAt, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                   </div>
                   {isOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}

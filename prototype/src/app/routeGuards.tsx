@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import { events } from '@/data/events'
+import { eventRepository } from '@/data/repositories'
 import { isUserRegisteredForEvent } from '@/domain/events'
 import { useApp } from '@/hooks/useAppStore'
 
@@ -54,7 +54,7 @@ export function RequireEventRegistrant() {
   const { state } = useApp()
   const { id } = useParams()
   const location = useLocation()
-  const event = events.find(item => item.id === id)
+  const event = eventRepository.getById(id)
 
   if (!state.isLoggedIn) {
     return <Navigate to="/login" replace state={{ from: location }} />

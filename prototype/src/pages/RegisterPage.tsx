@@ -4,8 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { Camera, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { gamePlatforms } from '@/data/gamePlatforms'
-import type { GamePlatform } from '@/data/gamePlatforms'
+import { gamePlatforms, type GamePlatform } from '@/domain/gamePlatforms'
 
 const countries = [
   'China', 'Japan', 'South Korea', 'United States', 'Canada', 'Brazil', 'United Kingdom',

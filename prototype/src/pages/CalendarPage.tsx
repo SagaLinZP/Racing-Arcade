@@ -2,11 +2,11 @@ import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
-import { events } from '@/data/events'
-import { gamePlatformColors, gamePlatforms } from '@/data/gamePlatforms'
-import type { GamePlatform } from '@/data/gamePlatforms'
+import { gamePlatformColors, gamePlatforms, type GamePlatform } from '@/domain/gamePlatforms'
 import { cn } from '@/lib/utils'
-import { filterEvents, getEventsForDate, sortEventsByStartAsc } from '@/domain/events'
+import { filterEvents, getEventsForDate, sortEventsByStartAsc, type SimEvent } from '@/domain/events'
+import { useLocale } from '@/hooks/useLocale'
+import { useEventList } from '@/features/calendar/hooks'
 import { CalendarDays, ChevronLeft, ChevronRight, List, Grid3X3 } from 'lucide-react'
 
 const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -22,24 +22,24 @@ const getStartOfWeek = (date: Date) => {
 export function CalendarPage() {
   const { t } = useTranslation()
   const { state } = useApp()
-  const lang = state.language
-  const locale = lang === 'zh' ? 'zh-CN' : 'en-US'
+  const { isZh, field, text, date: formatDate, time } = useLocale()
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month')
   const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1))
   const [gameFilter, setGameFilter] = useState<GamePlatform[]>([])
   const [myEventsOnly, setMyEventsOnly] = useState(false)
+  const allEvents = useEventList()
 
-  const days = lang === 'zh' ? DAYS_ZH : DAYS_EN
+  const days = isZh ? DAYS_ZH : DAYS_EN
 
   const filteredEvents = useMemo(() => {
-    return filterEvents(events, {
+    return filterEvents(allEvents, {
       games: gameFilter,
       registeredOnly: myEventsOnly,
       userId: state.currentUser?.id,
     })
-  }, [gameFilter, myEventsOnly, state.currentUser])
+  }, [allEvents, gameFilter, myEventsOnly, state.currentUser])
 
-  const getEventLink = (e: typeof events[number]) => {
+  const getEventLink = (e: SimEvent) => {
     if (e.championshipId) {
       return `/championships/${e.championshipId}`
     }
@@ -71,8 +71,8 @@ export function CalendarPage() {
     setCurrentDate(new Date(start.getFullYear(), start.getMonth(), start.getDate() + dir * 7))
   }
 
-  const monthName = currentDate.toLocaleString(locale, { year: 'numeric', month: 'long' })
-  const weekRangeTitle = `${weekDays[0].toLocaleDateString(locale, { month: 'short', day: 'numeric' })} - ${weekDays[6].toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}`
+  const monthName = formatDate(currentDate, { year: 'numeric', month: 'long' })
+  const weekRangeTitle = `${formatDate(weekDays[0], { month: 'short', day: 'numeric' })} - ${formatDate(weekDays[6], { month: 'short', day: 'numeric', year: 'numeric' })}`
 
   const toggleGame = (game: GamePlatform) => {
     setGameFilter(prev => prev.includes(game) ? prev.filter(g => g !== game) : [...prev, game])
@@ -165,7 +165,7 @@ export function CalendarPage() {
                           to={getEventLink(e)}
                           className={cn('block px-1.5 py-0.5 rounded text-[10px] text-white truncate hover:opacity-80', gamePlatformColors[e.game as keyof typeof gamePlatformColors] || 'bg-gray-500')}
                         >
-                          {lang === 'zh' ? e.name_zh : e.name_en}
+                          {field(e, 'name')}
                         </Link>
                       ))}
                       {dayEvents.length > 3 && (
@@ -197,11 +197,11 @@ export function CalendarPage() {
                         <div className="text-xs font-semibold text-muted-foreground">{days[date.getDay()]}</div>
                         <div className={cn('text-lg font-bold', isToday && 'text-primary')}>{date.getDate()}</div>
                       </div>
-                      <div className="text-[10px] text-muted-foreground">{date.toLocaleDateString(locale, { month: 'short' })}</div>
+                      <div className="text-[10px] text-muted-foreground">{formatDate(date, { month: 'short' })}</div>
                     </div>
                     <div className="space-y-2">
                       {dayEvents.length === 0 ? (
-                        <div className="rounded-lg border border-border/60 px-2 py-3 text-center text-xs text-muted-foreground">{lang === 'zh' ? '暂无赛事' : 'No events'}</div>
+                        <div className="rounded-lg border border-border/60 px-2 py-3 text-center text-xs text-muted-foreground">{text('暂无赛事', 'No events')}</div>
                       ) : (
                         dayEvents.map(e => (
                           <Link
@@ -211,11 +211,11 @@ export function CalendarPage() {
                           >
                             <div className="mb-1 flex items-center justify-between gap-2">
                               <span className="text-xs font-semibold text-primary">
-                                {new Date(e.eventStartTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                {time(e.eventStartTime)}
                               </span>
                               <span className={cn('shrink-0 rounded px-1.5 py-0.5 text-[10px] text-white', gamePlatformColors[e.game as keyof typeof gamePlatformColors] || 'bg-gray-500')}>{e.game}</span>
                             </div>
-                            <div className="truncate text-xs font-medium">{lang === 'zh' ? e.name_zh : e.name_en}</div>
+                            <div className="truncate text-xs font-medium">{field(e, 'name')}</div>
                             <div className="mt-1 truncate text-[10px] text-muted-foreground">{e.track}</div>
                           </Link>
                         ))
@@ -238,13 +238,13 @@ export function CalendarPage() {
               >
                 <div className="w-16 text-center">
                   <div className="text-xs text-muted-foreground">
-                    {new Date(e.eventStartTime).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { weekday: 'short' })}
+                    {formatDate(e.eventStartTime, { weekday: 'short' })}
                   </div>
                   <div className="text-xl font-bold">{new Date(e.eventStartTime).getDate()}</div>
                 </div>
                 <div className={cn('w-1 h-10 rounded-full', gamePlatformColors[e.game as keyof typeof gamePlatformColors] || 'bg-gray-500')} />
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm truncate">{lang === 'zh' ? e.name_zh : e.name_en}</h3>
+                  <h3 className="font-medium text-sm truncate">{field(e, 'name')}</h3>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                     <span>{e.track}</span>
                     <span>·</span>
@@ -252,13 +252,13 @@ export function CalendarPage() {
                     {e.championshipId && (
                       <>
                         <span>·</span>
-                        <span className="text-primary">{lang === 'zh' ? '锦标赛' : 'Championship'}</span>
+                        <span className="text-primary">{text('锦标赛', 'Championship')}</span>
                       </>
                     )}
                   </div>
                 </div>
                 <div className="text-right text-xs text-muted-foreground">
-                  <div>{new Date(e.eventStartTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
+                  <div>{time(e.eventStartTime)}</div>
                   <div className={cn('px-1.5 py-0.5 rounded text-[10px] text-white mt-1', gamePlatformColors[e.game as keyof typeof gamePlatformColors] || 'bg-gray-500')}>{e.game}</div>
                 </div>
               </Link>

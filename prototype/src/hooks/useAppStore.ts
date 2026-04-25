@@ -11,6 +11,7 @@ export interface AppState {
   currentUser: { id: string; nickname: string; avatar: string; region: 'CN' | 'AP' | 'AM' | 'EU' } | null
   currentRegion: 'CN' | 'AP' | 'AM' | 'EU'
   language: 'en' | 'zh'
+  isBanned: boolean
   registrationOverrides: Record<string, EventRegistrationOverride>
 }
 
@@ -20,6 +21,7 @@ export const defaultState: AppState = {
   currentUser: { id: 'd1', nickname: 'SpeedDemon', avatar: '', region: 'CN' },
   currentRegion: 'CN',
   language: 'en',
+  isBanned: false,
   registrationOverrides: {},
 }
 

@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useApp } from '@/hooks/useAppStore'
+import { useLocale } from '@/hooks/useLocale'
 import { Calendar, Users, MapPin, Zap, Radio, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getEstimatedSplits, getEventCapacity, getEventStatus } from '@/domain/events'
-import type { SimEvent } from '@/data/events'
-import { getCoverGradient } from '@/data/events'
-import type { Championship } from '@/data/championships'
-import { gamePlatformColors } from '@/data/gamePlatforms'
+import type { SimEvent } from '@/domain/events'
+import { getCoverGradient } from '@/shared/utils/eventVisuals'
+import type { Championship } from '@/domain/championships'
+import { gamePlatformColors } from '@/domain/gamePlatforms'
 
 const statusColors: Record<string, string> = {
   Upcoming: 'bg-blue-500/20 text-blue-400',
@@ -22,9 +22,8 @@ const statusColors: Record<string, string> = {
 
 export function EventCard({ event }: { event: SimEvent }) {
   const { t } = useTranslation()
-  const { state } = useApp()
-  const lang = state.language
-  const name = lang === 'zh' ? event.name_zh : event.name_en
+  const { field, date } = useLocale()
+  const name = field(event, 'name')
 
   const totalCapacity = getEventCapacity(event)
   const estimatedSplits = getEstimatedSplits(event, event.currentRegistrations)
@@ -65,7 +64,7 @@ export function EventCard({ event }: { event: SimEvent }) {
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="w-3.5 h-3.5 text-primary" />
-            <span>{new Date(event.eventStartTime).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+            <span>{date(event.eventStartTime, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
           </div>
         </div>
         <div className="flex items-center justify-between pt-2 border-t border-border">
@@ -90,9 +89,8 @@ export function ChampionshipCard({ championship, eventCount, nextEvent, nextRegi
   nextRegistrationStatus?: string
 }) {
   const { t } = useTranslation()
-  const { state } = useApp()
-  const lang = state.language
-  const name = lang === 'zh' ? championship.name_zh : championship.name_en
+  const { field, text, date } = useLocale()
+  const name = field(championship, 'name')
   const nextCapacity = nextEvent ? getEventCapacity(nextEvent) : 0
 
   return (
@@ -114,7 +112,7 @@ export function ChampionshipCard({ championship, eventCount, nextEvent, nextRegi
         <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors line-clamp-1">{name}</h3>
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>{championship.carClass}</span>
-          <span>{eventCount} {lang === 'zh' ? '场赛事' : 'events'}</span>
+          <span>{eventCount} {text('场赛事', 'events')}</span>
         </div>
         {nextEvent && (
           <div className="space-y-1.5 text-sm text-muted-foreground">
@@ -124,7 +122,7 @@ export function ChampionshipCard({ championship, eventCount, nextEvent, nextRegi
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5 text-primary" />
-              <span>{new Date(nextEvent.eventStartTime).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+              <span>{date(nextEvent.eventStartTime, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           </div>
         )}

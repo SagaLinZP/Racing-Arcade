@@ -1,17 +1,13 @@
-import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useApp } from '@/hooks/useAppStore'
+import { useLocale } from '@/hooks/useLocale'
 import { EventCard, ChampionshipCard } from '@/components/EventCard'
-import { events } from '@/data/events'
-import { championships } from '@/data/championships'
-import { getEventListSections } from '@/domain/championships'
+import { useEventListSections } from '@/features/events/hooks'
 
 export function EventsPage() {
   const { t } = useTranslation()
-  const { state } = useApp()
-  const lang = state.language
+  const { text } = useLocale()
 
-  const { registerable, completed } = useMemo(() => getEventListSections(events, championships), [])
+  const { registerable, completed } = useEventListSections()
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -19,7 +15,7 @@ export function EventsPage() {
 
       {registerable.length > 0 && (
         <section className="mb-12">
-          <h2 className="text-lg font-bold mb-4">{lang === 'zh' ? '报名中' : 'Open for Registration'}</h2>
+          <h2 className="text-lg font-bold mb-4">{text('报名中', 'Open for Registration')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {registerable.map(item =>
               item.type === 'event' ? (
@@ -40,7 +36,7 @@ export function EventsPage() {
 
       {completed.length > 0 && (
         <section>
-          <h2 className="text-lg font-bold mb-4">{lang === 'zh' ? '已结束赛事' : 'Completed Events'}</h2>
+          <h2 className="text-lg font-bold mb-4">{text('已结束赛事', 'Completed Events')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {completed.map(item =>
               item.type === 'event' ? (

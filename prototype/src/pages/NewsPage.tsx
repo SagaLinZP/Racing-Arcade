@@ -1,16 +1,16 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useApp } from '@/hooks/useAppStore'
-import { news } from '@/data/news'
-import { getCoverGradient } from '@/data/events'
+import { useLocale } from '@/hooks/useLocale'
+import { useNewsList } from '@/features/news/hooks'
+import { getCoverGradient } from '@/shared/utils/eventVisuals'
 import { cn } from '@/lib/utils'
 import { Zap } from 'lucide-react'
 
 export function NewsPage() {
   const { t } = useTranslation()
-  const { state } = useApp()
-  const lang = state.language
+  const { field, date } = useLocale()
+  const news = useNewsList()
   const [category, setCategory] = useState<'all' | 'event' | 'platform' | 'review' | 'other'>('all')
 
   const filtered = news.filter(n => {
@@ -76,15 +76,15 @@ export function NewsPage() {
                 {n.isPinned && <Zap className="w-3 h-3 text-yellow-400" />}
               </div>
               <h3 className="font-bold text-sm md:text-base mb-1 line-clamp-2">
-                {lang === 'zh' ? n.title_zh : n.title_en}
+                {field(n, 'title')}
               </h3>
               <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                {lang === 'zh' ? n.content_zh : n.content_en}
+                {field(n, 'content')}
               </p>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span>{n.author}</span>
                 <span>·</span>
-                <span>{new Date(n.publishedAt).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                <span>{date(n.publishedAt, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
               </div>
             </div>
           </Link>

@@ -1,17 +1,14 @@
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { teams } from '@/data/teams'
-import { drivers } from '@/data/drivers'
+import { useTeamDetail } from '@/features/teams/hooks'
 import { Crown, Flag, Trophy, Users } from 'lucide-react'
 
 export function TeamPublicPage() {
   const { id } = useParams()
   const { t } = useTranslation()
-  const team = teams.find(tm => tm.id === id)
+  const { team, captain, members } = useTeamDetail(id)
 
   if (!team) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">{t('common.noData')}</div>
-
-  const captain = drivers.find(d => d.id === team.captainId)
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -65,8 +62,8 @@ export function TeamPublicPage() {
           <Users className="w-4 h-4 text-primary" /> {t('team.members')}
         </h2>
         <div className="space-y-2">
-          {team.members.map(m => {
-            const driver = drivers.find(d => d.id === m.userId)
+          {members.map(m => {
+            const driver = m.driver
             if (!driver) return null
             return (
               <Link

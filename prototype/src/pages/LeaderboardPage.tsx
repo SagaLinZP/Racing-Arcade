@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { drivers } from '@/data/drivers'
+import { useDriverList } from '@/features/profile/hooks'
 import { cn } from '@/lib/utils'
 import { Dropdown } from '@/components/Dropdown'
-import { gamePlatforms } from '@/data/gamePlatforms'
+import { gamePlatforms } from '@/domain/gamePlatforms'
 import { Trophy, Medal, Flag, BarChart3 } from 'lucide-react'
+import type { Driver } from '@/domain/drivers'
 
 type TabType = 'points' | 'wins' | 'entries' | 'podiums'
 
@@ -14,6 +15,7 @@ export function LeaderboardPage() {
   const [activeTab, setActiveTab] = useState<TabType>('points')
   const [timeFilter, setTimeFilter] = useState<string>('allTime')
   const [gameFilter, setGameFilter] = useState<string>('all')
+  const drivers = useDriverList()
 
   const tabs: { key: TabType; label: string; icon: typeof Trophy }[] = [
     { key: 'points', label: t('leaderboard.totalPoints'), icon: Trophy },
@@ -27,9 +29,9 @@ export function LeaderboardPage() {
     const key = activeTab === 'points' ? 'totalPoints' : activeTab
     result.sort((a, b) => (b[key as keyof typeof b] as number) - (a[key as keyof typeof a] as number))
     return result
-  }, [activeTab])
+  }, [activeTab, drivers])
 
-  const getValue = (d: typeof drivers[0]) => {
+  const getValue = (d: Driver) => {
     switch (activeTab) {
       case 'points': return d.totalPoints
       case 'wins': return d.wins

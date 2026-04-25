@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
-import { mozaDevices } from '@/data/mozaDevices'
-import { drivers } from '@/data/drivers'
+import { useDriverSettingsData } from '@/features/profile/hooks'
 import { cn } from '@/lib/utils'
-import { gamePlatforms } from '@/data/gamePlatforms'
+import { gamePlatforms } from '@/domain/gamePlatforms'
 import { User, Gamepad2, Monitor, Link2, Bell, Camera, Check, Unlink } from 'lucide-react'
 
 export function SettingsPage() {
@@ -19,8 +18,7 @@ export function SettingsPage() {
   const [emailEnabled, setEmailEnabled] = useState(true)
   const [pitHouseEnabled, setPitHouseEnabled] = useState(true)
 
-  const currentDriver = drivers.find(d => d.id === state.currentUser?.id)
-  const ownedDevices = mozaDevices.filter(d => currentDriver?.ownedDeviceIds.includes(d.id))
+  const { ownedDevices } = useDriverSettingsData(state.currentUser?.id)
 
   const tabs = [
     { icon: User, label: t('settings.profile') },

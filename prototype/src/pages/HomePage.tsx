@@ -1,26 +1,25 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useApp } from '@/hooks/useAppStore'
+import { useLocale } from '@/hooks/useLocale'
 import { EventCard, ChampionshipCard } from '@/components/EventCard'
-import { events } from '@/data/events'
-import { drivers } from '@/data/drivers'
-import { championships } from '@/data/championships'
-import { news } from '@/data/news'
+import { useEventList, useHomeEventHighlights } from '@/features/events/hooks'
+import { useDriverList } from '@/features/profile/hooks'
+import { useNewsList } from '@/features/news/hooks'
 import { ChevronRight, Radio, Zap } from 'lucide-react'
-import { getCoverGradient } from '@/data/events'
+import { getCoverGradient } from '@/shared/utils/eventVisuals'
 import { getEventStatus, isStandaloneEvent } from '@/domain/events'
-import { getHomeEventHighlights } from '@/domain/championships'
 
 export function HomePage() {
   const { t } = useTranslation()
-  const { state } = useApp()
-  const lang = state.language
+  const { text, field, date } = useLocale()
 
+  const events = useEventList()
+  const drivers = useDriverList()
   const standaloneEvents = events.filter(isStandaloneEvent)
   const liveEvents = standaloneEvents.filter(e => getEventStatus(e) === 'InProgress')
   const topDrivers = [...drivers].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 5)
-  const recentNews = news.slice(0, 3)
-  const mixedItems = getHomeEventHighlights(events, championships)
+  const recentNews = useNewsList({ limit: 3 })
+  const mixedItems = useHomeEventHighlights()
 
   return (
     <div className="space-y-16 pb-16">
@@ -31,12 +30,10 @@ export function HomePage() {
           <div className="relative z-10 h-full flex flex-col justify-center px-8 md:px-12 max-w-2xl">
             <span className="text-primary text-sm font-semibold mb-2 tracking-wider uppercase">MOZA Racing Official</span>
             <h1 className="text-3xl md:text-5xl font-black text-white mb-4 leading-tight">
-              {lang === 'zh' ? '2026 赛季正式开启' : '2026 Season is Here'}
+              {text('2026 赛季正式开启', '2026 Season is Here')}
             </h1>
             <p className="text-white/70 text-sm md:text-base mb-6">
-              {lang === 'zh'
-                ? '加入全球最精彩的模拟赛车赛事，展示你的竞速实力'
-                : 'Join the most exciting sim racing events and showcase your racing skills'}
+              {text('加入全球最精彩的模拟赛车赛事，展示你的竞速实力', 'Join the most exciting sim racing events and showcase your racing skills')}
             </p>
             <Link to="/events" className="self-start px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">
               {t('home.viewAllEvents')}
@@ -106,14 +103,14 @@ export function HomePage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium text-sm group-hover:text-primary transition-colors line-clamp-1">
-                      {lang === 'zh' ? n.title_zh : n.title_en}
+                      {field(n, 'title')}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                      {lang === 'zh' ? n.content_zh : n.content_en}
+                      {field(n, 'content')}
                     </p>
                     <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
                       <span className="px-1.5 py-0.5 bg-accent rounded">{t(`news.categories.${n.category}`)}</span>
-                      <span>{new Date(n.publishedAt).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric' })}</span>
+                      <span>{date(n.publishedAt, { month: 'short', day: 'numeric' })}</span>
                     </div>
                   </div>
                 </Link>

@@ -1,21 +1,20 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useApp } from '@/hooks/useAppStore'
+import { useLocale } from '@/hooks/useLocale'
 
 export function NotFoundPage() {
   const { t } = useTranslation()
-  const { state } = useApp()
-  const isZh = state.language === 'zh'
+  const { text } = useLocale()
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-24 text-center">
       <div className="bg-card border border-border rounded-xl p-8">
         <div className="text-sm font-semibold text-primary mb-2">404</div>
         <h1 className="text-2xl font-bold mb-3">
-          {isZh ? '页面不存在' : 'Page not found'}
+          {text('页面不存在', 'Page not found')}
         </h1>
         <p className="text-sm text-muted-foreground mb-6">
-          {isZh ? '这个链接没有匹配到 Racing Arcade 的页面。' : 'This link does not match a Racing Arcade page.'}
+          {text('这个链接没有匹配到 Racing Arcade 的页面。', 'This link does not match a Racing Arcade page.')}
         </p>
         <Link
           to="/"

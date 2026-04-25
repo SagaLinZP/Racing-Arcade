@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
+import { useLocale } from '@/hooks/useLocale'
 import {
   Menu, X, ChevronDown, Bell, Globe, User, LogOut, Calendar,
   Newspaper, Flag, Users
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { notifications } from '@/data/notifications'
+import { useNotificationList } from '@/features/notifications/hooks'
 
 const regions = ['CN', 'AP', 'AM', 'EU'] as const
 
@@ -24,6 +25,8 @@ function useClickOutside(ref: React.RefObject<HTMLElement | null>, onClose: () =
 export function Navbar() {
   const { t, i18n } = useTranslation()
   const { state, setState } = useApp()
+  const { field } = useLocale()
+  const notifications = useNotificationList()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [regionOpen, setRegionOpen] = useState(false)
@@ -151,8 +154,8 @@ export function Navbar() {
                             !n.isRead && 'bg-primary/5'
                           )}
                         >
-                          <div className={cn('text-sm', !n.isRead && 'font-semibold')}>{state.language === 'zh' ? n.title_zh : n.title_en}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5 truncate">{state.language === 'zh' ? n.body_zh : n.body_en}</div>
+                          <div className={cn('text-sm', !n.isRead && 'font-semibold')}>{field(n, 'title')}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5 truncate">{field(n, 'body')}</div>
                         </Link>
                       ))}
                     </div>
