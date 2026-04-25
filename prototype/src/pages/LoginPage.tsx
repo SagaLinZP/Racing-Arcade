@@ -1,16 +1,26 @@
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 
 export function LoginPage() {
   const { t } = useTranslation()
   const { state, setState } = useApp()
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const redirectTarget = (() => {
+    const from = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from
+    return from?.pathname ? `${from.pathname}${from.search ?? ''}` : '/'
+  })()
 
   const handleLogin = () => {
     setState(s => ({
       ...s,
       isLoggedIn: true,
+      hasCompletedProfile: true,
       currentUser: { id: 'd1', nickname: 'SpeedDemon', avatar: '', region: 'CN' },
     }))
+    navigate(redirectTarget, { replace: true })
   }
 
   return (

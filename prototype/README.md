@@ -18,6 +18,7 @@ npm run check
 
 ```text
 src/
+  app/               Router, providers, guards, and app shell
   components/        Shared presentational components and layout
   data/              Static mock data used by the prototype
   domain/            Domain types, event status rules, and pure selectors
@@ -27,7 +28,7 @@ src/
   pages/             Route-level pages
 ```
 
-Route pages now delegate shared event and championship rules to `src/domain/`. Static mock records still live in `src/data/`, while UI components and pages consume typed domain helpers for status, capacity, registration ownership, list grouping, calendar filtering, and championship standings.
+Route pages now delegate shared event and championship rules to `src/domain/`, while route composition, global providers, profile-completion gating, and auth guards live in `src/app/`. Static mock records still live in `src/data/`.
 
 ## Architecture Direction
 
@@ -46,7 +47,6 @@ Remaining extraction targets:
 
 - Registration state and capacity logic currently kept as local component state.
 - Region and language fallback rules currently applied manually in pages.
-- Route protection and profile-completion gates currently not modeled.
 
 ## Guardrails Added
 

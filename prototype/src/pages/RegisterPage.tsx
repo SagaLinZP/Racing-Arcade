@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { Camera, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { gamePlatforms } from '@/data/gamePlatforms'
+import type { GamePlatform } from '@/data/gamePlatforms'
 
 const countries = [
   'China', 'Japan', 'South Korea', 'United States', 'Canada', 'Brazil', 'United Kingdom',
@@ -16,16 +17,17 @@ export function RegisterPage() {
   const { t } = useTranslation()
   const { state, setState } = useApp()
   const navigate = useNavigate()
+  const location = useLocation()
   const [form, setForm] = useState({
     nickname: '',
     country: '',
     language: state.language,
-    games: [] as string[],
+    games: [] as GamePlatform[],
   })
 
   const canSubmit = form.nickname && form.country && form.games.length > 0
 
-  const toggleGame = (game: string) => {
+  const toggleGame = (game: GamePlatform) => {
     setForm(f => ({
       ...f,
       games: f.games.includes(game) ? f.games.filter(g => g !== game) : [...f.games, game],
@@ -35,9 +37,14 @@ export function RegisterPage() {
   const handleSubmit = () => {
     setState(s => ({
       ...s,
+      isLoggedIn: true,
+      hasCompletedProfile: true,
       currentUser: { id: 'd5', nickname: form.nickname, avatar: '', region: 'CN' },
+      language: form.language,
     }))
-    navigate('/')
+
+    const from = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from
+    navigate(from?.pathname ? `${from.pathname}${from.search ?? ''}` : '/', { replace: true })
   }
 
   return (
