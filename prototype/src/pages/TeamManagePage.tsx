@@ -2,17 +2,14 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
-import { teams } from '@/data/teams'
-import { drivers } from '@/data/drivers'
-import { cn } from '@/lib/utils'
+import { useTeamByMember } from '@/features/teams/hooks'
 import { Plus, UserMinus, LogOut, Trash2, Crown, Shield } from 'lucide-react'
 
 export function TeamManagePage() {
   const { t } = useTranslation()
   const { state } = useApp()
-  const lang = state.language
   const userId = state.currentUser?.id || ''
-  const myTeam = teams.find(tm => tm.members.some(m => m.userId === userId))
+  const { team: myTeam, members } = useTeamByMember(userId)
   const isCaptain = myTeam?.captainId === userId
 
   const [showCreate, setShowCreate] = useState(false)
@@ -23,8 +20,6 @@ export function TeamManagePage() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
   const [showDisbandConfirm, setShowDisbandConfirm] = useState(false)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState<string | null>(null)
-
-  const getDriver = (driverId: string) => drivers.find(d => d.id === driverId)
 
   if (!myTeam) {
     return (
@@ -94,7 +89,7 @@ export function TeamManagePage() {
           </div>
           <h1 className="text-2xl font-bold">{t('team.manage')}</h1>
         </div>
-        <Link to={`/teams/${myTeam.id}`} className="text-sm text-primary hover:underline">{t('common.viewMore')}</Link>
+        <Link to={`/team/${myTeam.id}`} className="text-sm text-primary hover:underline">{t('common.viewMore')}</Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -125,8 +120,8 @@ export function TeamManagePage() {
               )}
             </div>
             <div className="space-y-2">
-              {myTeam.members.map(m => {
-                const driver = getDriver(m.userId)
+              {members.map(m => {
+                const driver = m.driver
                 if (!driver) return null
                 return (
                   <div key={m.userId} className="flex items-center gap-3 p-3 bg-accent rounded-lg">

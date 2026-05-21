@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { Camera, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { gamePlatforms, type GamePlatform } from '@/domain/gamePlatforms'
 
-const games = ['ACC', 'AC Evo', 'iRacing', 'LMU', 'AMS2', 'rFactor 2', 'F1 24']
 const countries = [
   'China', 'Japan', 'South Korea', 'United States', 'Canada', 'Brazil', 'United Kingdom',
   'Germany', 'France', 'Italy', 'Spain', 'Australia', 'India', 'Singapore', 'Mexico',
@@ -16,16 +16,17 @@ export function RegisterPage() {
   const { t } = useTranslation()
   const { state, setState } = useApp()
   const navigate = useNavigate()
+  const location = useLocation()
   const [form, setForm] = useState({
     nickname: '',
     country: '',
     language: state.language,
-    games: [] as string[],
+    games: [] as GamePlatform[],
   })
 
   const canSubmit = form.nickname && form.country && form.games.length > 0
 
-  const toggleGame = (game: string) => {
+  const toggleGame = (game: GamePlatform) => {
     setForm(f => ({
       ...f,
       games: f.games.includes(game) ? f.games.filter(g => g !== game) : [...f.games, game],
@@ -35,9 +36,15 @@ export function RegisterPage() {
   const handleSubmit = () => {
     setState(s => ({
       ...s,
+      isLoggedIn: true,
+      hasCompletedProfile: true,
       currentUser: { id: 'd5', nickname: form.nickname, avatar: '', region: 'CN' },
+      language: form.language,
+      registrationOverrides: {},
     }))
-    navigate('/')
+
+    const from = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from
+    navigate(from?.pathname ? `${from.pathname}${from.search ?? ''}` : '/', { replace: true })
   }
 
   return (
@@ -103,7 +110,7 @@ export function RegisterPage() {
           <div>
             <label className="block text-sm font-medium mb-1.5">{t('register.primaryGames')} *</label>
             <div className="flex flex-wrap gap-2">
-              {games.map(game => (
+              {gamePlatforms.map(game => (
                 <button
                   key={game}
                   onClick={() => toggleGame(game)}

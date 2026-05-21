@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useApp } from '@/hooks/useAppStore'
-import { notifications } from '@/data/notifications'
+import { useLocale } from '@/hooks/useLocale'
+import { useNotificationList } from '@/features/notifications/hooks'
 import { cn } from '@/lib/utils'
 import { Bell, CheckCheck, Flag, XCircle, Trophy, Shield, AlertTriangle, Users, Clock } from 'lucide-react'
 
@@ -19,8 +19,8 @@ const typeIcons: Record<string, typeof Bell> = {
 
 export function NotificationsPage() {
   const { t } = useTranslation()
-  const { state } = useApp()
-  const lang = state.language
+  const { field, dateTime } = useLocale()
+  const notifications = useNotificationList()
   const [items, setItems] = useState(notifications)
 
   const markAllRead = () => setItems(items.map(n => ({ ...n, isRead: true })))
@@ -51,9 +51,9 @@ export function NotificationsPage() {
                 <Icon className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className={cn('text-sm', !n.isRead && 'font-semibold')}>{lang === 'zh' ? n.title_zh : n.title_en}</div>
-                <div className="text-sm text-muted-foreground mt-0.5">{lang === 'zh' ? n.body_zh : n.body_en}</div>
-                <div className="text-xs text-muted-foreground mt-1">{new Date(n.createdAt).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US')}</div>
+                <div className={cn('text-sm', !n.isRead && 'font-semibold')}>{field(n, 'title')}</div>
+                <div className="text-sm text-muted-foreground mt-0.5">{field(n, 'body')}</div>
+                <div className="text-xs text-muted-foreground mt-1">{dateTime(n.createdAt)}</div>
               </div>
               {!n.isRead && <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />}
             </Link>

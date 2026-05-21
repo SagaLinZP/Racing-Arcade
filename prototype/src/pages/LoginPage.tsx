@@ -1,17 +1,29 @@
-import { Link } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
+import { useLocale } from '@/hooks/useLocale'
 
 export function LoginPage() {
   const { t } = useTranslation()
   const { state, setState } = useApp()
+  const { text } = useLocale()
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const redirectTarget = (() => {
+    const from = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from
+    return from?.pathname ? `${from.pathname}${from.search ?? ''}` : '/'
+  })()
 
   const handleLogin = () => {
     setState(s => ({
       ...s,
       isLoggedIn: true,
+      hasCompletedProfile: true,
       currentUser: { id: 'd1', nickname: 'SpeedDemon', avatar: '', region: 'CN' },
+      registrationOverrides: {},
     }))
+    navigate(redirectTarget, { replace: true })
   }
 
   return (
@@ -52,7 +64,7 @@ export function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          {state.currentRegion} · {state.language === 'en' ? 'English' : '中文'}
+          {state.currentRegion} · {text('中文', 'English')}
         </p>
       </div>
     </div>

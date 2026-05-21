@@ -1,23 +1,21 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useApp } from '@/hooks/useAppStore'
-import { drivers } from '@/data/drivers'
+import { useDriverList } from '@/features/profile/hooks'
 import { cn } from '@/lib/utils'
 import { Dropdown } from '@/components/Dropdown'
+import { gamePlatforms } from '@/domain/gamePlatforms'
 import { Trophy, Medal, Flag, BarChart3 } from 'lucide-react'
+import type { Driver } from '@/domain/drivers'
 
 type TabType = 'points' | 'wins' | 'entries' | 'podiums'
 
-const gameOptions = ['AC', 'ACC', 'AC Evo', 'iRacing', 'LMU', 'F1 25']
-
 export function LeaderboardPage() {
   const { t } = useTranslation()
-  const { state } = useApp()
-  const lang = state.language
   const [activeTab, setActiveTab] = useState<TabType>('points')
   const [timeFilter, setTimeFilter] = useState<string>('allTime')
   const [gameFilter, setGameFilter] = useState<string>('all')
+  const drivers = useDriverList()
 
   const tabs: { key: TabType; label: string; icon: typeof Trophy }[] = [
     { key: 'points', label: t('leaderboard.totalPoints'), icon: Trophy },
@@ -27,13 +25,13 @@ export function LeaderboardPage() {
   ]
 
   const sorted = useMemo(() => {
-    let result = [...drivers]
+    const result = [...drivers]
     const key = activeTab === 'points' ? 'totalPoints' : activeTab
     result.sort((a, b) => (b[key as keyof typeof b] as number) - (a[key as keyof typeof a] as number))
     return result
-  }, [drivers, activeTab])
+  }, [activeTab, drivers])
 
-  const getValue = (d: typeof drivers[0]) => {
+  const getValue = (d: Driver) => {
     switch (activeTab) {
       case 'points': return d.totalPoints
       case 'wins': return d.wins
@@ -74,7 +72,7 @@ export function LeaderboardPage() {
           onChange={setGameFilter}
           options={[
             { value: 'all', label: t('events.filters.allGames') },
-            ...gameOptions.map(g => ({ value: g, label: g })),
+            ...gamePlatforms.map(g => ({ value: g, label: g })),
           ]}
         />
       </div>

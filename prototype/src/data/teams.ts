@@ -1,15 +1,5 @@
-export interface Team {
-  id: string
-  name: string
-  logo: string
-  description: string
-  region: 'CN' | 'AP' | 'AM' | 'EU'
-  captainId: string
-  members: Array<{ userId: string; role: 'captain' | 'member'; joinedAt: string }>
-  totalEntries: number
-  bestResult: number
-  totalPoints: number
-}
+import type { Team } from '@/domain/teams'
+export type { Team } from '@/domain/teams'
 
 export const teams: Team[] = [
   {

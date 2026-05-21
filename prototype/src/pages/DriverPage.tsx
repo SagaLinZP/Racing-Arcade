@@ -1,10 +1,8 @@
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
-import { drivers } from '@/data/drivers'
-import { teams } from '@/data/teams'
-import { events } from '@/data/events'
-import { mozaDevices } from '@/data/mozaDevices'
+import { useLocale } from '@/hooks/useLocale'
+import { useDriverProfile } from '@/features/profile/hooks'
 import { cn } from '@/lib/utils'
 import { Trophy, Flag, Target, Zap, Users, Edit, Monitor } from 'lucide-react'
 
@@ -12,14 +10,11 @@ export function DriverPage() {
   const { id } = useParams()
   const { t } = useTranslation()
   const { state } = useApp()
-  const lang = state.language
+  const { field } = useLocale()
 
-  const driver = drivers.find(d => d.id === id)
+  const { driver, team, events: driverEvents, results, devices } = useDriverProfile(id)
   if (!driver) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">{t('common.noData')}</div>
 
-  const team = driver.teamId ? teams.find(t => t.id === driver.teamId) : null
-  const driverEvents = events.filter(e => e.registeredDriverIds.includes(driver.id))
-  const results = events.flatMap(e => (e.results || []).filter(r => r.driverId === driver.id).map(r => ({ ...r, event: e })))
   const isSelf = state.currentUser?.id === driver.id
 
   const stats = [
@@ -47,7 +42,7 @@ export function DriverPage() {
               )}
             </div>
             <div className="text-sm text-muted-foreground mt-1">{driver.country}</div>
-            <p className="text-sm text-muted-foreground mt-2">{lang === 'zh' ? driver.bio_zh : driver.bio_en}</p>
+            <p className="text-sm text-muted-foreground mt-2">{field(driver, 'bio')}</p>
           </div>
         </div>
       </div>
@@ -82,11 +77,9 @@ export function DriverPage() {
         <div className="bg-card border border-border rounded-xl p-5 mb-6">
           <h2 className="font-bold mb-3 flex items-center gap-2"><Monitor className="w-4 h-4 text-primary" />{t('driver.mozaDevices')}</h2>
           <div className="flex flex-wrap gap-2">
-            {driver.displayedDeviceIds.map(dId => {
-              const device = mozaDevices.find(d => d.id === dId)
-              if (!device) return null
+            {devices.map(device => {
               return (
-                <span key={dId} className="px-3 py-1.5 bg-accent rounded-lg text-sm flex items-center gap-1.5">
+                <span key={device.id} className="px-3 py-1.5 bg-accent rounded-lg text-sm flex items-center gap-1.5">
                   <span>{device.icon}</span> {device.name}
                 </span>
               )
@@ -109,7 +102,7 @@ export function DriverPage() {
                     P{r.position}
                   </span>
                   <div>
-                    <div className="text-sm font-medium">{lang === 'zh' ? r.event.name_zh : r.event.name_en}</div>
+                    <div className="text-sm font-medium">{field(r.event, 'name')}</div>
                     <div className="text-xs text-muted-foreground">{r.event.track} · {r.event.carClass}</div>
                   </div>
                 </div>
@@ -126,7 +119,7 @@ export function DriverPage() {
               <div className="space-y-2">
                 {driverEvents.map(e => (
                   <Link key={e.id} to={`/events/${e.id}`} className="flex items-center justify-between px-4 py-3 bg-accent rounded-lg hover:bg-primary/5 transition-colors">
-                    <div className="text-sm font-medium">{lang === 'zh' ? e.name_zh : e.name_en}</div>
+                    <div className="text-sm font-medium">{field(e, 'name')}</div>
                     <span className="text-xs text-muted-foreground">{e.track}</span>
                   </Link>
                 ))}

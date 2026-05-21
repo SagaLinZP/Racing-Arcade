@@ -1,23 +1,5 @@
-export interface Driver {
-  id: string
-  nickname: string
-  avatar: string
-  country: string
-  region: 'CN' | 'AP' | 'AM' | 'EU'
-  bio_zh: string
-  bio_en: string
-  iracingId?: string
-  steamBound: boolean
-  ownedDeviceIds: string[]
-  displayedDeviceIds: string[]
-  showDevices: boolean
-  totalEntries: number
-  wins: number
-  podiums: number
-  totalPoints: number
-  teamId?: string
-  primaryGames: string[]
-}
+import type { Driver } from '@/domain/drivers'
+export type { Driver } from '@/domain/drivers'
 
 export const drivers: Driver[] = [
   {
@@ -98,7 +80,7 @@ export const drivers: Driver[] = [
     podiums: 38,
     totalPoints: 2450,
     teamId: 't2',
-    primaryGames: ['ACC', 'AMS2'],
+    primaryGames: ['ACC', 'rF2'],
   },
   {
     id: 'd5',
@@ -155,7 +137,7 @@ export const drivers: Driver[] = [
     podiums: 20,
     totalPoints: 1080,
     teamId: 't3',
-    primaryGames: ['ACC', 'AMS2'],
+    primaryGames: ['ACC', 'rF2'],
   },
   {
     id: 'd8',
@@ -328,7 +310,7 @@ export const drivers: Driver[] = [
     wins: 3,
     podiums: 8,
     totalPoints: 520,
-    primaryGames: ['ACC', 'AMS2'],
+    primaryGames: ['ACC', 'rF2'],
   },
   {
     id: 'd17',
@@ -443,7 +425,7 @@ export const drivers: Driver[] = [
     podiums: 16,
     totalPoints: 1050,
     teamId: 't6',
-    primaryGames: ['ACC', 'AMS2'],
+    primaryGames: ['ACC', 'rF2'],
   },
   {
     id: 'd23',
@@ -500,6 +482,6 @@ export const drivers: Driver[] = [
     podiums: 20,
     totalPoints: 1280,
     teamId: 't6',
-    primaryGames: ['ACC', 'AMS2'],
+    primaryGames: ['ACC', 'rF2'],
   },
 ]

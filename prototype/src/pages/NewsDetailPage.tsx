@@ -1,21 +1,22 @@
 import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useApp } from '@/hooks/useAppStore'
-import { news } from '@/data/news'
-import { events, getCoverGradient } from '@/data/events'
+import { useLocale } from '@/hooks/useLocale'
+import { useNewsArticle } from '@/features/news/hooks'
+import { useEventList } from '@/features/events/hooks'
+import { getCoverGradient } from '@/shared/utils/eventVisuals'
 import { cn } from '@/lib/utils'
 
 export function NewsDetailPage() {
   const { id } = useParams()
   const { t } = useTranslation()
-  const { state } = useApp()
-  const lang = state.language
-  const article = news.find(n => n.id === id)
+  const { field, date } = useLocale()
+  const article = useNewsArticle(id)
+  const events = useEventList()
 
   if (!article) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">{t('common.noData')}</div>
 
-  const title = lang === 'zh' ? article.title_zh : article.title_en
-  const content = lang === 'zh' ? article.content_zh : article.content_en
+  const title = field(article, 'title')
+  const content = field(article, 'content')
 
   const categoryColors: Record<string, string> = {
     event: 'bg-blue-500/10 text-blue-400',
@@ -37,7 +38,7 @@ export function NewsDetailPage() {
               {t(`news.categories.${article.category}`)}
             </span>
             <span className="text-xs text-muted-foreground">
-              {new Date(article.publishedAt).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+              {date(article.publishedAt, { year: 'numeric', month: 'long', day: 'numeric' })}
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-black mb-2">{title}</h1>
@@ -66,7 +67,7 @@ export function NewsDetailPage() {
                     to={`/events/${eId}`}
                     className="flex items-center gap-3 p-3 bg-accent rounded-lg hover:bg-primary/5 transition-colors"
                   >
-                    <span className="text-sm font-medium">{lang === 'zh' ? event.name_zh : event.name_en}</span>
+                    <span className="text-sm font-medium">{field(event, 'name')}</span>
                     <span className="text-xs text-muted-foreground ml-auto">{event.track}</span>
                   </Link>
                 )

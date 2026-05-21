@@ -1,43 +1,5 @@
-import type { ScoringTableEntry } from '@/lib/utils'
-
-export interface Championship {
-  id: string
-  name_zh: string
-  name_en: string
-  description_zh: string
-  description_en: string
-  coverImage: string
-  regions: Array<'CN' | 'AP' | 'AM' | 'EU'>
-  game: string
-  carClass: string
-  carList?: string[]
-  weather?: string
-  hasPitstop: boolean
-  practiceDuration?: number
-  qualifyingDuration?: number
-  raceDuration: number
-  raceDurationType: 'time' | 'laps'
-  maxEntriesPerSplit: number
-  maxSplits?: number
-  enableMultiSplit: boolean
-  splitAssignmentRule?: string
-  minEntries?: number
-  cancelRegistrationDeadlineOffset?: string
-  accessRequirements_zh?: string
-  accessRequirements_en?: string
-  scoringRules_zh?: string
-  scoringRules_en?: string
-  scoringTable?: ScoringTableEntry[]
-  progressionRules_zh?: string
-  progressionRules_en?: string
-  rules_zh?: string
-  rules_en?: string
-  resources_zh?: string
-  resources_en?: string
-  streamUrl?: string
-  eventIds: string[]
-  status: 'upcoming' | 'active' | 'completed'
-}
+import type { Championship } from '@/domain/championships'
+export type { Championship, ChampionshipStatus } from '@/domain/championships'
 
 export const championships: Championship[] = [
   {

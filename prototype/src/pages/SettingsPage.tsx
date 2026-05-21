@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
-import { mozaDevices } from '@/data/mozaDevices'
-import { drivers } from '@/data/drivers'
+import { useDriverSettingsData } from '@/features/profile/hooks'
 import { cn } from '@/lib/utils'
+import { gamePlatforms } from '@/domain/gamePlatforms'
 import { User, Gamepad2, Monitor, Link2, Bell, Camera, Check, Unlink } from 'lucide-react'
-
-const games = ['ACC', 'AC Evo', 'iRacing', 'LMU', 'AMS2', 'rFactor 2', 'F1 24']
 
 export function SettingsPage() {
   const { t } = useTranslation()
@@ -20,8 +18,7 @@ export function SettingsPage() {
   const [emailEnabled, setEmailEnabled] = useState(true)
   const [pitHouseEnabled, setPitHouseEnabled] = useState(true)
 
-  const currentDriver = drivers.find(d => d.id === state.currentUser?.id)
-  const ownedDevices = mozaDevices.filter(d => currentDriver?.ownedDeviceIds.includes(d.id))
+  const { ownedDevices } = useDriverSettingsData(state.currentUser?.id)
 
   const tabs = [
     { icon: User, label: t('settings.profile') },
@@ -120,7 +117,7 @@ export function SettingsPage() {
               <div>
                 <label className="block text-sm font-medium mb-1.5">{t('settings.primaryGames')}</label>
                 <div className="flex flex-wrap gap-2">
-                  {games.map(game => (
+                  {gamePlatforms.map(game => (
                     <button key={game} onClick={() => toggleGame(game)} className={cn('px-3 py-1.5 rounded-lg text-sm border transition-colors flex items-center gap-1.5',
                       selectedGames.includes(game) ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground'
                     )}>

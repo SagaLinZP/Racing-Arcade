@@ -1,19 +1,25 @@
 import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
-import { Navbar } from './Navbar'
-import { Footer } from './Footer'
+import { Navbar } from '@/components/layout/Navbar'
+import { Footer } from '@/components/layout/Footer'
+import { BannedUserBanner } from '@/components/BannedUserBanner'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
-  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
   return null
 }
 
-export function Layout() {
+export function AppShell() {
   return (
     <div className="min-h-screen flex flex-col">
       <ScrollToTop />
       <Navbar />
+      <BannedUserBanner />
       <main className="flex-1">
         <Outlet />
       </main>
