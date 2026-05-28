@@ -397,7 +397,7 @@ export const zh = {
     waitSplitNotice: '报名截止后将公布分组结果。',
     cancelConfirm: '确定要取消报名吗？',
     cancelDeadlinePassed: '已过取消报名截止时间，请联系管理员。',
-    crossRegion: '该赛事位于 {region} 区域，请注意时区差异。',
+    crossRegion: '该赛事的服务器可能不位于您的当前区域，服务器连通性和延时可能受影响。',
     gameIDRequired: '该赛事需要 {platform} 账号，请先完善个人信息。',
     createTeam: '创建车队',
     inviteMember: '邀请成员',

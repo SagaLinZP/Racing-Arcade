@@ -397,7 +397,7 @@ export const en = {
     waitSplitNotice: 'Split assignments will be announced after registration closes.',
     cancelConfirm: 'Are you sure you want to cancel your registration?',
     cancelDeadlinePassed: 'The cancellation deadline has passed. Please contact an administrator.',
-    crossRegion: 'This event is in the {region} region. Please note the time zone difference.',
+    crossRegion: 'The server for this event may not be located in your current region. Server connectivity and latency may be affected.',
     gameIDRequired: 'This event requires a {platform} account. Please complete your profile.',
     createTeam: 'Create Team',
     inviteMember: 'Invite Member',
