@@ -28,6 +28,129 @@ export function EventHeader({ event, title }: { event: SimEvent; title: string }
   )
 }
 
+function EventStageFlow({ event }: { event: SimEvent }) {
+  const { field, text, dateTime } = useLocale()
+  if (!event.stages || event.stages.length === 0) return null
+
+  const format = (value: string) => dateTime(value, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+
+  return (
+    <div className="bg-card border border-border rounded-xl p-5">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h2 className="font-bold">{text('分站流程', 'Round Flow')}</h2>
+        <span className="text-xs text-muted-foreground">Competition → Round → Stage → Session</span>
+      </div>
+      <div className="space-y-4">
+        {event.stages.map((stage, index) => (
+          <div key={stage.id} className="border border-border rounded-xl p-4 bg-background/40">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center shrink-0">{index + 1}</div>
+              <div className="min-w-0">
+                <div className="font-bold">{field(stage, 'name')}</div>
+                <div className="text-xs text-muted-foreground">{format(stage.startsAt)} - {format(stage.endsAt)}</div>
+                <p className="text-sm text-muted-foreground mt-2">{field(stage, 'summary')}</p>
+                {field(stage, 'advancement') && (
+                  <div className="mt-3 flex items-start gap-2 text-xs text-primary bg-primary/10 border border-primary/20 rounded-lg px-3 py-2">
+                    <Flag className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <span>{field(stage, 'advancement')}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {stage.sessions.map(session => (
+                <div key={session.id} className="bg-accent rounded-lg p-3">
+                  <div className="text-[11px] uppercase tracking-wide text-primary mb-1">{session.type}</div>
+                  <div className="font-semibold text-sm">{field(session, 'name')}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{field(session, 'durationLabel')}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{session.resultType === 'leaderboard' ? text('圈速榜', 'Leaderboard') : text('完赛成绩', 'Classification')}</div>
+                </div>
+              ))}
+            </div>
+            {stage.sessions.some(session => session.leaderboard && session.leaderboard.length > 0) && (
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-muted-foreground border-b border-border">
+                      <th className="text-left py-2 pr-3">#</th>
+                      <th className="text-left py-2 pr-3">{text('车手', 'Driver')}</th>
+                      <th className="text-left py-2 pr-3 hidden md:table-cell">{text('车队', 'Team')}</th>
+                      <th className="text-left py-2 pr-3">{text('最快圈', 'Best Lap')}</th>
+                      <th className="text-left py-2 pr-3 hidden md:table-cell">{text('有效圈', 'Valid Laps')}</th>
+                      <th className="text-left py-2">{text('状态', 'Status')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stage.sessions.flatMap(session => session.leaderboard || []).map(entry => (
+                      <tr key={`${stage.id}-${entry.position}-${entry.driverName}`} className="border-b border-border/50">
+                        <td className="py-2 pr-3 font-bold text-primary">{entry.position}</td>
+                        <td className="py-2 pr-3 font-medium">{entry.driverName}</td>
+                        <td className="py-2 pr-3 text-muted-foreground hidden md:table-cell">{entry.teamName || '-'}</td>
+                        <td className="py-2 pr-3 font-mono">{entry.bestLap}</td>
+                        <td className="py-2 pr-3 hidden md:table-cell">{entry.validLaps}</td>
+                        <td className="py-2">{field(entry, 'status')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ServerProvisioningSummary({ event, isRegistered }: { event: SimEvent; isRegistered: boolean }) {
+  const { field, text } = useLocale()
+  const provisioning = event.serverProvisioning
+  if (!provisioning) return null
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-5">
+        <h2 className="font-bold mb-3 flex items-center gap-2 text-green-400"><Server className="w-4 h-4" />{text('服务器信息', 'Server Info')}</h2>
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center gap-2"><span className="text-muted-foreground">{text('服务器名称', 'Server Name')}:</span><span className="font-mono font-medium">{provisioning.serverName}</span></div>
+          <div className="flex items-center gap-2"><span className="text-muted-foreground">{text('加入密码', 'Password')}:</span><span className="font-mono font-medium">{isRegistered ? (provisioning.password || text('公开服务器', 'Public')) : text('报名后可见', 'Visible after registration')}</span></div>
+          <p className="text-muted-foreground text-xs mt-2 pt-2 border-t border-green-500/10">{field(provisioning, 'joinHint')}</p>
+        </div>
+      </div>
+
+      <div className="bg-card border border-border rounded-xl p-5">
+        <h2 className="font-bold mb-3 flex items-center gap-2"><Radio className="w-4 h-4 text-primary" />{text('自动开服配置', 'Server Provisioning')}</h2>
+        <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+          <div className="bg-accent rounded-lg p-3"><div className="text-xs text-muted-foreground">{text('游戏', 'Game')}</div><div className="font-medium">{provisioning.game}</div></div>
+          <div className="bg-accent rounded-lg p-3"><div className="text-xs text-muted-foreground">{text('状态', 'Status')}</div><div className="font-medium">{provisioning.runtimeStatus}</div></div>
+          <div className="bg-accent rounded-lg p-3"><div className="text-xs text-muted-foreground">{text('赛道字段', 'Track Code')}</div><div className="font-mono text-xs">{provisioning.trackCode}{provisioning.trackLayoutCode ? ` / ${provisioning.trackLayoutCode}` : ''}</div></div>
+          <div className="bg-accent rounded-lg p-3"><div className="text-xs text-muted-foreground">{text('容量', 'Slots')}</div><div className="font-medium">{provisioning.maxSlots}</div></div>
+          <div className="bg-accent rounded-lg p-3 col-span-2"><div className="text-xs text-muted-foreground">{text('车辆来源', 'Car Source')}</div><div className="font-mono text-xs">{provisioning.carSource}</div></div>
+          <div className="bg-accent rounded-lg p-3 col-span-2"><div className="text-xs text-muted-foreground">{text('重启/合并', 'Restart / Merge')}</div><div className="text-xs">{provisioning.restartPolicy === 'fixedInterval' ? text(`每 ${provisioning.restartIntervalMinutes} 分钟重启`, `Restart every ${provisioning.restartIntervalMinutes} min`) : text('不自动重启', 'No auto restart')} · {provisioning.resultMergeRule === 'bestLapPerDriver' ? text('每人最快有效圈', 'Best lap per driver') : text('完赛成绩', 'Classification')}</div></div>
+        </div>
+        <div className="mb-3">
+          <div className="text-xs text-muted-foreground mb-2">{text('系统生成文件', 'Generated Files')}</div>
+          <div className="flex flex-wrap gap-2">
+            {provisioning.generatedFiles.map(file => <span key={file} className="px-2 py-1 rounded-full bg-accent text-xs font-mono">{file}</span>)}
+          </div>
+        </div>
+        <div>
+          <div className="text-xs text-muted-foreground mb-2">{text('不会展示给车手的字段', 'Hidden From Drivers')}</div>
+          <div className="flex flex-wrap gap-2">
+            {provisioning.hiddenFields.map(fieldName => <span key={fieldName} className="px-2 py-1 rounded-full bg-destructive/10 text-destructive text-xs font-mono">{fieldName}</span>)}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function EventDetailView({
   event,
   drivers,
@@ -186,6 +309,8 @@ export function EventDetailView({
             </div>
           </div>
 
+          <EventStageFlow event={event} />
+
           {/* Rules */}
           {eventRules && (
             <div className="bg-card border border-border rounded-xl p-5">
@@ -214,25 +339,27 @@ export function EventDetailView({
           )}
 
           {/* Server Info (only for registered users) */}
-          {isRegistered && (
-            <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-5">
-              <h2 className="font-bold mb-3 flex items-center gap-2 text-green-400"><Server className="w-4 h-4" />{t('eventDetail.serverInfo')}</h2>
-              {event.serverInfo ? (
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2"><span className="text-muted-foreground">{event.game === 'iRacing' ? t('eventDetail.sessionName') : t('eventDetail.serverName')}:</span><span className="font-mono font-medium">{event.serverInfo}</span></div>
-                  {event.serverPassword && (
-                    <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono font-medium">{event.serverPassword}</span></div>
-                  )}
-                  {event.serverJoinLink && (
-                    <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-4 h-4" />{event.game === 'iRacing' ? t('eventDetail.hostedSessionLink') : t('eventDetail.joinLink')}</a>
-                  )}
-                  <p className="text-muted-foreground text-xs mt-2 pt-2 border-t border-green-500/10">{event.game === 'iRacing' ? t('eventDetail.serverJoinHintIracing') : t('eventDetail.serverJoinHintSelf')}</p>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">{t('eventDetail.serverInfoPending')}</p>
-              )}
-            </div>
-          )}
+          {event.serverProvisioning ? (
+            <ServerProvisioningSummary event={event} isRegistered={isRegistered} />
+          ) : isRegistered && (
+              <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-5">
+                <h2 className="font-bold mb-3 flex items-center gap-2 text-green-400"><Server className="w-4 h-4" />{t('eventDetail.serverInfo')}</h2>
+                {event.serverInfo ? (
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverName')}:</span><span className="font-mono font-medium">{event.serverInfo}</span></div>
+                    {event.serverPassword && (
+                      <div className="flex items-center gap-2"><span className="text-muted-foreground">{t('eventDetail.serverPassword')}:</span><span className="font-mono font-medium">{event.serverPassword}</span></div>
+                    )}
+                    {event.serverJoinLink && (
+                      <a href={event.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-4 h-4" />{t('eventDetail.joinLink')}</a>
+                    )}
+                    <p className="text-muted-foreground text-xs mt-2 pt-2 border-t border-green-500/10">{t('eventDetail.serverJoinHintSelf')}</p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">{t('eventDetail.serverInfoPending')}</p>
+                )}
+              </div>
+            )}
 
           {/* Live Stream */}
           {event.streamUrl && status === 'InProgress' && (

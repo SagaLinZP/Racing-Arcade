@@ -667,7 +667,7 @@ export function ChampionshipDetailView({
               {pastEvents.length > 0 && (
                 <CollapsibleSection
                   title={`${text('历史赛事', 'Past Events')} (${pastEvents.length})`}
-                  defaultOpen={false}
+                  defaultOpen={pastEvents.some(e => e.id === routeEventId)}
                   icon={<Flag className="w-4 h-4 text-muted-foreground" />}
                 >
                   <div className="space-y-3">
@@ -693,6 +693,22 @@ export function ChampionshipDetailView({
                   <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatDateTime(nextRegistrable.eventStartTime)}</span>
                 </div>
               </div>
+
+              {nextRegistrable.stages && nextRegistrable.stages.length > 0 && (
+                <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
+                  <div className="text-xs text-muted-foreground mb-2">Competition → Round → Stage → Session</div>
+                  <div className="space-y-2">
+                    {nextRegistrable.stages.map(stage => (
+                      <div key={stage.id} className="rounded-md bg-background/60 px-3 py-2">
+                        <div className="text-sm font-semibold">{field(stage, 'name')}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {stage.sessions.map(session => field(session, 'name')).join(' → ')}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="border-t border-border pt-4 space-y-3 mb-4">
                 <div className="flex items-center justify-between text-sm">
@@ -767,14 +783,38 @@ export function ChampionshipDetailView({
               <h4 className="font-semibold flex items-center gap-2 text-sm text-green-400 mb-3"><Server className="w-4 h-4" />{t('eventDetail.serverInfo')}</h4>
               {nextRegistrable.serverInfo ? (
                 <div className="space-y-3 text-sm">
-                  <div><div className="text-muted-foreground text-xs mb-0.5">{championship.game === 'iRacing' ? t('eventDetail.sessionName') : t('eventDetail.serverName')}</div><div className="font-mono font-medium">{nextRegistrable.serverInfo}</div></div>
+                  <div><div className="text-muted-foreground text-xs mb-0.5">{t('eventDetail.serverName')}</div><div className="font-mono font-medium">{nextRegistrable.serverInfo}</div></div>
                   {nextRegistrable.serverPassword && (
                     <div><div className="text-muted-foreground text-xs mb-0.5">{t('eventDetail.serverPassword')}</div><div className="font-mono font-medium">{nextRegistrable.serverPassword}</div></div>
                   )}
                   {nextRegistrable.serverJoinLink && (
-                    <a href={nextRegistrable.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-3 h-3" />{championship.game === 'iRacing' ? t('eventDetail.hostedSessionLink') : t('eventDetail.joinLink')}</a>
+                    <a href={nextRegistrable.serverJoinLink} className="flex items-center gap-2 text-primary hover:underline font-medium"><Wifi className="w-3 h-3" />{t('eventDetail.joinLink')}</a>
                   )}
-                  <p className="text-muted-foreground text-xs pt-2 border-t border-green-500/10">{championship.game === 'iRacing' ? t('eventDetail.serverJoinHintIracing') : t('eventDetail.serverJoinHintSelf')}</p>
+                  <p className="text-muted-foreground text-xs pt-2 border-t border-green-500/10">{nextRegistrable.serverProvisioning ? field(nextRegistrable.serverProvisioning, 'joinHint') : t('eventDetail.serverJoinHintSelf')}</p>
+                  {nextRegistrable.serverProvisioning && (
+                    <div className="pt-3 border-t border-green-500/10">
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div className="bg-background/60 rounded-lg p-2">
+                          <div className="text-[10px] text-muted-foreground">{text('自动重启', 'Restart')}</div>
+                          <div className="text-xs font-medium">
+                            {nextRegistrable.serverProvisioning.restartPolicy === 'fixedInterval'
+                              ? text(`${nextRegistrable.serverProvisioning.restartIntervalMinutes} 分钟`, `${nextRegistrable.serverProvisioning.restartIntervalMinutes} min`)
+                              : text('不重启', 'None')}
+                          </div>
+                        </div>
+                        <div className="bg-background/60 rounded-lg p-2">
+                          <div className="text-[10px] text-muted-foreground">{text('结果合并', 'Merge')}</div>
+                          <div className="text-xs font-medium">{nextRegistrable.serverProvisioning.resultMergeRule === 'bestLapPerDriver' ? text('最快有效圈', 'Best lap') : text('完赛成绩', 'Classification')}</div>
+                        </div>
+                      </div>
+                      <div className="text-[10px] text-muted-foreground mb-1">{text('生成配置文件', 'Generated config files')}</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {nextRegistrable.serverProvisioning.generatedFiles.map(file => (
+                          <span key={file} className="px-2 py-0.5 rounded-full bg-background/70 text-[10px] font-mono">{file}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground italic">{t('eventDetail.serverInfoPending')}</p>

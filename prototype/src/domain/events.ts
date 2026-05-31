@@ -49,6 +49,8 @@ export interface SimEvent {
   serverInfo?: string
   serverPassword?: string
   serverJoinLink?: string
+  serverProvisioning?: EventServerProvisioning
+  stages?: EventStage[]
   streamUrl?: string
   vodUrl?: string
   scoringRules_zh?: string
@@ -61,6 +63,64 @@ export interface SimEvent {
   results?: EventResult[]
   cancelledReason_zh?: string
   cancelledReason_en?: string
+}
+
+export interface EventServerProvisioning {
+  game: 'AC' | 'ACC'
+  serverName: string
+  password?: string
+  joinHint_zh: string
+  joinHint_en: string
+  trackCode: string
+  trackLayoutCode?: string
+  carSource: string
+  maxSlots: number
+  restartPolicy: 'none' | 'fixedInterval'
+  restartIntervalMinutes?: number
+  resultMergeRule?: 'bestLapPerDriver' | 'classification'
+  runtimeStatus: 'pending' | 'deployed' | 'running' | 'restarting' | 'stopped'
+  generatedFiles: string[]
+  visibleFields: string[]
+  hiddenFields: string[]
+}
+
+export interface EventStage {
+  id: string
+  type: 'qualifier' | 'race_day' | 'final' | 'practice'
+  name_zh: string
+  name_en: string
+  startsAt: string
+  endsAt: string
+  summary_zh: string
+  summary_en: string
+  advancement_zh?: string
+  advancement_en?: string
+  sessions: EventSession[]
+}
+
+export interface EventSession {
+  id: string
+  type: 'practice' | 'qualifying' | 'race'
+  name_zh: string
+  name_en: string
+  startsAt: string
+  endsAt: string
+  durationLabel_zh: string
+  durationLabel_en: string
+  resultType: 'leaderboard' | 'classification'
+  serverProvisioning?: EventServerProvisioning
+  leaderboard?: QualifierLeaderboardEntry[]
+}
+
+export interface QualifierLeaderboardEntry {
+  position: number
+  driverName: string
+  teamName?: string
+  bestLap: string
+  gap: string
+  validLaps: number
+  status_zh: string
+  status_en: string
 }
 
 export interface EventResult {

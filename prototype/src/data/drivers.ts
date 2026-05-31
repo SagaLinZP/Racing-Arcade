@@ -20,7 +20,7 @@ export const drivers: Driver[] = [
     podiums: 28,
     totalPoints: 1520,
     teamId: 't1',
-    primaryGames: ['ACC', 'iRacing'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd2',
@@ -40,7 +40,7 @@ export const drivers: Driver[] = [
     podiums: 18,
     totalPoints: 1120,
     teamId: 't1',
-    primaryGames: ['ACC', 'AC Evo'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd3',
@@ -60,7 +60,7 @@ export const drivers: Driver[] = [
     podiums: 35,
     totalPoints: 2100,
     teamId: 't2',
-    primaryGames: ['iRacing', 'LMU'],
+    primaryGames: ['AC', 'ACC'],
   },
   {
     id: 'd4',
@@ -80,7 +80,7 @@ export const drivers: Driver[] = [
     podiums: 38,
     totalPoints: 2450,
     teamId: 't2',
-    primaryGames: ['ACC', 'rF2'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd5',
@@ -118,7 +118,7 @@ export const drivers: Driver[] = [
     podiums: 22,
     totalPoints: 1350,
     teamId: 't3',
-    primaryGames: ['ACC', 'iRacing', 'AC Evo'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd7',
@@ -137,7 +137,7 @@ export const drivers: Driver[] = [
     podiums: 20,
     totalPoints: 1080,
     teamId: 't3',
-    primaryGames: ['ACC', 'rF2'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd8',
@@ -157,7 +157,7 @@ export const drivers: Driver[] = [
     podiums: 45,
     totalPoints: 2800,
     teamId: 't4',
-    primaryGames: ['iRacing', 'ACC', 'LMU'],
+    primaryGames: ['AC', 'ACC'],
   },
   {
     id: 'd9',
@@ -175,7 +175,7 @@ export const drivers: Driver[] = [
     wins: 4,
     podiums: 10,
     totalPoints: 620,
-    primaryGames: ['ACC', 'AC Evo'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd10',
@@ -195,7 +195,7 @@ export const drivers: Driver[] = [
     podiums: 30,
     totalPoints: 1890,
     teamId: 't4',
-    primaryGames: ['LMU', 'ACC'],
+    primaryGames: ['ACC'],
   },
   {
     id: 'd11',
@@ -214,7 +214,7 @@ export const drivers: Driver[] = [
     podiums: 40,
     totalPoints: 2650,
     teamId: 't1',
-    primaryGames: ['ACC', 'iRacing', 'LMU'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd12',
@@ -252,7 +252,7 @@ export const drivers: Driver[] = [
     podiums: 12,
     totalPoints: 780,
     teamId: 't3',
-    primaryGames: ['ACC', 'AC Evo'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd14',
@@ -272,7 +272,7 @@ export const drivers: Driver[] = [
     podiums: 48,
     totalPoints: 3100,
     teamId: 't4',
-    primaryGames: ['ACC', 'iRacing', 'LMU'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd15',
@@ -292,7 +292,7 @@ export const drivers: Driver[] = [
     podiums: 25,
     totalPoints: 1580,
     teamId: 't2',
-    primaryGames: ['iRacing', 'ACC'],
+    primaryGames: ['AC', 'ACC'],
   },
   {
     id: 'd16',
@@ -310,7 +310,7 @@ export const drivers: Driver[] = [
     wins: 3,
     podiums: 8,
     totalPoints: 520,
-    primaryGames: ['ACC', 'rF2'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd17',
@@ -330,7 +330,7 @@ export const drivers: Driver[] = [
     podiums: 32,
     totalPoints: 2050,
     teamId: 't5',
-    primaryGames: ['ACC', 'LMU', 'AC Evo'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd18',
@@ -349,7 +349,7 @@ export const drivers: Driver[] = [
     podiums: 15,
     totalPoints: 980,
     teamId: 't5',
-    primaryGames: ['ACC', 'iRacing'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd19',
@@ -367,7 +367,7 @@ export const drivers: Driver[] = [
     wins: 6,
     podiums: 14,
     totalPoints: 850,
-    primaryGames: ['ACC', 'AC Evo'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd20',
@@ -386,7 +386,7 @@ export const drivers: Driver[] = [
     wins: 8,
     podiums: 19,
     totalPoints: 1200,
-    primaryGames: ['ACC', 'iRacing'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd21',
@@ -406,7 +406,7 @@ export const drivers: Driver[] = [
     podiums: 55,
     totalPoints: 3500,
     teamId: 't6',
-    primaryGames: ['ACC', 'iRacing', 'LMU', 'AC Evo'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd22',
@@ -425,7 +425,7 @@ export const drivers: Driver[] = [
     podiums: 16,
     totalPoints: 1050,
     teamId: 't6',
-    primaryGames: ['ACC', 'rF2'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd23',
@@ -443,7 +443,7 @@ export const drivers: Driver[] = [
     wins: 12,
     podiums: 28,
     totalPoints: 1680,
-    primaryGames: ['ACC', 'iRacing'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd24',
@@ -463,7 +463,7 @@ export const drivers: Driver[] = [
     podiums: 42,
     totalPoints: 2950,
     teamId: 't5',
-    primaryGames: ['ACC', 'LMU', 'iRacing'],
+    primaryGames: ['ACC', 'AC'],
   },
   {
     id: 'd25',
@@ -482,6 +482,6 @@ export const drivers: Driver[] = [
     podiums: 20,
     totalPoints: 1280,
     teamId: 't6',
-    primaryGames: ['ACC', 'rF2'],
+    primaryGames: ['ACC', 'AC'],
   },
 ]

@@ -12,9 +12,7 @@ export function SettingsPage() {
   const [activeTab, setActiveTab] = useState(0)
   const [selectedDevices, setSelectedDevices] = useState<string[]>(['r16', 'crp'])
   const [showDevices, setShowDevices] = useState(true)
-  const [selectedGames, setSelectedGames] = useState<string[]>(['ACC', 'iRacing'])
-  const [iracingId, setIracingId] = useState('12345')
-  const [iracingPublic, setIracingPublic] = useState(false)
+  const [selectedGames, setSelectedGames] = useState<string[]>(['ACC', 'AC'])
   const [emailEnabled, setEmailEnabled] = useState(true)
   const [pitHouseEnabled, setPitHouseEnabled] = useState(true)
 
@@ -100,18 +98,10 @@ export function SettingsPage() {
           {activeTab === 1 && (
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-1.5">{t('settings.iracingId')}</label>
-                <div className="flex gap-3">
-                  <input value={iracingId} onChange={e => setIracingId(e.target.value)} className="flex-1 px-3 py-2.5 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                  <button onClick={() => setIracingPublic(!iracingPublic)} className={cn('px-3 py-2 rounded-lg text-sm border', iracingPublic ? 'bg-primary/10 border-primary text-primary' : 'border-border text-muted-foreground')}>
-                    {iracingPublic ? t('settings.public') : t('settings.private')}
-                  </button>
-                </div>
-              </div>
-              <div>
                 <label className="block text-sm font-medium mb-1.5">{t('settings.steam')}</label>
-                <div className="flex items-center gap-3 px-4 py-3 bg-accent rounded-lg">
+                <div className="flex flex-col gap-1 px-4 py-3 bg-accent rounded-lg">
                   <span className="text-sm font-medium text-green-400">✓ {t('settings.bound')}</span>
+                  <span className="text-xs text-muted-foreground">{state.language === 'zh' ? 'AC / ACC 报名与成绩匹配均使用 Steam 绑定。' : 'AC / ACC registration and result matching both use Steam binding.'}</span>
                 </div>
               </div>
               <div>

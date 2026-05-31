@@ -51,6 +51,6 @@ describe('event domain rules', () => {
     expect(getEstimatedSplits(baseEvent, 31)).toBe(2)
     expect(isUserRegisteredForEvent(baseEvent, 'd1')).toBe(true)
     expect(filterEvents([baseEvent], { games: ['ACC'], registeredOnly: true, userId: 'd1' })).toHaveLength(1)
-    expect(filterEvents([baseEvent], { games: ['LMU'] })).toHaveLength(0)
+    expect(filterEvents([baseEvent], { games: ['AC'] })).toHaveLength(0)
   })
 })
