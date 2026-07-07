@@ -15,20 +15,19 @@ function renderRoute(path: string) {
 }
 
 describe('app route smoke tests', () => {
-  it('renders event list and event detail routes', () => {
+  it('renders events list route', () => {
     renderRoute('/events')
     expect(screen.getByRole('heading', { name: 'Events' })).toBeInTheDocument()
-    expect(screen.getByText('Open for Registration')).toBeInTheDocument()
-
-    renderRoute('/events/e6')
-    expect(screen.getByRole('heading', { name: 'Global GT3 Showdown - Silverstone' })).toBeInTheDocument()
   })
 
-  it('renders championship query route and selected schedule event', () => {
-    renderRoute('/championships/ch1?tab=schedule&event=e14')
+  it('renders round detail route', () => {
+    renderRoute('/events/c1/rounds/c1r1')
+    expect(screen.getByText(/Stages|赛程阶段/)).toBeInTheDocument()
+  })
 
-    expect(screen.getByRole('button', { name: 'Schedule' })).toBeInTheDocument()
-    expect(screen.getByText('MOZA GT3 Challenge - Dubai')).toBeInTheDocument()
+  it('renders competition detail route for multi-round', () => {
+    renderRoute('/events/c1')
+    expect(screen.getByText('MOZA GT3 Challenge 2026')).toBeInTheDocument()
   })
 
   it('renders calendar and team routes', () => {

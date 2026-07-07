@@ -1,1 +1,1 @@
-export { useEventList } from '@/features/events/hooks'
+export { useCompetitionList } from '@/features/competitions/hooks'

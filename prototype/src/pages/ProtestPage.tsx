@@ -1,20 +1,19 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useApp } from '@/hooks/useAppStore'
 import { useLocale } from '@/hooks/useLocale'
-import { useEventDetail } from '@/features/events/hooks'
+import { competitionRepository, registrationRepository } from '@/data/repositories'
 import { useDriverList } from '@/features/profile/hooks'
 import { cn } from '@/lib/utils'
 import { Shield, AlertTriangle, Upload } from 'lucide-react'
 
 export function ProtestPage() {
-  const { id } = useParams()
+  const { competitionId, roundId } = useParams()
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { state } = useApp()
   const { field } = useLocale()
-  const event = useEventDetail(id)
+  const competition = competitionRepository.getById(competitionId)
+  const round = competitionRepository.getRound(competitionId, roundId)
   const drivers = useDriverList()
 
   const [targetDriver, setTargetDriver] = useState('')
@@ -25,11 +24,12 @@ export function ProtestPage() {
   const [location, setLocation] = useState('')
   const [showSuccess, setShowSuccess] = useState(false)
 
-  if (!event) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">{t('common.noData')}</div>
+  if (!round || !competition) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">{t('common.noData')}</div>
 
-  const registeredDrivers = event.registeredDriverIds
+  const approvedDriverIds = registrationRepository.getApprovedDriverIds(round.id)
+  const registeredDrivers = approvedDriverIds
     .map(dId => drivers.find(d => d.id === dId))
-    .filter(d => d && d.id !== state.currentUser?.id)
+    .filter((d): d is NonNullable<typeof d> => Boolean(d))
 
   const typeOptions: Array<{ key: 'dangerous' | 'blocking' | 'other'; color: string }> = [
     { key: 'dangerous', color: 'bg-red-500/10 text-red-400 border-red-500/30' },
@@ -51,7 +51,9 @@ export function ProtestPage() {
         </div>
         <div>
           <h1 className="text-xl font-bold">{t('protest.title')}</h1>
-          <p className="text-sm text-muted-foreground">{field(event, 'name')}</p>
+          <p className="text-sm text-muted-foreground">
+            {field(competition, 'name')} · {field(round, 'name')}
+          </p>
         </div>
       </div>
 
@@ -64,7 +66,7 @@ export function ProtestPage() {
             className="w-full px-4 py-2.5 bg-accent border border-border rounded-lg text-sm focus:outline-none focus:border-primary"
           >
             <option value="">{t('protest.targetPlaceholder')}</option>
-            {registeredDrivers.map(d => d && (
+            {registeredDrivers.map(d => (
               <option key={d.id} value={d.id}>{d.nickname}</option>
             ))}
           </select>

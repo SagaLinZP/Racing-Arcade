@@ -1,2 +1,2 @@
-export { useEventRegistration, getEventRegistrationSnapshot } from '@/hooks/useEventRegistration'
-export type { EventRegistrationSnapshot } from '@/hooks/useEventRegistration'
+export { useRoundRegistration, getRoundRegistrationSnapshot } from '@/hooks/useRoundRegistration'
+export type { RoundRegistrationSnapshot } from '@/hooks/useRoundRegistration'

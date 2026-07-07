@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react'
-import { GuestOnlyRoute, RequireAuth, RequireCompleteProfile, RequireEventRegistrant } from '@/app/routeGuards'
+import { GuestOnlyRoute, RequireAuth, RequireCompleteProfile, RequireRoundRegistrant } from '@/app/routeGuards'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { HomePage } from '@/pages/HomePage'
 import { EventsPage } from '@/pages/EventsPage'
-import { EventDetailPage } from '@/pages/EventDetailPage'
+import { CompetitionDetailPage } from '@/pages/CompetitionDetailPage'
+import { RoundDetailPage } from '@/pages/RoundDetailPage'
 import { CalendarPage } from '@/pages/CalendarPage'
-import { ChampionshipDetailPage } from '@/pages/ChampionshipDetailPage'
 import { LeaderboardPage } from '@/pages/LeaderboardPage'
 import { NotificationsPage } from '@/pages/NotificationsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
@@ -44,9 +44,9 @@ export const appRoutes: AppRouteConfig[] = [
     children: [
       { path: '/', element: <HomePage /> },
       { path: '/events', element: <EventsPage /> },
-      { path: '/events/:id', element: <EventDetailPage /> },
+      { path: '/events/:competitionId', element: <CompetitionDetailPage /> },
+      { path: '/events/:competitionId/rounds/:roundId', element: <RoundDetailPage /> },
       { path: '/calendar', element: <CalendarPage /> },
-      { path: '/championships/:id', element: <ChampionshipDetailPage /> },
       { path: '/leaderboard', element: <LeaderboardPage /> },
       { path: '/driver/:id', element: <DriverPage /> },
       { path: '/team/:id', element: <TeamPublicPage /> },
@@ -63,9 +63,9 @@ export const appRoutes: AppRouteConfig[] = [
         ],
       },
       {
-        element: <RequireEventRegistrant />,
+        element: <RequireRoundRegistrant />,
         children: [
-          { path: '/events/:id/protest/new', element: <ProtestPage /> },
+          { path: '/events/:competitionId/rounds/:roundId/sessions/:sessionId/protest/new', element: <ProtestPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

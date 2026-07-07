@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import type { Language } from '@/domain/common'
+import { formatDateTimeTz, formatDateTz } from '@/domain/timezones'
 import { useApp } from '@/hooks/useAppStore'
 
 export function getLocale(language: Language) {
@@ -66,6 +67,14 @@ export function useLocale() {
     formatTimeForLanguage(value, options)
   ), [])
 
+  const tz = useCallback((iso: string | undefined, timezone?: string, withSuffix = true) => (
+    formatDateTimeTz(iso, timezone, withSuffix)
+  ), [])
+
+  const tzDate = useCallback((iso: string | undefined, timezone?: string, withSuffix = true) => (
+    formatDateTz(iso, timezone, withSuffix)
+  ), [])
+
   return {
     language,
     locale,
@@ -75,5 +84,7 @@ export function useLocale() {
     date,
     dateTime,
     time,
+    tz,
+    tzDate,
   }
 }

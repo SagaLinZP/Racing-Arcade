@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { useLocale } from '@/hooks/useLocale'
-import { useEventList } from '@/features/events/hooks'
+import { useCompetitionList } from '@/features/competitions/hooks'
 import { useDriverList } from '@/features/profile/hooks'
 import { protestRepository } from '@/data/repositories'
 import { cn } from '@/lib/utils'
@@ -12,7 +12,7 @@ export function MyProtestsPage() {
   const { t } = useTranslation()
   const { state } = useApp()
   const { field, dateTime } = useLocale()
-  const events = useEventList()
+  const competitions = useCompetitionList()
   const drivers = useDriverList()
   const [tab, setTab] = useState<'submitted' | 'received'>('submitted')
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -25,8 +25,8 @@ export function MyProtestsPage() {
   const current = tab === 'submitted' ? submitted : received
 
   const getEventName = (eventId: string) => {
-    const event = events.find(e => e.id === eventId)
-    return event ? field(event, 'name') : eventId
+    const competition = competitions.find(c => c.id === eventId)
+    return competition ? field(competition, 'name') : eventId
   }
 
   const getDriverName = (driverId: string) => drivers.find(d => d.id === driverId)?.nickname || driverId

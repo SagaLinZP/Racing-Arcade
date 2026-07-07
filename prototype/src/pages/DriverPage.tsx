@@ -12,21 +12,25 @@ export function DriverPage() {
   const { state } = useApp()
   const { field } = useLocale()
 
-  const { driver, team, events: driverEvents, results, devices } = useDriverProfile(id)
+  const { driver, team, competitionsEntered, results, standings, devices } = useDriverProfile(id)
   if (!driver) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">{t('common.noData')}</div>
 
   const isSelf = state.currentUser?.id === driver.id
 
+  const totalPoints = standings?.totalPoints ?? driver.totalPoints
+  const wins = standings?.wins ?? driver.wins
+  const podiums = standings?.podiums ?? driver.podiums
+  const totalEntries = standings?.entries ?? driver.totalEntries
+
   const stats = [
-    { icon: Flag, label: t('driver.totalEntries'), value: driver.totalEntries },
-    { icon: Trophy, label: t('driver.wins'), value: driver.wins },
-    { icon: Target, label: t('driver.podiums'), value: driver.podiums },
-    { icon: Zap, label: t('driver.totalPoints'), value: driver.totalPoints },
+    { icon: Flag, label: t('driver.totalEntries'), value: totalEntries },
+    { icon: Trophy, label: t('driver.wins'), value: wins },
+    { icon: Target, label: t('driver.podiums'), value: podiums },
+    { icon: Zap, label: t('driver.totalPoints'), value: totalPoints },
   ]
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Header */}
       <div className="bg-card border border-border rounded-xl p-6 mb-6">
         <div className="flex items-start gap-6">
           <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center text-primary text-3xl font-bold flex-shrink-0">
@@ -47,7 +51,6 @@ export function DriverPage() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {stats.map(stat => (
           <div key={stat.label} className="bg-card border border-border rounded-xl p-4 text-center">
@@ -58,7 +61,6 @@ export function DriverPage() {
         ))}
       </div>
 
-      {/* Team */}
       {team && (
         <div className="bg-card border border-border rounded-xl p-5 mb-6">
           <h2 className="font-bold mb-3 flex items-center gap-2"><Users className="w-4 h-4 text-primary" />{t('driver.team')}</h2>
@@ -72,55 +74,59 @@ export function DriverPage() {
         </div>
       )}
 
-      {/* MOZA Devices */}
       {driver.showDevices && driver.displayedDeviceIds.length > 0 && (
         <div className="bg-card border border-border rounded-xl p-5 mb-6">
           <h2 className="font-bold mb-3 flex items-center gap-2"><Monitor className="w-4 h-4 text-primary" />{t('driver.mozaDevices')}</h2>
           <div className="flex flex-wrap gap-2">
-            {devices.map(device => {
-              return (
-                <span key={device.id} className="px-3 py-1.5 bg-accent rounded-lg text-sm flex items-center gap-1.5">
-                  <span>{device.icon}</span> {device.name}
-                </span>
-              )
-            })}
+            {devices.map(device => (
+              <span key={device.id} className="px-3 py-1.5 bg-accent rounded-lg text-sm flex items-center gap-1.5">
+                <span>{device.icon}</span> {device.name}
+              </span>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Race History */}
       <div className="bg-card border border-border rounded-xl p-5">
         <h2 className="font-bold mb-4">{t('driver.history')}</h2>
         {results.length > 0 ? (
           <div className="space-y-2">
             {results.map((r, i) => (
-              <Link key={i} to={`/events/${r.event.id}`} className="flex items-center justify-between px-4 py-3 bg-accent rounded-lg hover:bg-primary/5 transition-colors">
-                <div className="flex items-center gap-3">
-                  <span className={cn('w-8 text-center font-bold',
+              <Link
+                key={i}
+                to={`/events/${r.competitionId}/rounds/${r.roundId}`}
+                className="flex items-center justify-between px-4 py-3 bg-accent rounded-lg hover:bg-primary/5 transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className={cn('w-8 text-center font-bold flex-shrink-0',
                     r.position === 1 ? 'text-yellow-400' : r.position === 2 ? 'text-gray-300' : r.position === 3 ? 'text-amber-600' : 'text-muted-foreground'
                   )}>
                     P{r.position}
                   </span>
-                  <div>
-                    <div className="text-sm font-medium">{field(r.event, 'name')}</div>
-                    <div className="text-xs text-muted-foreground">{r.event.track} · {r.event.carClass}</div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{field({ name_zh: r.competitionName_zh, name_en: r.competitionName_en }, 'name')}</div>
+                    <div className="text-xs text-muted-foreground truncate">{field({ name_zh: r.roundName_zh, name_en: r.roundName_en }, 'name')}</div>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex-shrink-0 ml-3">
                   <div className="text-sm font-bold">{r.points} pts</div>
-                  <div className="text-xs text-muted-foreground">{r.bestLap}</div>
+                  {r.bestLap && <div className="text-xs text-muted-foreground">{r.bestLap}</div>}
                 </div>
               </Link>
             ))}
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground text-sm">
-            {driverEvents.length > 0 ? (
+            {competitionsEntered.length > 0 ? (
               <div className="space-y-2">
-                {driverEvents.map(e => (
-                  <Link key={e.id} to={`/events/${e.id}`} className="flex items-center justify-between px-4 py-3 bg-accent rounded-lg hover:bg-primary/5 transition-colors">
-                    <div className="text-sm font-medium">{field(e, 'name')}</div>
-                    <span className="text-xs text-muted-foreground">{e.track}</span>
+                {competitionsEntered.map(ce => (
+                  <Link
+                    key={ce.competition.id}
+                    to={`/events/${ce.competition.id}`}
+                    className="flex items-center justify-between px-4 py-3 bg-accent rounded-lg hover:bg-primary/5 transition-colors"
+                  >
+                    <div className="text-sm font-medium truncate">{field(ce.competition, 'name')}</div>
+                    <span className="text-xs text-muted-foreground">{ce.rounds.length} {t('competition.rounds', 'rounds')}</span>
                   </Link>
                 ))}
               </div>

@@ -29,49 +29,56 @@ Racing Arcade/
         │   ├── routes.tsx          #   ★ 路由表（19 页 + 嵌套守卫）
         │   └── routeGuards.tsx     #   4 个路由守卫
         ├── domain/                 # 纯类型 + 无状态业务规则（无 React、无数据 import）
-        │   ├── events.ts           #   ★ getEventStatus() + SimEvent 类型 + 筛选/排序函数
-        │   ├── championships.ts    #   锦标赛赛程/积分/列表分区函数
-        │   ├── common.ts           #   Region / CarClass / ScoringTableEntry
+        │   ├── competitions.ts     #   ★ Competition/Round/Stage/Split/Session 四层模型类型
+        │   ├── status.ts           #   ★ getCompetitionStatus()/getRoundStatus()/statusColor() 派生状态
+        │   ├── results.ts          #   ★ 成绩公示/锁定（isStageLocked/getStageResultStatus）+ 积分榜（calculateCompetitionStandings）
+        │   ├── competitionLists.ts #   列表分区（getCompetitionListSections/getHomeCompetitionHighlights/getCurrentRound）
+        │   ├── registrationOps.ts  #   报名分组估算（getSplitPlan/getEstimatedSplitCount/getRoundCapacity）
+        │   ├── advancement.ts      #   晋级规则（computeAdvancers/canAdvance/getStageStandings）
+        │   ├── timezones.ts        #   赛事时区（formatDateTimeTz/TIMEZONE_OPTIONS）
+        │   ├── calendarEntries.ts  #   日历展平（getCompetitionCalendarEntries）
+        │   ├── registrations.ts    #   Registration/RegistrationStatus 类型
+        │   ├── common.ts           #   Region / CarClass / ScoringTableEntry / Language
         │   ├── gamePlatforms.ts    #   GamePlatform（仅 AC / ACC）+ 颜色映射
         │   ├── drivers.ts          #   Driver 接口
         │   ├── teams.ts            #   Team / TeamMember 接口
-        │   └── __tests__/          #   Vitest 领域测试
+        │   └── __tests__/          #   Vitest 领域测试（competitions.test.ts + locale.test.ts）
         ├── data/                   # Mock 静态数据 + 仓储适配器
-        │   ├── events.ts           #   34 条赛事
-        │   ├── championships.ts    #   5 条锦标赛
+        │   ├── competitions.ts     #   ★ 8 条赛事（c1-c8，Competition→Round→Stage→Split 四层，含 migrate 工厂）
+        │   ├── registrations.ts    #   报名记录（从 competitions+drivers 派生，approved/waitlisted）
+        │   ├── servers.ts          #   服务器实例类型（ServerInstance，前台只读）
         │   ├── drivers.ts          #   25 条车手
         │   ├── teams.ts            #   6 条车队
-        │   ├── notifications.ts    #   8 条通知（Notification 接口定义于此）
-        │   ├── news.ts             #   5 条新闻（NewsArticle 接口定义于此）
-        │   ├── protests.ts         #   4 条抗议（Protest 接口定义于此）
-        │   ├── mozaDevices.ts      #   8 条设备（MozaDevice 接口定义于此）
+        │   ├── notifications.ts    #   通知（Notification 接口定义于此）
+        │   ├── news.ts             #   新闻（NewsArticle 接口定义于此）
+        │   ├── protests.ts         #   抗议（Protest 接口定义于此）
+        │   ├── mozaDevices.ts      #   设备（MozaDevice 接口定义于此）
         │   └── repositories/       #   ★ 仓储层：每个实体一个 list()/getById() 适配器
         ├── features/               # 功能级 hooks（调用 repositories + domain 选择器）
-        │   ├── events/             #   hooks.ts + EventDetailView.tsx
-        │   ├── championships/       #   hooks.ts + ChampionshipDetailView.tsx
-        │   ├── registration/       #   hooks.ts（re-export useEventRegistration）
+        │   ├── competitions/       #   ★ hooks.ts + CompetitionDetailView.tsx + RoundDetailView.tsx
+        │   ├── registration/       #   hooks.ts（re-export useRoundRegistration）
         │   ├── notifications/      #   hooks.ts
         │   ├── news/               #   hooks.ts
-        │   ├── profile/            #   hooks.ts
+        │   ├── profile/            #   hooks.ts（DriverPage 数据源，聚合报名+成绩）
         │   ├── teams/              #   hooks.ts
-        │   └── calendar/           #   hooks.ts（re-export useEventList）
+        │   └── calendar/           #   hooks.ts（re-export useCompetitionList）
         ├── hooks/                  # 全局有状态 hooks
-        │   ├── useAppStore.ts      #   ★ AppContext / useApp() / AppState / defaultState
-        │   ├── useLocale.ts        #   ★ useLocale() → text()/field()/date() 双语辅助
-        │   └── useEventRegistration.ts # ★ useEventRegistration() → register/unregister/getSnapshot
+        │   ├── useAppStore.ts      #   ★ AppContext / useApp() / AppState / defaultState（registrationOverrides 按 roundId keyed）
+        │   ├── useLocale.ts        #   ★ useLocale() → text()/field()/date()/tz() 双语+时区辅助
+        │   └── useRoundRegistration.ts # ★ useRoundRegistration() → register/unregister/getSnapshot（入参 Round）
         ├── components/             # 共享展示组件
-        │   ├── EventCard.tsx       #   EventCard + ChampionshipCard
-        │   ├── StatusBadge.tsx
+        │   ├── CompetitionCard.tsx #   ★ CompetitionCard（单/多 Round 统一卡片）
+        │   ├── StatusBadge.tsx     #   状态徽章（含 ResultsLocked/Archived）
         │   ├── ScoringRulesCard.tsx
         │   ├── Dropdown.tsx        #   自定义下拉（替代原生 select）
         │   ├── ErrorBoundary.tsx   #   路由级错误边界（按 pathname 重置）
         │   ├── BannedUserBanner.tsx
         │   └── layout/             #   Navbar.tsx + Footer.tsx
-        ├── pages/                  # 19 个路由页面（薄组件，委托给 features/）
+        ├── pages/                  # 路由页面（薄组件，委托给 features/）
         ├── shared/utils/           # 跨功能工具（eventVisuals.ts: getCoverGradient）
-        ├── i18n/                   # index.ts + en.ts + zh.ts（21 个命名空间）
+        ├── i18n/                   # index.ts + en.ts + zh.ts（23 个命名空间，含 competition/result）
         ├── lib/utils.ts            # 兼容 shim：re-export cn() + domain 类型
-        └── test/                   # setup.ts + appSmoke.test.tsx
+        └── test/                   # setup.ts + __tests__/appSmoke.test.tsx
 ```
 
 ## 分层架构
@@ -91,7 +98,23 @@ components/   → 共享展示组件
 ```
 
 **数据流**：页面 → feature hooks → repositories → domain 函数 + static mock arrays。
-**报名状态流**：`useEventRegistration` → `useApp().setState` 写入 `registrationOverrides[eventId]` → `getEventRegistrationSnapshot` 合并 override + 原始 event → 供 EventDetailView / ChampionshipDetailView 消费。
+**报名状态流**：`useRoundRegistration` → `useApp().setState` 写入 `registrationOverrides[roundId]` → `getRoundRegistrationSnapshot` 合并 override + registrationRepository 基线 → 供 RoundDetailView 消费。
+
+### 赛事数据模型（四层架构）
+
+```
+Competition（赛事系列）
+  └─ Round（分站，挂 track + 报名窗口 + maxRegistrations）
+       └─ Stage（阶段：qualifier/race_day/final/consolation/practice/custom）
+            ├─ Session[]（场次：practice/qualifying/race，含时长）
+            ├─ Split[]（分组=并行服务器实例，挂 entryList + results + resultsLockedAt）
+            │    └─ EntryListEntry[] / SessionResult[]
+            ├─ gameConfig（SessionGameConfig，~75 字段，AC/ACC server 配置）
+            └─ advancementRule（从上一 Stage 晋级：position/lapTime/manual）
+```
+
+- **单 Round 赛事** = `comp.rounds.length === 1`，等价旧"独立赛事"，CompetitionDetailPage 自动重定向到 RoundDetailPage
+- **多 Round 赛事** = `comp.rounds.length > 1`，等价旧"锦标赛"，CompetitionDetailPage 展示 Round 列表
 
 ## 技术栈
 
@@ -158,25 +181,29 @@ pnpm run check        # ★ 质量门：lint + typecheck + test + build
 - **不加注释**，除非用户明确要求
 - 组件内 `useState` 必须放在所有条件返回语句之前
 
-### 赛事状态
+### 赛事状态（三层派生，无显式 status 字段）
 
-赛事状态由 `getEventStatus(event)` 动态计算（`src/domain/events.ts`），不依赖静态存储：
+赛事状态**完全由时间 + 人工标志派生**（`domain/status.ts`），不依赖静态 status 字段：
 
-```
-Cancelled / Draft / ResultsPublished → 存储值直接返回
-results 非空 → Completed
-时间区间计算 → Upcoming → RegistrationOpen → RegistrationClosed → InProgress
-```
+- **Competition 状态**：`getCompetitionStatus(comp)` = 当前站（第一个未进入终态的 Round）的状态；`statusOverride`（Draft/Cancelled/Archived）优先
+- **Round 状态**：`getRoundStatus(round, comp)`
+  - `cancelledReason` → Cancelled
+  - 任一 Stage 进行中（now 在 startsAt~endsAt）→ InProgress
+  - 已开赛 Stage：`isStageLocked` → ResultsLocked，否则 Completed（含站间：还有未开赛 Stage → InProgress）
+  - 报名阶段：`registrationOverride`（forceOpen/forceClosed）优先；否则按 registrationOpenAt/CloseAt/首个Stage开始 → Upcoming → RegistrationOpen → RegistrationClosed
+- **Stage 成绩子状态**（`domain/results.ts`，正交于 Round 状态）：
+  - `pending`（无成绩）→ `showing`（公示中，可改/可申诉）→ `locked`（冻结、发积分）
+  - 锁定 = 任一 Split 有 `resultsLockedAt`（手动），或 `now >= getStageLockAt`（endsAt + resultLockWindowHours，默认 24h）
+  - **仅 locked 的 Stage 成绩才计入积分榜**（`calculateCompetitionStandings` 跳过未锁定的）
 
-**不要**新增静态 status 判断逻辑，所有状态判断统一使用此函数。
+**不要**新增静态 status 判断逻辑，所有状态判断统一使用 `getCompetitionStatus` / `getRoundStatus` / `getStageResultStatus`。
 
-### 赛事类型
+### 赛事类型（单 Round vs 多 Round）
 
-两种赛事，路由不同：
+路由按 Competition 的 Round 数量分流：
 
-- **独立赛事**：无 `championshipId`，路由 `/events/:id` → `EventDetailPage`
-- **锦标赛子赛事**：有 `championshipId`，**没有独立详情页**，路由到 `/championships/:championshipId` → `ChampionshipDetailPage`
-- `EventDetailPage` 中如果检测到 `event.championshipId`，自动 `<Navigate>` 到锦标赛页
+- **单 Round 赛事**：`/events/:competitionId` → `CompetitionDetailPage` 自动 `<Navigate>` 到 `/events/:competitionId/rounds/:roundId` → `RoundDetailPage`
+- **多 Round 赛事**：`/events/:competitionId` → `CompetitionDetailPage`（展示 Round 列表），点击 Round 跳 `/events/:competitionId/rounds/:roundId` → `RoundDetailPage`
 
 ### 游戏平台
 
@@ -186,16 +213,23 @@ results 非空 → Completed
   - **A 类（自建服务器）**：AC / ACC / AC Evo / LMU / rF2 / ETS2 — 显示"服务器名称+密码+直连链接"
   - **B 类（官方服务器）**：iRacing — 显示"Session 名称+密码+Hosted Session 链接"
 - 判断方式：`game === 'iRacing'` 为 B 类，其余为 A 类
-- MVP 阶段仅支持 AC / ACC 的自动开服配置（`EventServerProvisioning` 类型）
+- 服务器配置在 `Stage.gameConfig`（SessionGameConfig，~75 字段）+ `Split`（服务器实例参数）；前台只读消费
 
 ### 注册/报名交互
 
-用户注册状态通过 `useEventRegistration` hook 集中管理（无后端）：
+用户注册状态通过 `useRoundRegistration` hook 集中管理（无后端），报名挂在 **Round** 上：
 
-- mock 数据中 `registeredDriverIds` 为初始状态（不可变，不能直接修改）
-- 运行时变更通过 `state.registrationOverrides[eventId]` 管理
-- `getEventRegistrationSnapshot(event, userId, overrides)` 合并原始数据 + override，返回 `isRegistered` / `registrationCount` / `isFull` / `estimatedSplits` / `progressPercent`
+- mock 数据中 `registrations`（从 competitions+drivers 派生）为初始状态（不可变）
+- 运行时变更通过 `state.registrationOverrides[roundId]` 管理（key 是 roundId）
+- `getRoundRegistrationSnapshot(round, comp, userId, overrides)` 合并 registrationRepository 基线 + override，返回 `status` / `isRegistered` / `registrationCount` / `capacity` / `estimatedSplits` / `isFull` / `progressPercent`
 - 报名成功后自动递增计数，取消报名后递减
+- `RegistrationStatus = 'approved' | 'waitlisted' | 'rejected' | 'withdrawn'`（无 pending，报名自动通过）
+
+### 赛事时区
+
+- 每个 Competition 有自己的 `timezone` 字段（UTC+8/+9/+1/-5 四档）
+- **所有赛事时间必须用 `useLocale().tz(iso, competition.timezone)` 格式化**（固定 offset 算法，不用浏览器 toLocaleString，避免跨时区漂移）
+- 空时间统一显示 `'—'`（见 `domain/timezones.ts`）
 
 ### 路由与守卫
 
@@ -206,7 +240,13 @@ results 非空 → Completed
 | `GuestOnlyRoute` | 已登录用户重定向到首页（用于 `/login`） |
 | `RequireAuth` | 未登录重定向到 `/login`（保留来源 location） |
 | `RequireCompleteProfile` | 已登录但信息未补全 → 重定向到 `/register/complete`；匿名用户放行（公开页） |
-| `RequireEventRegistrant` | 需登录 + 已报名该赛事（用于抗议提交页） |
+| `RequireRoundRegistrant` | 需登录 + 已报名该 Round（查询 `registrationRepository.isDriverRegistered`，用于抗议提交页） |
+
+核心路由：
+- `/events` → 列表页（报名中 / 已结束分区）
+- `/events/:competitionId` → CompetitionDetailPage（多 Round 展示 Round 列表；单 Round 自动重定向）
+- `/events/:competitionId/rounds/:roundId` → RoundDetailPage（Stage/Session 时间线、报名卡、成绩公示/锁定、服务器信息）
+- `/events/:competitionId/rounds/:roundId/sessions/:sessionId/protest/new` → ProtestPage（受 RequireRoundRegistrant 守卫）
 
 - `vite.config.ts` 中 `base: '/Racing-Arcade/'` 匹配 GitHub Pages
 - `App.tsx` 中 `BrowserRouter basename="/Racing-Arcade"` 匹配路由前缀
@@ -226,13 +266,15 @@ results 非空 → Completed
 2. **原生 `<select>`** 在暗色主题下拉选项不可控，必须使用自定义 `Dropdown` 组件
 3. **`space-y-*`** 会与子元素自身 padding 叠加导致间距翻倍
 4. **`flex flex-col`** 子元素默认 stretch 撑满宽度，需要 `self-start` 或 `inline-block` 限制
-5. **`RegistrationButton`** 是独立函数组件，无法访问父组件的 state/helper，需要通过 props 传入
-6. **mock 数据不可变**：`events` 等是静态 import 的数组，不能直接 push/splice，所有运行时变更用 React state（`registrationOverrides`）管理
-7. **锦标赛子赛事无独立页面**：所有跳转到子赛事的链接必须指向 `/championships/:championshipId`
-8. **Upcoming 赛事**：`registeredDriverIds` 应为空（报名未开放不应有注册）
-9. **`lib/utils.ts` 是兼容 shim**：现在只 re-export `cn()` 和 domain 类型，新代码应直接从 `@/domain/` 导入
-10. **hooks 命名**：全局状态 hook 是 `useApp()`（不是 `useAppStore`），文件名为 `useAppStore.ts`
-11. **页面是薄组件**：详情页委托给 `features/` 下的 View 组件（如 `EventDetailView.tsx`），不要在 pages/ 中写大量逻辑
+5. **mock 数据不可变**：`competitions`/`registrations` 等是静态 import 的数组，不能直接 push/splice，所有运行时变更用 React state（`registrationOverrides`）管理
+6. **赛事时间用赛事时区**：展示赛事时间必须传 `competition.timezone` 给 `tz()`，不能用浏览器 locale（`date()`/`dateTime()` 仅用于非赛事时间如新闻发布时间）
+7. **成绩仅 locked 计分**：积分榜/排行榜只能统计 `isStageLocked` 的 Stage 成绩，公示中（showing）的成绩不计分
+8. **单 Round 赛事自动重定向**：CompetitionDetailPage 检测到 `rounds.length === 1` 会 `<Navigate>` 到 RoundDetailPage，单 Round 赛事没有独立的 Competition 概览页
+9. **报名挂在 Round 上**：`registrationOverrides` 的 key 是 `roundId`（不是 competitionId），守卫 `RequireRoundRegistrant` 查 `registrationRepository.isDriverRegistered(roundId, userId)`
+10. **`lib/utils.ts` 是兼容 shim**：现在只 re-export `cn()` 和 domain 类型，新代码应直接从 `@/domain/` 导入
+11. **hooks 命名**：全局状态 hook 是 `useApp()`（不是 `useAppStore`），文件名为 `useAppStore.ts`；报名 hook 是 `useRoundRegistration()`（不是 `useEventRegistration`）
+12. **页面是薄组件**：详情页委托给 `features/` 下的 View 组件（`CompetitionDetailView.tsx` / `RoundDetailView.tsx`），不要在 pages/ 中写大量逻辑
+13. **competitions.ts 含 migrate 工厂**：mock 数据用 `_rawCompetitions`（旧扁平结构）→ `migrateCompetitions` 转换为新四层模型，前台直接消费导出的 `competitions`（已迁移），不要手动构造
 
 ## 修改流程清单
 

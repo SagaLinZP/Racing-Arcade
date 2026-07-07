@@ -4,9 +4,16 @@ import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { gamePlatformColors, gamePlatforms, type GamePlatform } from '@/domain/gamePlatforms'
 import { cn } from '@/lib/utils'
-import { filterEvents, getEventsForDate, sortEventsByStartAsc, type SimEvent } from '@/domain/events'
+import {
+  getCompetitionCalendarEntries,
+  getCalendarEntriesForDate,
+  sortCalendarEntriesAsc,
+  filterCalendarEntries,
+  calendarEntryLink,
+  type CompetitionCalendarEntry,
+} from '@/domain/calendarEntries'
 import { useLocale } from '@/hooks/useLocale'
-import { useEventList } from '@/features/calendar/hooks'
+import { useCompetitionList } from '@/features/calendar/hooks'
 import { CalendarDays, ChevronLeft, ChevronRight, List, Grid3X3 } from 'lucide-react'
 
 const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -26,25 +33,18 @@ export function CalendarPage() {
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month')
   const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1))
   const [gameFilter, setGameFilter] = useState<GamePlatform[]>([])
-  const [myEventsOnly, setMyEventsOnly] = useState(false)
-  const allEvents = useEventList()
+  const competitions = useCompetitionList()
 
   const days = isZh ? DAYS_ZH : DAYS_EN
 
-  const filteredEvents = useMemo(() => {
-    return filterEvents(allEvents, {
-      games: gameFilter,
-      registeredOnly: myEventsOnly,
-      userId: state.currentUser?.id,
-    })
-  }, [allEvents, gameFilter, myEventsOnly, state.currentUser])
+  const allEntries = useMemo(() => getCompetitionCalendarEntries(competitions), [competitions])
 
-  const getEventLink = (e: SimEvent) => {
-    if (e.championshipId) {
-      return `/championships/${e.championshipId}`
-    }
-    return `/events/${e.id}`
-  }
+  const filteredEntries = useMemo(() => {
+    return filterCalendarEntries(allEntries, {
+      games: gameFilter,
+      region: state.currentRegion,
+    })
+  }, [allEntries, gameFilter, state.currentRegion])
 
   const getCalendarDays = () => {
     const year = currentDate.getFullYear()
@@ -77,6 +77,12 @@ export function CalendarPage() {
   const toggleGame = (game: GamePlatform) => {
     setGameFilter(prev => prev.includes(game) ? prev.filter(g => g !== game) : [...prev, game])
   }
+
+  const entryChip = (e: CompetitionCalendarEntry) => (
+    <span className={cn('block px-1.5 py-0.5 rounded text-[10px] text-white truncate hover:opacity-80', gamePlatformColors[e.game] || 'bg-gray-500')}>
+      {field(e.competition, 'name')}
+    </span>
+  )
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -113,7 +119,6 @@ export function CalendarPage() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-6">
         {gamePlatforms.map(g => (
           <button
@@ -126,16 +131,6 @@ export function CalendarPage() {
             {g}
           </button>
         ))}
-        {state.isLoggedIn && (
-          <button
-            onClick={() => setMyEventsOnly(!myEventsOnly)}
-            className={cn('px-3 py-1 rounded-full text-xs font-medium border transition-colors',
-              myEventsOnly ? 'border-primary text-primary bg-primary/10' : 'border-border text-muted-foreground hover:border-primary/50'
-            )}
-          >
-            {t('calendar.myEventsOnly')}
-          </button>
-        )}
       </div>
 
       {viewMode === 'month' ? (
@@ -153,23 +148,19 @@ export function CalendarPage() {
               {getCalendarDays().map((day, idx) => {
                 if (day === null) return <div key={`empty-${idx}`} className="min-h-24 border-b border-r border-border p-1" />
                 const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-                const dayEvents = getEventsForDate(filteredEvents, date)
+                const dayEntries = getCalendarEntriesForDate(filteredEntries, date)
                 const isToday = new Date().toDateString() === date.toDateString()
                 return (
                   <div key={day} className={cn('min-h-24 border-b border-r border-border p-1', isToday && 'bg-primary/5')}>
                     <div className={cn('text-xs font-medium mb-1 px-1', isToday && 'text-primary font-bold')}>{day}</div>
                     <div className="space-y-0.5">
-                      {dayEvents.slice(0, 3).map(e => (
-                        <Link
-                          key={e.id}
-                          to={getEventLink(e)}
-                          className={cn('block px-1.5 py-0.5 rounded text-[10px] text-white truncate hover:opacity-80', gamePlatformColors[e.game as keyof typeof gamePlatformColors] || 'bg-gray-500')}
-                        >
-                          {field(e, 'name')}
+                      {dayEntries.slice(0, 3).map(e => (
+                        <Link key={`${e.roundId}-${e.stageId}`} to={calendarEntryLink(e)}>
+                          {entryChip(e)}
                         </Link>
                       ))}
-                      {dayEvents.length > 3 && (
-                        <span className="text-[10px] text-muted-foreground px-1">+{dayEvents.length - 3} more</span>
+                      {dayEntries.length > 3 && (
+                        <span className="text-[10px] text-muted-foreground px-1">+{dayEntries.length - 3} more</span>
                       )}
                     </div>
                   </div>
@@ -188,7 +179,7 @@ export function CalendarPage() {
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="grid grid-cols-1 md:grid-cols-7 divide-y md:divide-y-0 md:divide-x divide-border">
               {weekDays.map(date => {
-                const dayEvents = sortEventsByStartAsc(getEventsForDate(filteredEvents, date))
+                const dayEntries = sortCalendarEntriesAsc(getCalendarEntriesForDate(filteredEntries, date))
                 const isToday = new Date().toDateString() === date.toDateString()
                 return (
                   <div key={date.toISOString()} className={cn('min-h-56 p-3', isToday && 'bg-primary/5')}>
@@ -200,23 +191,23 @@ export function CalendarPage() {
                       <div className="text-[10px] text-muted-foreground">{formatDate(date, { month: 'short' })}</div>
                     </div>
                     <div className="space-y-2">
-                      {dayEvents.length === 0 ? (
+                      {dayEntries.length === 0 ? (
                         <div className="rounded-lg border border-border/60 px-2 py-3 text-center text-xs text-muted-foreground">{text('暂无赛事', 'No events')}</div>
                       ) : (
-                        dayEvents.map(e => (
+                        dayEntries.map(e => (
                           <Link
-                            key={e.id}
-                            to={getEventLink(e)}
+                            key={`${e.roundId}-${e.stageId}`}
+                            to={calendarEntryLink(e)}
                             className="block rounded-lg border border-border/70 bg-background/40 p-2 hover:border-primary/40 transition-colors"
                           >
                             <div className="mb-1 flex items-center justify-between gap-2">
                               <span className="text-xs font-semibold text-primary">
-                                {time(e.eventStartTime)}
+                                {time(e.startsAt)}
                               </span>
-                              <span className={cn('shrink-0 rounded px-1.5 py-0.5 text-[10px] text-white', gamePlatformColors[e.game as keyof typeof gamePlatformColors] || 'bg-gray-500')}>{e.game}</span>
+                              <span className={cn('shrink-0 rounded px-1.5 py-0.5 text-[10px] text-white', gamePlatformColors[e.game] || 'bg-gray-500')}>{e.game}</span>
                             </div>
-                            <div className="truncate text-xs font-medium">{field(e, 'name')}</div>
-                            <div className="mt-1 truncate text-[10px] text-muted-foreground">{e.track}</div>
+                            <div className="truncate text-xs font-medium">{field(e.competition, 'name')}</div>
+                            <div className="mt-1 truncate text-[10px] text-muted-foreground">{e.track ?? '—'}</div>
                           </Link>
                         ))
                       )}
@@ -229,27 +220,27 @@ export function CalendarPage() {
         </>
       ) : (
         <div className="space-y-2">
-          {sortEventsByStartAsc(filteredEvents)
+          {sortCalendarEntriesAsc(filteredEntries)
             .map(e => (
               <Link
-                key={e.id}
-                to={getEventLink(e)}
+                key={`${e.roundId}-${e.stageId}`}
+                to={calendarEntryLink(e)}
                 className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg hover:border-primary/30 transition-colors"
               >
                 <div className="w-16 text-center">
                   <div className="text-xs text-muted-foreground">
-                    {formatDate(e.eventStartTime, { weekday: 'short' })}
+                    {formatDate(e.startsAt, { weekday: 'short' })}
                   </div>
-                  <div className="text-xl font-bold">{new Date(e.eventStartTime).getDate()}</div>
+                  <div className="text-xl font-bold">{new Date(e.startsAt).getDate()}</div>
                 </div>
-                <div className={cn('w-1 h-10 rounded-full', gamePlatformColors[e.game as keyof typeof gamePlatformColors] || 'bg-gray-500')} />
+                <div className={cn('w-1 h-10 rounded-full', gamePlatformColors[e.game] || 'bg-gray-500')} />
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-sm truncate">{field(e, 'name')}</h3>
+                  <h3 className="font-medium text-sm truncate">{field(e.competition, 'name')}</h3>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                    <span>{e.track}</span>
+                    <span>{e.track ?? '—'}</span>
                     <span>·</span>
                     <span>{e.carClass}</span>
-                    {e.championshipId && (
+                    {e.isMultiRound && (
                       <>
                         <span>·</span>
                         <span className="text-primary">{text('锦标赛', 'Championship')}</span>
@@ -258,8 +249,8 @@ export function CalendarPage() {
                   </div>
                 </div>
                 <div className="text-right text-xs text-muted-foreground">
-                  <div>{time(e.eventStartTime)}</div>
-                  <div className={cn('px-1.5 py-0.5 rounded text-[10px] text-white mt-1', gamePlatformColors[e.game as keyof typeof gamePlatformColors] || 'bg-gray-500')}>{e.game}</div>
+                  <div>{time(e.startsAt)}</div>
+                  <div className={cn('px-1.5 py-0.5 rounded text-[10px] text-white mt-1', gamePlatformColors[e.game] || 'bg-gray-500')}>{e.game}</div>
                 </div>
               </Link>
             ))}

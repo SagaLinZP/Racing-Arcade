@@ -1,12 +1,14 @@
 # Racing Arcade 前台原型交互文档
 
-> **文档版本**：v3.1
-> **最后更新**：2026-06-13
+> **文档版本**：v3.2
+> **最后更新**：2026-06-16
 > **覆盖范围**：Phase 1 MVP + Phase 2 社区与竞赛增强
 > **关联文档**：PRD.md
 > **变更记录**：
 > - v3.0 — 赛事核心结构调整为 Competition → Round → Stage → Session；P5 统一为赛事详情页，P6 调整为分站详情页
 > - v3.1 — MVP 阶段只支持 AC / ACC；服务器信息展示改为复用后台自动开服配置的可见字段
+> - v3.2 — CompetitionRuleset 精简：赛制规则/积分规则/晋级规则合并到 description；Split 配置移至 Stage 层级；P5 概览 Tab 展示对应调整
+> - v3.3 — 前台代码全面迁移到新四层模型（Competition→Round→Stage→Split）：domain 层重写（status/results/advancement/timezones/registrationOps/competitionLists），数据层复用后台 mock（competitions/registrations/servers）；P6 分站详情页支持 Stage 时间线、成绩公示→锁定态 badge、Split 切换、晋级线展示、积分构成；赛事时间改用赛事时区（固定 offset）；抗议入口路由调整为 `/events/{competitionId}/rounds/{roundId}/sessions/{sessionId}/protest/new`；i18n 新增 competition/result 命名空间
 
 ---
 
@@ -120,7 +122,7 @@
 ### Competition 卡片元素
 
 - 封面图 + 游戏平台标签
-- 赛事形态标签 + 赛事名称
+- 赛事名称
 - 车型组
 - 当前/下一 Round 名称、赛道、比赛时间
 - 当前 Stage 标签
@@ -149,9 +151,9 @@
 
 ### Competition 卡片元素
 
-- 封面图 + 游戏平台标签 + 赛事形态标签（单场赛 / 锦标赛 / 系列赛）
+- 封面图 + 游戏平台标签
 - 赛事名称 + 车型组
-- Round 数量（单场赛可隐藏）
+- Round 数量（仅多 Round 赛事显示）
 - 当前/下一 Round：名称、赛道、时间
 - 当前 Stage 标签：预选赛开放中 / 正赛日 / 决赛 / 报名中 / 已结束
 - 报名人数 / 容量 + 报名状态标签（右对齐）
@@ -167,17 +169,17 @@
 
 ## P5. 赛事详情页 (`/events/{competitionId}`)
 
-统一用于单场赛、锦标赛、年度系列赛和含预选赛的赛事。页面主对象是 Competition，Round / Stage / Session 作为内部层级展示。
+统一用于所有赛事，无论单场赛还是多站锦标赛。页面主对象是 Competition，Round / Stage / Session 作为内部层级展示。
 
 ### 页面结构（自上而下）
 
 | 区域 | 元素 | 说明 |
 |------|------|------|
 | **取消横幅** | 红色横幅"本赛事已取消"+取消原因 | Competition 或当前 Round 已取消时显示 |
-| **封面区** | 封面大图 + Competition 名称 + 形态/状态标签 | — |
+| **封面区** | 封面大图 + Competition 名称 + 状态标签 | — |
 | **基础信息栏** | 游戏平台、车型组、Round 数量、当前 Stage、下一比赛时间（双时区） | 不直接显示所属区域；时间同时显示赛事当地时区和用户本地时区 |
-| **Tab 切换** | 概览 / 赛程 / 预选榜 / 成绩 / 积分榜 | 单场赛可弱化 Tab 数量，但结构保持一致 |
-| **概览 Tab** | 描述、赛制规则、积分规则、晋级规则、准入条件 | Competition 级公共信息 |
+| **Tab 切换** | 概览 / 赛程 / 预选榜 / 成绩 / 积分榜 | 单 Round 赛事可弱化 Tab 数量，但结构保持一致 |
+| **概览 Tab** | 描述（含赛制规则、积分规则、晋级规则）、准入条件、积分表 | Competition 级公共信息 |
 | **赛程 Tab** | Round 列表 + 每个 Round 的 Stage 时间线 | 当前/下一 Round 置顶 |
 | **预选榜 Tab** | 选择 Round/Stage 后展示圈速榜、晋级线、候选名单 | 仅有 qualifier Stage 时显示；否则隐藏 |
 | **成绩 Tab** | 按 Round / Stage / Session 筛选成绩 | 成绩绑定 Session |
@@ -227,7 +229,7 @@
 
 ## P6. 分站详情页 (`/events/{competitionId}/rounds/{roundId}`)
 
-分站详情页展示某个 Round 内部的 Stage / Session 流程，适合含预选赛、正赛日、决赛等复杂流程的赛事。单场赛也可以只有一个 Round。
+分站详情页展示某个 Round 内部的 Stage / Session 流程，适合含预选赛、正赛日、决赛等复杂流程的赛事。
 
 ### 页面结构（自上而下）
 
@@ -486,7 +488,7 @@
 #### Competition 分组卡片
 
 **折叠状态**显示：
-- Competition 名称 + 赛事形态标签
+- Competition 名称
 - 游戏平台标签
 - 车型组
 - 已报名 Round 数量

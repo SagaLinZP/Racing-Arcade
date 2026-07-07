@@ -1,7 +1,6 @@
 import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import { eventRepository } from '@/data/repositories'
-import { isUserRegisteredForEvent } from '@/domain/events'
+import { competitionRepository, registrationRepository } from '@/data/repositories'
 import { useApp } from '@/hooks/useAppStore'
 
 function renderRouteContent(children?: ReactNode) {
@@ -50,11 +49,12 @@ export function RequireCompleteProfile({ children }: { children?: ReactNode }) {
   return renderRouteContent(children)
 }
 
-export function RequireEventRegistrant() {
+export function RequireRoundRegistrant() {
   const { state } = useApp()
-  const { id } = useParams()
+  const { competitionId, roundId } = useParams()
   const location = useLocation()
-  const event = eventRepository.getById(id)
+  const competition = competitionRepository.getById(competitionId)
+  const round = competitionRepository.getRound(competitionId, roundId)
 
   if (!state.isLoggedIn) {
     return <Navigate to="/login" replace state={{ from: location }} />
@@ -64,12 +64,13 @@ export function RequireEventRegistrant() {
     return <Navigate to="/register/complete" replace state={{ from: location }} />
   }
 
-  if (!event) {
+  if (!round) {
     return <Outlet />
   }
 
-  if (!isUserRegisteredForEvent(event, state.currentUser?.id)) {
-    return <Navigate to={event.championshipId ? `/championships/${event.championshipId}` : `/events/${event.id}`} replace />
+  if (!registrationRepository.isDriverRegistered(round.id, state.currentUser?.id)) {
+    const target = `/events/${competition?.id ?? competitionId}/rounds/${round.id}`
+    return <Navigate to={target} replace />
   }
 
   return <Outlet />

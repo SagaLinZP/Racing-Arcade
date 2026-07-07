@@ -1,7 +1,8 @@
 import { createContext, useContext } from 'react'
+import type { RegistrationStatus } from '@/domain/registrations'
 
-export interface EventRegistrationOverride {
-  isRegistered: boolean
+export interface RoundRegistrationOverride {
+  status: RegistrationStatus | null
   registrationCount: number
 }
 
@@ -12,7 +13,7 @@ export interface AppState {
   currentRegion: 'CN' | 'AP' | 'AM' | 'EU'
   language: 'en' | 'zh'
   isBanned: boolean
-  registrationOverrides: Record<string, EventRegistrationOverride>
+  registrationOverrides: Record<string, RoundRegistrationOverride>
 }
 
 export const defaultState: AppState = {

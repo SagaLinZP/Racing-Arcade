@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '@/hooks/useLocale'
 import { useNewsArticle } from '@/features/news/hooks'
-import { useEventList } from '@/features/events/hooks'
+import { useCompetitionList } from '@/features/competitions/hooks'
 import { getCoverGradient } from '@/shared/utils/eventVisuals'
 import { cn } from '@/lib/utils'
 
@@ -11,7 +11,7 @@ export function NewsDetailPage() {
   const { t } = useTranslation()
   const { field, date } = useLocale()
   const article = useNewsArticle(id)
-  const events = useEventList()
+  const events = useCompetitionList()
 
   if (!article) return <div className="max-w-7xl mx-auto px-4 py-20 text-center text-muted-foreground">{t('common.noData')}</div>
 
@@ -59,16 +59,16 @@ export function NewsDetailPage() {
             <h3 className="font-bold mb-3">{t('news.relatedEvents')}</h3>
             <div className="space-y-2">
               {article.relatedEventIds.map(eId => {
-                const event = events.find(e => e.id === eId)
-                if (!event) return null
+                const competition = events.find(c => c.id === eId)
+                if (!competition) return null
                 return (
                   <Link
                     key={eId}
                     to={`/events/${eId}`}
                     className="flex items-center gap-3 p-3 bg-accent rounded-lg hover:bg-primary/5 transition-colors"
                   >
-                    <span className="text-sm font-medium">{field(event, 'name')}</span>
-                    <span className="text-xs text-muted-foreground ml-auto">{event.track}</span>
+                    <span className="text-sm font-medium">{field(competition, 'name')}</span>
+                    <span className="text-xs text-muted-foreground ml-auto">{competition.carClass}</span>
                   </Link>
                 )
               })}

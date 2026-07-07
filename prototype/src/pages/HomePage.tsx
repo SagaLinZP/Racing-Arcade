@@ -1,29 +1,27 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '@/hooks/useLocale'
-import { EventCard, ChampionshipCard } from '@/components/EventCard'
-import { useEventList, useHomeEventHighlights } from '@/features/events/hooks'
+import { CompetitionCard } from '@/components/CompetitionCard'
+import { useHomeCompetitionHighlights, useCompetitionList } from '@/features/competitions/hooks'
 import { useDriverList } from '@/features/profile/hooks'
 import { useNewsList } from '@/features/news/hooks'
 import { ChevronRight, Radio, Zap } from 'lucide-react'
 import { getCoverGradient } from '@/shared/utils/eventVisuals'
-import { getEventStatus, isStandaloneEvent } from '@/domain/events'
+import { getCompetitionStatus } from '@/domain/status'
 
 export function HomePage() {
   const { t } = useTranslation()
   const { text, field, date } = useLocale()
 
-  const events = useEventList()
+  const competitions = useCompetitionList()
   const drivers = useDriverList()
-  const standaloneEvents = events.filter(isStandaloneEvent)
-  const liveEvents = standaloneEvents.filter(e => getEventStatus(e) === 'InProgress')
+  const liveCompetitions = competitions.filter(c => getCompetitionStatus(c) === 'InProgress')
   const topDrivers = [...drivers].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 5)
   const recentNews = useNewsList({ limit: 3 })
-  const mixedItems = useHomeEventHighlights()
+  const mixedItems = useHomeCompetitionHighlights()
 
   return (
     <div className="space-y-16 pb-16">
-      {/* Hero Banner */}
       <section className="max-w-7xl mx-auto px-4 pt-12">
         <div className="relative rounded-2xl overflow-hidden h-64 md:h-80" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #9f1239 100%)' }}>
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
@@ -42,20 +40,20 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Live Now */}
-      {liveEvents.length > 0 && (
+      {liveCompetitions.length > 0 && (
         <section className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-2 mb-4">
             <Radio className="w-5 h-5 text-red-500 animate-pulse" />
             <h2 className="text-xl font-bold">{t('home.liveNow')}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {liveEvents.map(e => <EventCard key={e.id} event={e} />)}
+            {mixedItems
+              .filter(item => getCompetitionStatus(item.competition) === 'InProgress')
+              .map(item => <CompetitionCard key={item.competition.id} item={item} />)}
           </div>
         </section>
       )}
 
-      {/* Upcoming Events + Championships mixed */}
       <section className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold">{t('home.upcomingEvents')}</h2>
@@ -64,26 +62,14 @@ export function HomePage() {
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {mixedItems.map(item =>
-            item.type === 'event' ? (
-              <EventCard key={item.data.id} event={item.data} />
-            ) : (
-              <ChampionshipCard
-                key={item.data.id}
-                championship={item.data}
-                eventCount={item.eventCount}
-                nextEvent={item.nextEvent}
-                nextRegistrationStatus={item.nextRegistrationStatus}
-              />
-            )
-          )}
+          {mixedItems.map(item => (
+            <CompetitionCard key={item.competition.id} item={item} />
+          ))}
         </div>
       </section>
 
-      {/* News + Leaderboard */}
       <section className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* News */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">{t('home.latestNews')}</h2>
@@ -118,7 +104,6 @@ export function HomePage() {
             </div>
           </div>
 
-          {/* Leaderboard */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">{t('home.leaderboardPreview')}</h2>
@@ -154,7 +139,6 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Partner */}
       <section className="max-w-7xl mx-auto px-4">
         <div className="bg-card rounded-2xl border border-border p-8 text-center">
           <h2 className="text-xl font-bold mb-2">{t('home.partner')}</h2>

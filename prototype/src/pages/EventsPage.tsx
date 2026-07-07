@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import { useLocale } from '@/hooks/useLocale'
-import { EventCard, ChampionshipCard } from '@/components/EventCard'
-import { useEventListSections } from '@/features/events/hooks'
+import { CompetitionCard } from '@/components/CompetitionCard'
+import { useCompetitionListSections } from '@/features/competitions/hooks'
 
 export function EventsPage() {
   const { t } = useTranslation()
   const { text } = useLocale()
 
-  const { registerable, completed } = useEventListSections()
+  const { registerable, completed } = useCompetitionListSections()
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -17,19 +17,9 @@ export function EventsPage() {
         <section className="mb-12">
           <h2 className="text-lg font-bold mb-4">{text('报名中', 'Open for Registration')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {registerable.map(item =>
-              item.type === 'event' ? (
-                <EventCard key={item.data.id} event={item.data} />
-              ) : (
-                <ChampionshipCard
-                  key={item.data.id}
-                  championship={item.data}
-                  eventCount={item.eventCount}
-                  nextEvent={item.nextEvent}
-                  nextRegistrationStatus={item.nextRegistrationStatus}
-                />
-              )
-            )}
+            {registerable.map(item => (
+              <CompetitionCard key={item.competition.id} item={item} />
+            ))}
           </div>
         </section>
       )}
@@ -38,17 +28,9 @@ export function EventsPage() {
         <section>
           <h2 className="text-lg font-bold mb-4">{text('已结束赛事', 'Completed Events')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {completed.map(item =>
-              item.type === 'event' ? (
-                <EventCard key={item.data.id} event={item.data} />
-              ) : (
-                <ChampionshipCard
-                  key={item.data.id}
-                  championship={item.data}
-                  eventCount={item.eventCount}
-                />
-              )
-            )}
+            {completed.map(item => (
+              <CompetitionCard key={item.competition.id} item={item} />
+            ))}
           </div>
         </section>
       )}

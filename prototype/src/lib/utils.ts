@@ -1,9 +1,20 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-export { getEventStatus } from "@/domain/events"
-export type { EventResult, EventStatus, SimEvent } from "@/domain/events"
-export type { GamePlatform } from "@/domain/gamePlatforms"
-export type { CarClass, Region, ScoringTableEntry } from "@/domain/common"
+
+export type {
+  Competition,
+  Round,
+  Stage,
+  Split,
+  Session,
+  SessionResult,
+  CompetitionStatus,
+  RoundStatus,
+  GamePlatform,
+} from "@/domain/competitions"
+export { getCompetitionStatus, getRoundStatus, statusColor } from "@/domain/status"
+export type { Region, ScoringTableEntry, CarClass, Language } from "@/domain/common"
+export type { RegistrationStatus, Registration } from "@/domain/registrations"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

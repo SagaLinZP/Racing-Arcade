@@ -35,8 +35,7 @@ export function ScoringRulesCard({
                 return (
                   <tr key={entry.position} className="border-b border-border/50 hover:bg-accent/50">
                     <td className="py-2 pr-4 font-bold">
-                      {entry.position === 1 ? '🥇' : entry.position === 2 ? '🥈' : entry.position === 3 ? '🥉' : ''}
-                      {' '}{entry.position}
+                      {entry.position}
                     </td>
                     <td className="py-2 pr-4 font-semibold text-primary">{entry.points}</td>
                     {hasNotes && <td className="py-2 text-muted-foreground">{note || ''}</td>}
