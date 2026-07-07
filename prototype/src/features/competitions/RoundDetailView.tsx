@@ -76,10 +76,14 @@ export function RoundDetailView({
   const minUnit = text('分钟', 'min')
   const lapsUnit = text('圈', 'laps')
 
-  const sessionDuration = (session: Session) =>
-    session.type === 'race'
-      ? `${session.raceDuration ?? ''} ${session.raceDurationType === 'time' ? minUnit : lapsUnit}`
-      : `${session.durationMinutes ?? ''} ${minUnit}`
+  const sessionDuration = (session: Session) => {
+    if (session.type === 'race') {
+      if (!session.raceDuration) return ''
+      return `${session.raceDuration} ${session.raceDurationType === 'time' ? minUnit : lapsUnit}`
+    }
+    if (!session.durationMinutes) return ''
+    return `${session.durationMinutes} ${minUnit}`
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -267,7 +271,7 @@ export function RoundDetailView({
                       ))}
                     </div>
                   )}
-                  {isLive && isRegistered && stage.splits.length > 0 && (() => {
+                  {isRegistered && isLive && stage.splits.length > 0 ? (() => {
                     const driverReg = registrationRepository.list({ roundId: round.id, driverId: state.currentUser?.id })[0]
                     const mySplit = driverReg?.splitNumber
                       ? stage.splits.find(sp => sp.splitNumber === driverReg.splitNumber)
@@ -295,7 +299,13 @@ export function RoundDetailView({
                         <p className="text-muted-foreground text-xs pt-1.5 border-t border-green-500/10">{t('eventDetail.serverJoinHintSelf')}</p>
                       </div>
                     )
-                  })()}
+                  })() : null}
+                  {isRegistered && !isLive && !isPast && (
+                    <div className="mt-3 rounded-lg border border-border bg-accent/40 p-3 text-xs text-muted-foreground flex items-center gap-2">
+                      <Server className="w-4 h-4" />
+                      {text('服务器信息将在阶段开放时公布', 'Server info will be available when the stage opens')}
+                    </div>
+                  )}
                 </div>
                 )
               })}

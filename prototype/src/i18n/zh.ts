@@ -304,6 +304,9 @@ export const zh = {
     value: '数值',
     season: '本赛季',
     allTime: '全部时间',
+    thisYear: '本年度',
+    thisMonth: '本月度',
+    selectGamePrompt: '请先选择一个游戏查看排行',
   },
   notifications: {
     title: '通知中心',

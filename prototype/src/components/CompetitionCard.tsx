@@ -34,9 +34,6 @@ export function CompetitionCard({ item }: { item: CompetitionListItem }) {
           <span className={cn('px-2 py-0.5 rounded text-[11px] font-bold text-white', gamePlatformColors[competition.game] || 'bg-gray-500')}>
             {competition.game}
           </span>
-          {isMultiRound && (
-            <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-primary/80 text-white">{t('events.typeChampionship', 'Championship')}</span>
-          )}
           {competition.defaultRuleset.streamUrl && (
             <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-red-500 text-white flex items-center gap-1">
               <Radio className="w-3 h-3" /> LIVE

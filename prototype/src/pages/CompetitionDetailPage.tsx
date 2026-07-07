@@ -12,7 +12,7 @@ export function CompetitionDetailPage() {
   const drivers = useDriverList()
   const teams = useTeamList()
   const [searchParams, setSearchParams] = useSearchParams()
-  const activeTab = (searchParams.get('tab') as 'info' | 'schedule' | 'standings' | 'results') || 'schedule'
+  const activeTab = (searchParams.get('tab') as 'info' | 'schedule' | 'standings' | 'results') || 'info'
 
   if (competition && competition.rounds.length === 1) {
     return <Navigate to={`/events/${competition.id}/rounds/${competition.rounds[0].id}`} replace />

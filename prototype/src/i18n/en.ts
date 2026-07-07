@@ -304,6 +304,9 @@ export const en = {
     value: 'Value',
     season: 'This Season',
     allTime: 'All Time',
+    thisYear: 'This Year',
+    thisMonth: 'This Month',
+    selectGamePrompt: 'Please select a game to view standings',
   },
   notifications: {
     title: 'Notifications',

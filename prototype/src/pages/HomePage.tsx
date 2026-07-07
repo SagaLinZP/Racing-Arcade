@@ -3,21 +3,15 @@ import { useTranslation } from 'react-i18next'
 import { useLocale } from '@/hooks/useLocale'
 import { CompetitionCard } from '@/components/CompetitionCard'
 import { useHomeCompetitionHighlights, useCompetitionList } from '@/features/competitions/hooks'
-import { useDriverList } from '@/features/profile/hooks'
-import { useNewsList } from '@/features/news/hooks'
-import { ChevronRight, Radio, Zap } from 'lucide-react'
-import { getCoverGradient } from '@/shared/utils/eventVisuals'
+import { ChevronRight, Radio } from 'lucide-react'
 import { getCompetitionStatus } from '@/domain/status'
 
 export function HomePage() {
   const { t } = useTranslation()
-  const { text, field, date } = useLocale()
+  const { text } = useLocale()
 
   const competitions = useCompetitionList()
-  const drivers = useDriverList()
   const liveCompetitions = competitions.filter(c => getCompetitionStatus(c) === 'InProgress')
-  const topDrivers = [...drivers].sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 5)
-  const recentNews = useNewsList({ limit: 3 })
   const mixedItems = useHomeCompetitionHighlights()
 
   return (
@@ -65,84 +59,6 @@ export function HomePage() {
           {mixedItems.map(item => (
             <CompetitionCard key={item.competition.id} item={item} />
           ))}
-        </div>
-      </section>
-
-      <section className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">{t('home.latestNews')}</h2>
-              <Link to="/news" className="text-sm text-primary hover:underline flex items-center gap-1">
-                {t('home.viewAllNews')} <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {recentNews.map(n => (
-                <Link
-                  key={n.id}
-                  to={`/news/${n.id}`}
-                  className="flex gap-4 p-3 bg-card rounded-lg border border-border hover:border-primary/30 transition-colors group"
-                >
-                  <div className="w-24 h-16 rounded-md flex-shrink-0 flex items-center justify-center" style={{ background: getCoverGradient(n.id) }}>
-                    <Zap className="w-5 h-5 text-white/50" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm group-hover:text-primary transition-colors line-clamp-1">
-                      {field(n, 'title')}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                      {field(n, 'content')}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
-                      <span className="px-1.5 py-0.5 bg-accent rounded">{t(`news.categories.${n.category}`)}</span>
-                      <span>{date(n.publishedAt, { month: 'short', day: 'numeric' })}</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">{t('home.leaderboardPreview')}</h2>
-              <Link to="/leaderboard" className="text-sm text-primary hover:underline flex items-center gap-1">
-                {t('common.viewAll')} <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-            <div className="bg-card rounded-xl border border-border overflow-hidden">
-              {topDrivers.map((d, i) => (
-                <Link
-                  key={d.id}
-                  to={`/driver/${d.id}`}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors border-b border-border last:border-0"
-                >
-                  <span className={`w-7 text-center font-bold text-sm ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                    {i + 1}
-                  </span>
-                  <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center text-primary text-sm font-bold">
-                    {d.nickname[0]}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm">{d.nickname}</div>
-                    <div className="text-xs text-muted-foreground">{d.country}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-sm">{d.totalPoints}</div>
-                    <div className="text-xs text-muted-foreground">{t('driver.totalPoints')}</div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="max-w-7xl mx-auto px-4">
-        <div className="bg-card rounded-2xl border border-border p-8 text-center">
-          <h2 className="text-xl font-bold mb-2">{t('home.partner')}</h2>
-          <p className="text-muted-foreground text-sm">{t('home.partnerDesc')}</p>
         </div>
       </section>
     </div>

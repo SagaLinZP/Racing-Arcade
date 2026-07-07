@@ -4,13 +4,11 @@ import { useTranslation } from 'react-i18next'
 import { useApp } from '@/hooks/useAppStore'
 import { useLocale } from '@/hooks/useLocale'
 import {
-  Menu, X, ChevronDown, Bell, Globe, User, LogOut, Calendar,
+  Menu, X, ChevronDown, Bell, User, LogOut, Calendar,
   Newspaper, Flag, Users
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useNotificationList } from '@/features/notifications/hooks'
-
-const regions = ['CN', 'AP', 'AM', 'EU'] as const
 
 function useClickOutside(ref: React.RefObject<HTMLElement | null>, onClose: () => void) {
   useEffect(() => {
@@ -29,15 +27,12 @@ export function Navbar() {
   const notifications = useNotificationList()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [regionOpen, setRegionOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
 
-  const regionRef = useRef<HTMLDivElement>(null)
   const userRef = useRef<HTMLDivElement>(null)
   const notifRef = useRef<HTMLDivElement>(null)
 
-  useClickOutside(regionRef, () => setRegionOpen(false))
   useClickOutside(userRef, () => setUserMenuOpen(false))
   useClickOutside(notifRef, () => setNotifOpen(false))
 
@@ -80,33 +75,6 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="relative" ref={regionRef}>
-              <button
-                onClick={() => setRegionOpen(!regionOpen)}
-                className="flex items-center gap-1 px-2 py-1 text-sm text-muted-foreground hover:text-foreground rounded transition-colors"
-              >
-                <Globe className="w-4 h-4" />
-                <span className="hidden sm:inline">{state.currentRegion}</span>
-                <ChevronDown className="w-3 h-3" />
-              </button>
-              {regionOpen && (
-                <div className="absolute right-0 mt-1 w-40 bg-popover border border-border rounded-lg shadow-lg py-1">
-                  {regions.map(r => (
-                    <button
-                      key={r}
-                      onClick={() => { setState(s => ({ ...s, currentRegion: r })); setRegionOpen(false) }}
-                      className={cn(
-                        'w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors',
-                        state.currentRegion === r ? 'text-primary' : 'text-foreground'
-                      )}
-                    >
-                      {t(`region.${r}`)}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
             <button
               onClick={() => {
                 const newLang = state.language === 'en' ? 'zh' : 'en'
