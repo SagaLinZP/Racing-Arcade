@@ -1,4 +1,4 @@
-import type { Competition } from './competitions'
+import type { Competition, StageType } from './competitions'
 import type { GamePlatform } from './gamePlatforms'
 import type { Region } from './common'
 
@@ -8,6 +8,9 @@ export interface CompetitionCalendarEntry {
   roundName_zh: string
   roundName_en: string
   stageId: string
+  stageName_zh: string
+  stageName_en: string
+  stageType: StageType
   startsAt: string
   game: GamePlatform
   carClass: string
@@ -17,13 +20,16 @@ export interface CompetitionCalendarEntry {
   isMultiRound: boolean
 }
 
-function toEntry(comp: Competition, roundId: string, roundName_zh: string, roundName_en: string, stageId: string, startsAt: string, track?: string, trackLayout?: string): CompetitionCalendarEntry {
+function toEntry(comp: Competition, roundId: string, roundName_zh: string, roundName_en: string, stageId: string, stageName_zh: string, stageName_en: string, stageType: StageType, startsAt: string, track?: string, trackLayout?: string): CompetitionCalendarEntry {
   return {
     competition: comp,
     roundId,
     roundName_zh,
     roundName_en,
     stageId,
+    stageName_zh,
+    stageName_en,
+    stageType,
     startsAt,
     game: comp.game,
     carClass: comp.carClass,
@@ -39,9 +45,9 @@ export function getCompetitionCalendarEntries(competitions: Competition[]): Comp
   const entries: CompetitionCalendarEntry[] = []
   for (const comp of competitions) {
     for (const round of comp.rounds) {
-      const firstStage = round.stages[0]
-      if (!firstStage) continue
-      entries.push(toEntry(comp, round.id, round.name_zh, round.name_en, firstStage.id, firstStage.startsAt, round.track, round.trackLayout))
+      for (const stage of round.stages) {
+        entries.push(toEntry(comp, round.id, round.name_zh, round.name_en, stage.id, stage.name_zh, stage.name_en, stage.type, stage.startsAt, round.track, round.trackLayout))
+      }
     }
   }
   return entries
@@ -75,5 +81,5 @@ export function filterCalendarEntries(
 }
 
 export function calendarEntryLink(entry: CompetitionCalendarEntry): string {
-  return `/events/${entry.competition.id}/rounds/${entry.roundId}`
+  return `/events/${entry.competition.id}`
 }

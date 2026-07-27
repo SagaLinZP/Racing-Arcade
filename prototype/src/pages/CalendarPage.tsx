@@ -31,7 +31,7 @@ export function CalendarPage() {
   const { state } = useApp()
   const { isZh, field, text, date: formatDate, time } = useLocale()
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'list'>('month')
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1))
+  const [currentDate, setCurrentDate] = useState(new Date())
   const [gameFilter, setGameFilter] = useState<GamePlatform[]>([])
   const competitions = useCompetitionList()
 
@@ -80,9 +80,16 @@ export function CalendarPage() {
 
   const entryChip = (e: CompetitionCalendarEntry) => (
     <span className={cn('block px-1.5 py-0.5 rounded text-[10px] text-white truncate hover:opacity-80', gamePlatformColors[e.game] || 'bg-gray-500')}>
-      {field(e.competition, 'name')}
+      <span className="opacity-60">{field({ name_zh: e.stageName_zh, name_en: e.stageName_en }, 'name')}</span>{' '}
+      {field(e.competition, 'name')} · {field({ name_zh: e.roundName_zh, name_en: e.roundName_en }, 'name')}
     </span>
   )
+
+  const entryLabel = (e: CompetitionCalendarEntry) => {
+    const roundName = field({ name_zh: e.roundName_zh, name_en: e.roundName_en }, 'name')
+    const stageName = field({ name_zh: e.stageName_zh, name_en: e.stageName_en }, 'name')
+    return `${field(e.competition, 'name')} · ${roundName}（${stageName}）`
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -150,17 +157,31 @@ export function CalendarPage() {
                 const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
                 const dayEntries = getCalendarEntriesForDate(filteredEntries, date)
                 const isToday = new Date().toDateString() === date.toDateString()
+                const visibleEntries = dayEntries.slice(0, 3)
+                const hiddenEntries = dayEntries.slice(3)
                 return (
                   <div key={day} className={cn('min-h-24 border-b border-r border-border p-1', isToday && 'bg-primary/5')}>
                     <div className={cn('text-xs font-medium mb-1 px-1', isToday && 'text-primary font-bold')}>{day}</div>
-                    <div className="space-y-0.5">
-                      {dayEntries.slice(0, 3).map(e => (
+                    <div className="space-y-1">
+                      {visibleEntries.map(e => (
                         <Link key={`${e.roundId}-${e.stageId}`} to={calendarEntryLink(e)}>
                           {entryChip(e)}
                         </Link>
                       ))}
-                      {dayEntries.length > 3 && (
-                        <span className="text-[10px] text-muted-foreground px-1">+{dayEntries.length - 3} more</span>
+                      {hiddenEntries.length > 0 && (
+                        <div className="relative group cursor-default">
+                          <span className="text-[10px] text-muted-foreground px-1 hover:text-primary transition-colors">+{hiddenEntries.length} more</span>
+                          <div className="hidden group-hover:block absolute bottom-full left-0 mb-1 z-20 min-w-[200px] max-w-[280px] bg-popover border border-border rounded-lg shadow-lg p-1.5 space-y-1">
+                            {hiddenEntries.map(e => (
+                              <Link key={`${e.roundId}-${e.stageId}`} to={calendarEntryLink(e)} title={entryLabel(e)}>
+                                <span className={cn('block px-1.5 py-0.5 rounded text-[10px] text-white truncate', gamePlatformColors[e.game] || 'bg-gray-500')}>
+                                  <span className="opacity-60">{field({ name_zh: e.stageName_zh, name_en: e.stageName_en }, 'name')}</span>{' '}
+                                  {field(e.competition, 'name')} · {field({ name_zh: e.roundName_zh, name_en: e.roundName_en }, 'name')}
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
