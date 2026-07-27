@@ -164,7 +164,7 @@ export function CalendarPage() {
                     <div className={cn('text-xs font-medium mb-1 px-1', isToday && 'text-primary font-bold')}>{day}</div>
                     <div className="space-y-1">
                       {visibleEntries.map(e => (
-                        <Link key={`${e.roundId}-${e.stageId}`} to={calendarEntryLink(e)}>
+                        <Link key={`${e.roundId}-${e.stageId}`} to={calendarEntryLink(e)} className="block">
                           {entryChip(e)}
                         </Link>
                       ))}
